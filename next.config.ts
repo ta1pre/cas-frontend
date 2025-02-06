@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true, // ✅ Reactの厳密モードをON
+  compiler: {
+    emotion: true, // ✅ MUI の `emotion` を Next.js に統合
+  },
 };
 
 export default nextConfig;

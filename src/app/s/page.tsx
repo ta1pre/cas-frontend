@@ -5,8 +5,8 @@ import React from 'react';
 export default function DashboardPage() {
     return (
         <div>
-            <h1>ダッシュボード</h1>
-            <p>ここはダッシュボードのメインページです。</p>
+            <h1>パブリックページ</h1>
+            <p>ログインしてないからここに飛ばされてきました。</p>
         </div>
     );
 }

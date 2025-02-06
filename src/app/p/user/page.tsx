@@ -7,7 +7,7 @@ export default function UserPage() {
     <div>
       <Typography variant="h4">ユーザーページ</Typography>
       <Typography variant="body1">
-        このページは /dashboard/user で表示されます！
+        ユーザーページっす
       </Typography>
     </div>
   );
