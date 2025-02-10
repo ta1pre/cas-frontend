@@ -21,7 +21,7 @@ export function useTrackingId() {
             Cookies.set('tracking_id', urlTrackingId, { 
                 expires: 30,      // 🔄 7日間
                 secure: true,    // 🔒 HTTPSのみ
-                sameSite: 'lax'  // 🔄 クロスサイト保護
+                sameSite: 'None'  // 🔄 クロスサイト保護
             });
         } else {
             // 3️⃣ Cookieから `tracking_id` を取得

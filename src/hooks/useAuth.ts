@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { login } from '@/services/auth/authService';
 import { useTrackingId } from '@/hooks/useTrackingId';
-import { useAuth as useAuthContext } from '@/context/auth/AuthContext';
+import { useAuth as useAuthContext } from '@/context/auth/useAuth';  // ✅ 正しいインポート
 
 type AuthProvider = 'line' | 'phone' | 'email';
 
@@ -15,8 +15,7 @@ export function useAuth() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const trackingId = useTrackingId(); // LINEログイン用トラッキングID
-    const { handleTokenUpdate, login: contextLogin, logout, user } = useAuthContext();
-
+    const { login: contextLogin, logout, user } = useAuthContext();
     /**
      * 認証処理を実行
      */
@@ -56,7 +55,6 @@ export function useAuth() {
 
     return {
         handleLogin,
-        handleTokenUpdate,
         logout,
         loading,
         error,

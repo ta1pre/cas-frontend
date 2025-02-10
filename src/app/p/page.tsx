@@ -1,51 +1,30 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+"use client";
 import Link from 'next/link';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { fetchRefreshTokenExpiration } from '@/services/auth/authService';
-
-interface CustomJwtPayload extends JwtPayload {
-    sub?: string;
-    user_id?: string;
-    user_type?: string;
-    exp?: number;
-}
+import { useEffect } from "react";
+import { extendRefreshToken } from "@/hooks/cookies/extend_refresh_token";
 
 export default function DashboardPage() {
-    const [userInfo, setUserInfo] = useState<CustomJwtPayload | null>(null);
-    const [setupStatus, setSetupStatus] = useState<string | null>(null);
-    const [refreshTokenExp, setRefreshTokenExp] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
-
     useEffect(() => {
-        const fetchData = async () => {
+        const refresh = async () => {
             try {
-                // `refresh_token` の有効期限を取得
-                const expiration = await fetchRefreshTokenExpiration();
-                setRefreshTokenExp(expiration);
-            } catch (err: any) {
-                console.error('❌ `refresh_token` の取得に失敗:', err.message);
-                setError(err.message || 'エラーが発生しました。');
+                console.log("📡 `/extend_refresh_token` をリクエスト...");
+                await extendRefreshToken();
+                console.log("✅ トークンの更新成功");
+            } catch (error) {
+                console.error("❌ トークンの更新失敗:", error);
             }
         };
 
-        fetchData();
+        refresh();
     }, []);
 
     return (
         <div>
             <h1>ダッシュボード</h1>
-            {error && <p style={{ color: 'red' }}>❌ {error}</p>}
-
-            <h3>🔄 `refresh_token` 情報</h3>
-            <p><strong>有効期限 (`refresh_token`):</strong> {refreshTokenExp || '不明'}</p>
-
-            {/* ✅ 他のページへのリンク */}
             <h3>📌 他のページへ移動</h3>
-            <br /><br /><br /><br /><br />
             <ul>
                 <li><Link href="/p/cast">キャストのページ</Link></li>
+                <li>↑タップ</li>
             </ul>
         </div>
     );

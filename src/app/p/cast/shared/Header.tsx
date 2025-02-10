@@ -9,7 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import { useAuth } from '@/context/auth/AuthContext';
+import { useAuth } from '@/context/auth/useAuth';  // ✅ 正しいインポートパス
 import Link from 'next/link';
 
 export default function Header() {
