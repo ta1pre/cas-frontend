@@ -15,7 +15,7 @@ export default function CallbackPage() {
     
     if (token && !isTokenProcessed) {
         console.log('🔑 Token from URL:', token);
-        document.cookie = `token=${token}; path=/; max-age=3600; secure=false; samesite=lax`;
+        document.cookie = `token=${token}; path=/; max-age=3600; secure=True; samesite=None`;
         setIsTokenProcessed(true); // ✅ トークン処理済み
         router.replace('/p'); // ✅ replace により履歴を残さない
     }
