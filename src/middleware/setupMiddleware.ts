@@ -19,21 +19,21 @@ const getSetupStatus = async (token: string): Promise<string | null> => {
 };
 
 export async function setupMiddleware(request: NextRequest): Promise<NextResponse | void> {
-    console.log('🚀 [middleware.ts] Middleware Entry Point');
+    console.log('🚀 【setupMiddleware】 セットアップチェック開始');
 
     const pathname = request.nextUrl.pathname;
 
     // ✅ `/p/setup` 以下ではリダイレクトを行わない
     if (SETUP_SKIP_PATHS.some(path => pathname.startsWith(path))) {
-        console.log('✅ [middleware.ts] Skipping Setup Check for:', pathname);
+        console.log('✅ 【setupMiddleware】 Skipping Setup Check for:', pathname);
         return NextResponse.next();
     }
 
     // ✅ クッキーからトークンを取得
     const token = request.cookies.get('token')?.value;
     if (!token) {
-        console.log('⚠️ [middleware.ts] トークンが見つかりません');
-        return NextResponse.redirect(new URL('/login', request.url));
+        console.log('⚠️ 【setupMiddleware】 トークンが見つかりません');
+        return NextResponse.redirect(new URL('auth/login', request.url));
     }
     console.log('✅ Token Validated');
 

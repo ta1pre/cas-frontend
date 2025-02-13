@@ -3,7 +3,8 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2', // メインカラー（プライマリボタンなどに使用）
+      main: '#696969', // メインカラー（プライマリボタンなどに使用）
+      dark: '#808080', // ホバー時などに使用
     },
     secondary: {
       main: '#dc004e', // セカンダリカラー
