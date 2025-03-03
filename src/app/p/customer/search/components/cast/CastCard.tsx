@@ -26,7 +26,7 @@ const CastCard: React.FC<CastCardProps> = ({ cast }) => {
                 {cast.available_at ? (
                     <Typography variant="body2" className="text-green-500 text-center">🟢 今すぐOK</Typography>
                 ) : (
-                    <Typography variant="body2" className="text-gray-500 text-center">受付時間未設定</Typography>
+                    <Typography variant="body2" className="text-gray-500 text-center">受付中</Typography>
                 )}
             </CardContent>
         </Card>
