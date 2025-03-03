@@ -1,18 +1,17 @@
-// src/app/p/customer/search/page.tsx
 "use client";
 
 import { Container, Typography } from "@mui/material";
 import CastList from "./components/cast/CastList";
 import { useInfiniteScroll } from "./hooks/useInfiniteScroll";
 import { useSearch } from "./hooks/useSearch";
-import { FiltersStateProvider } from "./components/search_options/state/FiltersState"; // ✅ フィルターの状態管理
-import { FiltersProvider } from "./components/search_options/context/FiltersContext"; // ✅ フィルターの開閉管理
+import { FiltersStateProvider } from "./components/search_options/state/FiltersState"; 
+import { FiltersProvider } from "./components/search_options/context/FiltersContext"; 
 import SearchFilters from "./components/search_options/SearchFilters";
 
 export default function SearchPage() {
     return (
-        <FiltersStateProvider> {/* ✅ フィルターの状態管理 */}
-            <FiltersProvider> {/* ✅ フィルターの開閉管理 */}
+        <FiltersStateProvider>
+            <FiltersProvider>
                 <SearchPageContent />
             </FiltersProvider>
         </FiltersStateProvider>
@@ -20,23 +19,37 @@ export default function SearchPage() {
 }
 
 function SearchPageContent() {
-    const { casts, loading, error, sort, setSort, setOffset, hasMore } = useSearch(12);
+    const { casts, loading, error, sort, setSort, setOffset, hasMore, noResults } = useSearch(12);
     useInfiniteScroll(loading, setOffset, 12, hasMore);
 
     return (
-        <Container>
-            <Typography variant="h4" gutterBottom>キャスト検索</Typography>
+        <Container 
+            maxWidth="xl" // ✅ PC では幅広に
+            className="bg-green-100 min-h-screen px-0 sm:px-4 md:px-8 py-4 w-full" // ✅ スマホは余白なし
+        >
+            <Typography variant="h4" gutterBottom className="text-center">
+                キャスト検索
+            </Typography>
+
             {error && <Typography color="error">{error}</Typography>}
-            <CastList casts={casts} sort={sort} setSort={setSort} />
+
+            <CastList 
+                casts={casts} 
+                sort={sort} 
+                setSort={setSort} 
+                loading={loading} 
+                noResults={noResults}
+            />
+
             {loading && <Typography>ロード中...</Typography>}
-            
+
             {!hasMore && !loading && (
                 <Typography color="textSecondary" sx={{ textAlign: "center", mt: 3 }}>
                     すべてのキャストを表示しました
                 </Typography>
             )}
 
-            <SearchFilters setOffset={setOffset} /> {/* ✅ `setOffset` を渡す */}
+            <SearchFilters setOffset={setOffset} />
         </Container>
     );
 }

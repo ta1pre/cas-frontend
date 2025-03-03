@@ -1,8 +1,8 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 interface FiltersStateType {
     selectedFilters: Record<string, any>;
-    appliedFilters: Record<string, any>;  // ✅ 追加
+    appliedFilters: Record<string, any>;
     setSelectedFilters: React.Dispatch<React.SetStateAction<Record<string, any>>>;
     applyFilters: () => void;
     updateFilter: (key: string, value: any) => void;
@@ -14,27 +14,45 @@ export const FiltersStateContext = createContext<FiltersStateType | null>(null);
 
 export function FiltersStateProvider({ children }: { children: React.ReactNode }) {
     const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({});
-    const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});  // ✅ 追加
+    const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
 
     const updateFilter = (key: string, value: any) => {
-        setSelectedFilters((prev) => ({ ...prev, [key]: value }));
+        console.log(`🔄 [updateFilter] ${key} =`, value);
+        console.log("🔄 [updateFilter] 更新前:", selectedFilters);
+
+        setSelectedFilters((prev) => {
+            const newFilters = { ...prev, [key]: value };
+            return newFilters;
+        });
     };
 
     const resetFilters = () => {
+        console.log("🗑 [resetFilters] フィルターリセット:", selectedFilters);
         setSelectedFilters({});
     };
 
     const applyFilters = () => {
-        setAppliedFilters({ ...selectedFilters });  // ✅ `appliedFilters` にコピー
-        console.log("✅ フィルター適用！:", selectedFilters);
+        console.log("🔍 [applyFilters] 適用前: selectedFilters =", selectedFilters);
+        setAppliedFilters({ ...selectedFilters });
+        console.log("✅ [applyFilters] 適用後: appliedFilters =", { ...selectedFilters });
     };
+
+    // ✅ `selectedFilters` の変更を監視し、最新の状態をログに出力
+    useEffect(() => {
+        console.log("📡 [useEffect] 最新の selectedFilters:", selectedFilters);
+    }, [selectedFilters]);
+
+    // ✅ `selectedFilters` が変更されたら、強制的にリレンダリングする
+    useEffect(() => {
+        console.log("🖥️ [RE-RENDER] selectedFilters が変更されたため、UI を更新");
+    }, [selectedFilters]);
 
     const hasActiveFilters = Object.keys(selectedFilters).length > 0;
 
     return (
         <FiltersStateContext.Provider value={{
             selectedFilters,
-            appliedFilters,  // ✅ 追加
+            appliedFilters,
             setSelectedFilters,
             applyFilters,
             updateFilter,

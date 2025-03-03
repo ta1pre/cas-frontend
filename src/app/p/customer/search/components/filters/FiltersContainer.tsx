@@ -1,4 +1,3 @@
-// src/app/p/customer/search/components/search_options/filters/FiltersContainer.tsx
 import React, { useState } from "react";
 import { useFiltersState } from "../search_options/state/FiltersState";
 import { FilterUIComponents } from "./FilterUIComponents";
@@ -9,7 +8,7 @@ export default function FiltersContainer() {
     const { selectedFilters, updateFilter } = useFiltersState();
     const [selectedFilterKey, setSelectedFilterKey] = useState<string | null>(null);
 
-    // ✅ 選択されたフィルターのコンポーネントを取得（型エラー回避）
+    // ✅ 選択されたフィルターのコンポーネントを取得
     const SelectedComponent = selectedFilterKey ? FilterUIComponents[selectedFilterKey] : null;
 
     return (
@@ -58,8 +57,21 @@ export default function FiltersContainer() {
                 {SelectedComponent && selectedFilterKey && (
                     <SelectedComponent
                         filterKey={selectedFilterKey}
-                        value={selectedFilters[selectedFilterKey] ?? undefined} // ✅ `null` の場合は `undefined` を渡す
-                        onChange={(value: any) => updateFilter(selectedFilterKey!, value)}
+                        value={selectedFilters[selectedFilterKey] ?? undefined}
+                        onChange={(value: any) => {
+                            console.log(`🔍 フィルター変更: ${selectedFilterKey} =`, value);
+                            console.log("更新前の selectedFilters:", selectedFilters);
+                            
+                            updateFilter(selectedFilterKey!, value);
+                            
+                            console.log("更新後の selectedFilters:", { 
+                                ...selectedFilters, 
+                                [selectedFilterKey!]: value 
+                            });
+
+                            // ✅ 都道府県選択後に、現在のフィルター状態を表示
+                            console.log("現在のフィルター状態:", selectedFilters);
+                        }}
                     />
                 )}
             </Drawer>
