@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@mui/material';
+import { Button, SxProps, Theme } from '@mui/material';
 
 interface CustomButtonProps {
   onClick: () => void;
@@ -10,6 +10,7 @@ interface CustomButtonProps {
   color?: 'primary' | 'secondary' | 'error' | 'success';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 export default function CustomButton({

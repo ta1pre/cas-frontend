@@ -25,27 +25,43 @@ export default function LoginPage() {
 
     return (
         <Container 
-            maxWidth="sm" 
-            className="flex flex-col items-center justify-center min-h-screen p-4"
+            maxWidth="sm"
+            sx={{
+                minHeight: "100vh",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                overflow: "hidden", // ✅ スクロールなし
+                justifyContent: "flex-start", // ✅ タイトルを上1/3に
+            }}
         >
             {/* precasロゴ */}
             <Typography 
-                variant="h2" 
-                className="text-5xl transition-opacity duration-700"
-                style={{
+                variant="h2"
+                sx={{
                     fontFamily: '"Quicksand", sans-serif',
                     fontWeight: 500,
-                    color: '#FF6F61', // コーラルオレンジ
+                    color: "#FF6F61", // ✅ コーラルオレンジ
+                    marginTop: "33vh", // ✅ 上1/3に配置
                     opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0px)' : 'translateY(-10px)',
-                    transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
+                    transform: isVisible ? "translateY(0px)" : "translateY(-10px)",
+                    transition: "opacity 0.8s ease-out, transform 0.8s ease-out",
                 }}
             >
                 precas
             </Typography>
 
-            {/* ログインボタン */}
-            <Box className="absolute bottom-8 w-full flex justify-center px-6">
+            {/* ログインボタン（画面下部に固定） */}
+            <Box 
+                sx={{
+                    position: "absolute",
+                    bottom: "8px",
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    px: 6
+                }}
+            >
                 <AuthButton onClick={() => handleLogin('line')} loading={loading} />
             </Box>
         </Container>

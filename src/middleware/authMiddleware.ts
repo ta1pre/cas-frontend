@@ -24,6 +24,7 @@ export async function authMiddleware(request: NextRequest, token: string): Promi
         }
 
         console.log(`✅【authMiddleware.ts】 Token Validated - User ID: ${payload.sub}`);
+        console.log(`✅【authMiddleware.ts】 Token Validated - User TYPE: ${payload.user_type}`);
     } catch (error) {
         console.error("【authMiddleware.ts】⛔ JWT Verification Error:", error);
         return NextResponse.redirect(new URL("/auth/login", request.url));

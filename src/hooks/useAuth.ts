@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { login } from '@/services/auth/authService';
 import { useTrackingId } from '@/hooks/useTrackingId';
 import { useAuth as useAuthContext } from '@/context/auth/useAuth';  // ✅ 正しいインポート
 

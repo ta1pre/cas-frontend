@@ -4,6 +4,7 @@ export interface User {
     userId: number;
     userType: string | null;
     affiType: number | null;
+    token?: string;
 }
 
 export interface AuthContextType {

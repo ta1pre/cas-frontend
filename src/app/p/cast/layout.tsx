@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CssBaseline, Box } from '@mui/material';
-import Header from './shared/Header';
+import Header from './components/layout/Header';
 
 export default function CastLayout({ children }: { children: React.ReactNode }) {
   return (

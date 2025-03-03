@@ -1,48 +1,55 @@
 'use client';
 
-import React from 'react';
-import { useSetup } from '../../context/SetupContext';
-import CustomButton from '@/components/ui/CustomButton'; // ✅ `SetupFlow.tsx` で一括インポートするなら削除可
+import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
+import CustomButton from '@/components/ui/CustomButton';
+import { useSetupStorage } from '@/app/p/setup/hooks/storage/useSetupStorage';
+import { handleSelectGender } from '@/app/p/setup/hooks/logic/step/handleSelectGender';
 
 interface Props {
-    onNextStepMale: () => void;
-    onNextStepFemale: () => void;
+    onNextStep: (gender: 'male' | 'female') => void;
 }
 
-export default function SexSelectionStep({ onNextStepMale, onNextStepFemale }: Props) {
-    const { state, setGender, setUserType, updateProfileData, setSetupStatus } = useSetup();
+export default function SexSelectionStep({ onNextStep }: Props) {
+    const { getStorage } = useSetupStorage();
 
-    const handleSelectMale = () => {
-        setGender('male');
-        setUserType('customer');
-        updateProfileData({ gender: 'male', user_type: 'customer' });
-        setSetupStatus('customer_profile');
-        onNextStepMale();
+    // ✅ 初期値を `user_type` から取得
+    const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
+
+    useEffect(() => {
+        const storedUserType = getStorage('user_type');
+        if (storedUserType === 'customer') setSelectedGender('male');
+        if (storedUserType === 'cast') setSelectedGender('female');
+    }, []);
+
+    const [userType, setUserType] = useState<'customer' | 'cast' | null>(null);
+
+    const handleGenderSelection = (gender: 'male' | 'female') => {
+        setSelectedGender(gender);
+        handleSelectGender(gender, setUserType);  // ✅ `setUserType` を渡す
+        onNextStep(gender);
     };
 
-    const handleSelectFemale = () => {
-        setGender('female');
-        setUserType('cast');
-        updateProfileData({ gender: 'female', user_type: 'cast' });
-        setSetupStatus('cast_profile');
-        onNextStepFemale();
-    };
 
     return (
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Typography variant="h5" gutterBottom>
-                性別選択
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
-                <CustomButton onClick={handleSelectMale} label="男性" color="primary" />
-                <CustomButton onClick={handleSelectFemale} label="女性" color="secondary" variant="outlined" />
+        <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+            <Typography variant="h5" gutterBottom>性別選択</Typography>
+            <Box sx={{ display: "flex", gap: 3 }}>
+                <CustomButton 
+                    onClick={() => handleGenderSelection('male')} 
+                    label="男性" 
+                    color="primary" 
+                    variant={selectedGender === 'male' ? 'contained' : 'outlined'} 
+                    sx={{ minWidth: 120, padding: "12px 24px" }} 
+                />
+                <CustomButton 
+                    onClick={() => handleGenderSelection('female')} 
+                    label="女性" 
+                    color="secondary" 
+                    variant={selectedGender === 'female' ? 'contained' : 'outlined'} 
+                    sx={{ minWidth: 120, padding: "12px 24px" }} 
+                />
             </Box>
-
-            {/* ✅ デバッグ用：profileDataの内容を画面に表示 */}
-            <pre style={{ backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px', marginTop: '20px' }}>
-                {JSON.stringify(state.profileData, null, 2)}
-            </pre>
         </Box>
     );
 }

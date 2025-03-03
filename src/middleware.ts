@@ -1,50 +1,43 @@
-// File: /middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { authMiddleware } from "./middleware/authMiddleware";
 import { tokenMiddlewareLogic } from "./middleware/tokenMiddleware";
 
 export const config = {
-    matcher: ["/p/:path*"], // `/p/*` のみミドルウェアを適用
+    matcher: ["/p/:path*"], // `/p/` 以下のみミドルウェア適用
 };
 
 export default async function middleware(request: NextRequest) {
     console.log("🚀 【middleware.ts】ミドルウェア開始");
 
     const { pathname } = request.nextUrl;
-    console.log("📌 【middleware.ts】pathname:", pathname);
+    console.log("📌 【middleware.ts】 pathname:", pathname);
 
-    // ✅ `/p` 以外ならミドルウェアをスキップ
+    // ✅ `/p/` 以外はミドルウェア適用せずスキップ
     if (!pathname.startsWith("/p")) {
-        console.log("⏭️ 【middleware.ts】 `/p` 以外のためスキップ");
+        console.log("⏭️ 【middleware.ts】 `/p/` 以外のためスキップ");
         return NextResponse.next();
     }
 
-    let token: string | null = null;
     try {
-        console.log("🛠️ 【middleware.ts】 tokenMiddleware 実行");
-        token = await tokenMiddlewareLogic(request);
-        console.log("✅【middleware.ts】 tokenMiddleware 実行完了: ", token);
+        // ✅ トークン取得
+        console.log("🛠️ 【middleware.ts】 トークン取得処理開始");
+        const token = await tokenMiddlewareLogic(request);
 
         if (!token) {
-            console.warn("❌【middleware.ts】 token が取得できませんでした。リダイレクトします。");
+            console.warn("❌【middleware.ts】 トークンなし。ログインページへリダイレクト");
             return NextResponse.redirect(new URL("/auth/login", request.url));
         }
+        console.log("✅【middleware.ts】 トークン取得成功");
 
-        console.log("🛠️ 【middleware.ts】 authMiddleware 実行");
-
-        // ✅ `authMiddleware.ts` に `token` を直接渡す
+        // ✅ 認証処理
+        console.log("🛠️ 【middleware.ts】 認証チェック開始");
         const authResponse = await authMiddleware(request, token);
+
         if (authResponse) return authResponse;
-        console.log("✅【middleware.ts】 authMiddleware 実行完了");
+        console.log("✅【middleware.ts】 認証成功");
 
-    } catch (error) {
-        console.error("❌【middleware.ts】 Middleware Error:", error);
-        return NextResponse.redirect(new URL("/auth/login", request.url));
-    }
-
-    // ✅ 認証成功なら `token` をクッキーにセット
-    const response = NextResponse.next();
-    if (token) {
+        // ✅ 認証成功時にトークンをクッキーへセット
+        const response = NextResponse.next();
         response.cookies.set("token", token, {
             path: "/",
             secure: true,
@@ -52,8 +45,12 @@ export default async function middleware(request: NextRequest) {
             httpOnly: false,
             maxAge: 3600,
         });
-        console.log("✅【middleware.ts】 最終レスポンスに token クッキーをセットしました");
-    }
 
-    return response;
+        console.log("✅【middleware.ts】 クッキーにトークンをセット");
+        return response;
+
+    } catch (error) {
+        console.error("❌【middleware.ts】 エラー発生:", error);
+        return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
 }

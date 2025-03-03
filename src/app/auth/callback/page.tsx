@@ -3,7 +3,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function CallbackPage() {
     const router = useRouter();
@@ -15,8 +14,8 @@ export default function CallbackPage() {
         const refreshToken = searchParams.get('refresh_token'); // ✅ refresh_token も取得
 
         if (token && refreshToken && !isTokenProcessed) {
-            console.log('🔑 Token from URL:', token);
-            console.log('🔄 Refresh Token from URL:', refreshToken);
+            console.log('【コールバック】🔑 Token from URL:', token);
+            console.log('【コールバック】🔄 Refresh Token from URL:', refreshToken);
 
             // ✅ トークンをクッキーに保存
             document.cookie = `token=${token}; path=/; max-age=3600; secure=True; samesite=None`;

@@ -10,7 +10,7 @@ const theme = createTheme({
       main: '#dc004e', // セカンダリカラー
     },
     background: {
-      default: '#c2c1d4', // 🌟 背景色
+      default: '#fff', // 🌟 背景色
       paper: '#ffffff',   // 🌟 カードやダイアログの背景色
     },
     text: {

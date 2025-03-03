@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Box, TextField, Button, Typography } from '@mui/material';
 
 interface SMSVerificationStepProps {
     onNextStep: () => void;
-    onPrevStep: () => void;
+    onPrevStep?: () => void;
 }
 
 export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerificationStepProps) {
@@ -16,12 +17,10 @@ export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerif
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // ✅ 環境変数からAPIエンドポイントを読み込み
     const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/sms`;
-    const token = localStorage.getItem('token');  // ✅ 認証トークン（変更なし）
+    const token = localStorage.getItem('token');
 
     const formatPhoneNumber = (number: string) => {
-        // 先頭の0を+81に変換（例: 09012345678 → +819012345678）
         if (number.startsWith("0")) {
             return "+81" + number.slice(1);
         }
@@ -90,77 +89,65 @@ export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerif
     };
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h2>📱 SMS認証</h2>
-            <p>電話番号を入力し、SMSで受け取った認証コードを入力してください。</p>
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>📱 SMS認証</Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>電話番号を入力し、SMSで受け取った認証コードを入力してください。</Typography>
 
             {!isCodeSent ? (
                 <>
-                    <label>
-                        電話番号:
-                        <input
-                            type="tel"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            placeholder="例: 09012345678"
-                            style={{ display: 'block', margin: '10px 0', padding: '8px', width: '100%' }}
-                            disabled={isLoading}
-                        />
-                    </label>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                    {message && <p style={{ color: 'green' }}>{message}</p>}
-                    <button
+                    <TextField
+                        label="電話番号"
+                        variant="outlined"
+                        fullWidth
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="例: 09012345678"
+                        disabled={isLoading}
+                    />
+                    {error && <Typography color="error">{error}</Typography>}
+                    {message && <Typography color="success.main">{message}</Typography>}
+
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
                         onClick={handleSendCode}
                         disabled={isLoading}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#4caf50',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                        }}
                     >
                         {isLoading ? '送信中...' : '認証コードを送信'}
-                    </button>
+                    </Button>
                 </>
             ) : (
                 <>
-                    <label>
-                        認証コード:
-                        <input
-                            type="text"
-                            value={verificationCode}
-                            onChange={(e) => setVerificationCode(e.target.value)}
-                            placeholder="認証コードを入力"
-                            style={{ display: 'block', margin: '10px 0', padding: '8px', width: '100%' }}
-                            disabled={isLoading}
-                        />
-                    </label>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                    {message && <p style={{ color: 'green' }}>{message}</p>}
-                    <button
+                    <TextField
+                        label="認証コード"
+                        variant="outlined"
+                        fullWidth
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder="認証コードを入力"
+                        disabled={isLoading}
+                    />
+                    {error && <Typography color="error">{error}</Typography>}
+                    {message && <Typography color="success.main">{message}</Typography>}
+
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
                         onClick={handleVerifyCode}
                         disabled={isLoading}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#4caf50',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                        }}
                     >
                         {isLoading ? '認証中...' : '認証する'}
-                    </button>
+                    </Button>
                 </>
             )}
 
-            <div style={{ marginTop: '20px' }}>
-                <button onClick={onPrevStep} style={{ padding: '10px 20px' }} disabled={isLoading}>
-                    戻る
-                </button>
-            </div>
-        </div>
+            {/* ✅ 戻るボタン & スキップ（次へ）ボタン */}
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                <Button variant="outlined" color="secondary" onClick={onPrevStep} disabled={isLoading}>戻る</Button>
+                <Button variant="contained" color="success" onClick={onNextStep}>次へ（スキップ）</Button>
+            </Box>
+        </Box>
     );
 }

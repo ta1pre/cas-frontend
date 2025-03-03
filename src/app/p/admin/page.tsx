@@ -1,65 +1,73 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { useEffect, useState } from "react";
+import { Button, Container, Typography, Box, TextField } from "@mui/material";
+import { fetchAPI } from "@/services/auth/axiosInterceptor"; // ✅ `fetchAPI()` を使う
+import Cookies from "js-cookie"; // ✅ クッキー操作用ライブラリ
 
-interface CustomJwtPayload extends JwtPayload {
-    sub?: string; // サブジェクトとしてユーザーIDが入る
-    user_id?: string; // 明示的なユーザーID
-    user_type?: string;
-    exp?: number;
-}
+export default function AdminTestLoginPage() {
+    const [userId, setUserId] = useState(""); // ✅ ユーザーID入力用の状態
+    const [testResult, setTestResult] = useState(null);
 
-export default function DashboardPage() {
-    const [userInfo, setUserInfo] = useState<CustomJwtPayload | null>(null);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        try {
-            const token = document.cookie
-                .split('; ')
-                .find((row) => row.startsWith('token='))
-                ?.split('=')[1];
-
-            console.log('🔑 Token from Cookie:', token);
-
-            if (!token) {
-                throw new Error('トークンが存在しません。ログインしてください。');
-            }
-
-            const decoded = jwt.decode(token) as CustomJwtPayload;
-
-            console.log('✅ Decoded Token:', decoded);
-
-            if (!decoded || (!decoded.user_id && !decoded.sub)) {
-                throw new Error('トークンにユーザーIDが含まれていません。');
-            }
-
-            setUserInfo({
-                user_id: decoded.user_id || decoded.sub, // user_id がなければ sub を使用
-                user_type: decoded.user_type,
-                exp: decoded.exp,
-            });
-        } catch (err: any) {
-            setError(err.message || 'エラーが発生しました。');
+    const handleLogin = async () => {
+        if (!userId) {
+            console.error("⚠️ ユーザーIDを入力してください");
+            return;
         }
-    }, []);
+        console.log("✅ page.tsx で `POST /api/v1/admin/test-login/login` を実行", { user_id: userId });
+
+        try {
+            const response = await fetchAPI("/api/v1/admin/test-login/login", { user_id: parseInt(userId, 10) });
+            console.log("✅ API のレスポンス:", response);
+            
+            // ✅ `refresh_token` を適切に保存
+            Cookies.set("refresh_token", response.refresh_token, { expires: 7, secure: true, sameSite: "Strict" });
+            
+            // ✅ `token` を適切に保存
+            Cookies.set("token", response.access_token, { expires: 1, secure: true, sameSite: "Strict" });
+            
+            // ✅ グローバルな認証状態を更新
+            globalThis.user = { token: response.access_token, userId };
+            
+            setTestResult(response);
+        } catch (error) {
+            console.error("❌ API エラー:", error);
+        }
+    };
 
     return (
-        <div>
-            <h1>ダッシュボード</h1>
-            {error && <p style={{ color: 'red' }}>❌ {error}</p>}
+        <Container 
+            maxWidth="sm" 
+            sx={{
+                minHeight: "100vh", 
+                display: "flex", 
+                flexDirection: "column", 
+                justifyContent: "center",
+                py: 6, 
+                px: 4, 
+                bgcolor: "background.default"
+            }}
+        >
+            <Typography variant="h5" component="h1" sx={{ fontWeight: "bold", textAlign: "center" }}>
+                Admin Test Login
+            </Typography>
 
-            {userInfo ? (
-                <div>
-                    <h3>🔑 ログイン情報</h3>
-                    <p><strong>ユーザーID:</strong> {userInfo.user_id || '不明'}</p>
-                    <p><strong>ユーザータイプ:</strong> {userInfo.user_type || '不明'}</p>
-                    <p><strong>トークン有効期限:</strong> {userInfo.exp ? new Date(userInfo.exp * 1000).toLocaleString() : '不明'}</p>
-                </div>
-            ) : (
-                !error && <p>ユーザー情報を読み込み中...</p>
-            )}
-        </div>
+            <Box sx={{ mt: 4, textAlign: "center" }}>
+                <TextField 
+                    label="ユーザーID" 
+                    variant="outlined" 
+                    fullWidth 
+                    value={userId} 
+                    onChange={(e) => setUserId(e.target.value)} 
+                    sx={{ mb: 2 }}
+                />
+                <Button variant="contained" onClick={handleLogin} fullWidth>
+                    テストログイン
+                </Button>
+                <Typography variant="body1" sx={{ mt: 2 }}>
+                    🛠 API テスト結果: {testResult ? JSON.stringify(testResult) : "未実行"}
+                </Typography>
+            </Box>
+        </Container>
     );
 }
