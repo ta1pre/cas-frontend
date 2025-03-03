@@ -17,6 +17,7 @@ export interface Cast {
     job?: string;
     reservation_fee?: number;
     rating?: number;
+    self_introduction?: string;
     popularity?: number;
     available_at?: string;
     profile_image_url?: string;
