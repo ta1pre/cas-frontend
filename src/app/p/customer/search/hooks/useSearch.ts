@@ -16,9 +16,19 @@ export function useSearch(limit: number) {
     
     // ✅ スクロール位置を管理する `useRef`
     const prevScrollY = useRef<number>(0);
+    const resetScroll = useRef<boolean>(false); // ✅ 並び替え・絞り込み時のスクロールリセットフラグ
 
     const fetchCasts = async (reset: boolean = false) => {
         if (loading) return;
+
+        if (!reset) {
+            // ✅ スクロール位置を保存（無限スクロール時のみ）
+            prevScrollY.current = window.scrollY;
+        } else {
+            // ✅ 絞り込み・並び替え時はスクロール位置をリセット
+            prevScrollY.current = 0;
+        }
+
         setLoading(true);
         setError(null);
         setNoResults(false);
@@ -53,33 +63,44 @@ export function useSearch(limit: number) {
         } finally {
             setLoading(false);
 
-            // ✅ データ追加後にスクロール位置を復元（100ms 遅延）
-            setTimeout(() => {
-                window.scrollTo(0, prevScrollY.current);
-                console.log("🛑 スクロール位置を復元:", prevScrollY.current);
-            }, 100);
+            // ✅ 並び替え・絞り込みをした場合、強制的に最上部へスクロール
+            if (resetScroll.current) {
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    console.log("🛑 並び替え・絞り込み後に最上部へリセット");
+                }, 100);
+                resetScroll.current = false; // ✅ フラグを解除
+            } else {
+                // ✅ 無限スクロール時のみスクロール位置を復元
+                setTimeout(() => {
+                    window.scrollTo(0, prevScrollY.current);
+                    console.log("🛑 スクロール位置を復元:", prevScrollY.current);
+                }, 100);
+            }
         }
     };
 
     useEffect(() => {
-        // ✅ スクロール位置を保存（データ取得前）
-        prevScrollY.current = window.scrollY;
         fetchCasts();
-    }, [offset]); // ✅ `offset` の変更で発火
+    }, [offset]); // ✅ `offset` の変更で発火（無限スクロール）
 
     useEffect(() => {
         console.log("🔄 並び替えが変更されたため、リストをリセット");
+        resetScroll.current = true; // ✅ スクロールリセットフラグを設定（最上部に戻す）
         setCasts([]);
         setOffset(0);
         setHasMore(true);
-        window.scrollTo(0, 0); // ✅ 並び替え時は最上部に戻す
-        fetchCasts(true); // ✅ 並び替え時に即時データ取得
-    }, [sort]); // ✅ `sort` の変更で発火
+        fetchCasts(true);
+    }, [sort]); // ✅ `sort` の変更で発火（並び替え時）
 
     useEffect(() => {
+        console.log("🔍 フィルター適用時: `setOffset(0)`, `fetchCasts(true)` を実行");
+        resetScroll.current = true; // ✅ スクロールリセットフラグを設定（最上部に戻す）
+        setCasts([]);
         setOffset(0);
         setHasMore(true);
-    }, [appliedFilters.location]);
+        fetchCasts(true);
+    }, [appliedFilters]); // ✅ `appliedFilters` の変更で発火（フィルター適用時）
 
     useEffect(() => {
         console.log("📡 [useEffect] 最新の casts:", casts);

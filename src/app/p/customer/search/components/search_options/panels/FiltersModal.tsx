@@ -1,5 +1,4 @@
-// src/app/p/customer/search/components/search_options/panels/FiltersModal.tsx
-import { Drawer, Box, Typography, IconButton, Button } from "@mui/material";
+import { Drawer, Box, IconButton, Button, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useFilters } from "../context/FiltersContext";
 import { useFiltersState } from "../state/FiltersState";
@@ -24,34 +23,32 @@ export default function FiltersModal({ setOffset }: FiltersModalProps) {
                     borderTopRightRadius: "20px",
                     padding: "16px",
                     backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    backdropFilter: "blur(10px)",
+                    backdropFilter: "blur(12px)",
+                    width: "100%",
+                    maxWidth: "500px", // ✅ PC での見栄え調整
+                    margin: "0 auto",
                 },
             }}
         >
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h6" className="font-bold">絞り込み</Typography>
+            {/* クローズボタンのみ */}
+            <Box display="flex" justifyContent="flex-end">
                 <IconButton onClick={closeFilters} size="small">
                     <CloseIcon />
                 </IconButton>
             </Box>
 
-            {/* ✅ 絞り込みフィルター UI を統合 */}
-            <FiltersContainer />
+            {/* フィルターエリア */}
+            <Box className="py-4">
+                <FiltersContainer />
+            </Box>
 
-            <Box mt={3} display="flex" justifyContent="space-between">
+            <Divider />
+
+            {/* ボタンエリア */}
+            <Box mt={4} className="px-4 pb-4 flex flex-col gap-6"> {/* ✅ `gap-6` でしっかり間隔を開ける */}
                 <Button 
-                    variant="outlined" 
-                    onClick={() => {
-                        resetFilters();
-                        applyFilters();
-                        setOffset(0);
-                    }}
-                >
-                    リセット
-                </Button>
-                <Button 
-                    variant="contained" 
-                    color="primary" 
+                    variant="contained"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white"
                     onClick={() => {
                         applyFilters();
                         setOffset(0);
@@ -59,6 +56,18 @@ export default function FiltersModal({ setOffset }: FiltersModalProps) {
                     }}
                 >
                     この条件で検索
+                </Button>
+                <Button 
+                    variant="outlined"
+                    color="secondary"
+                    className="w-full border-gray-500 text-gray-700 hover:bg-gray-100"
+                    onClick={() => {
+                        resetFilters();
+                        applyFilters();
+                        setOffset(0);
+                    }}
+                >
+                    リセット
                 </Button>
             </Box>
         </Drawer>
