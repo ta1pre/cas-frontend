@@ -1,6 +1,6 @@
 // src/app/p/customer/search/components/cast/CastCard.tsx
 import React from "react";
-import { Cast } from "../../api/cast/getCasts";
+import { Cast } from "../../api/cast/castTypes";
 
 interface CastCardProps {
     cast: Cast;

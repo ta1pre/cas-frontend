@@ -1,17 +1,16 @@
-// src/app/p/customer/search/hooks/useInfiniteScroll.ts
-import { useEffect } from "react";
+import { useEffect, Dispatch, SetStateAction } from "react";
 
 /**
  * 無限スクロール用のカスタムフック
  */
 export function useInfiniteScroll(
     loading: boolean,
-    setOffset: React.Dispatch<React.SetStateAction<number | null>>,
+    setOffset: Dispatch<SetStateAction<number>>, // ✅ `null` を含まない
     limit: number,
     hasMore: boolean
 ) {
     useEffect(() => {
-        if (!hasMore) return; // ✅ データがもうないなら発火しない
+        if (!hasMore && !loading) return; // ✅ データがないときも `setOffset()` をリセットできるように修正
 
         let timer: NodeJS.Timeout | null = null;
 
@@ -35,5 +34,5 @@ export function useInfiniteScroll(
             if (timer) clearTimeout(timer);
             window.removeEventListener("scroll", handleScroll);
         };
-    }, [loading, hasMore]);
+    }, [loading]); // ✅ `hasMore` を依存から外し、スクロール処理を止めない
 }

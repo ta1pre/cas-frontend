@@ -7,6 +7,7 @@ import { fetchAPI } from "@/services/auth/axiosInterceptor"; // ✅ `fetchAPI()`
 export default function DashboardPage() {
     const user = globalThis.user ?? null; // ✅ `globalThis.user` から取得！
     const [testResult, setTestResult] = useState(null);
+    const [prefecture, setPrefecture] = useState<number | null>(null); // ✅ 取得した都道府県IDを保存
 
     useEffect(() => {
         const testAPI = async () => {
@@ -18,8 +19,20 @@ export default function DashboardPage() {
             setTestResult(response);
         };
 
+        const fetchPrefecture = async () => {
+            console.log("✅ page.tsx で `POST /api/v1/customer/search/user/prefecture` を実行");
+
+            const response = await fetchAPI("/api/v1/customer/search/user/prefecture", { user_id: user?.userId });
+
+            console.log("✅ ユーザー都道府県 API のレスポンス:", response);
+            if (response?.prefecture) {
+                setPrefecture(response.prefecture);
+            }
+        };
+
         if (user) {
             testAPI();
+            fetchPrefecture(); // ✅ ユーザーの都道府県も取得
         }
     }, [user]);
 
@@ -48,6 +61,7 @@ export default function DashboardPage() {
                         <Typography variant="body1">👤 ユーザーID: {user.userId}</Typography>
                         <Typography variant="body1">🔑 トークン: {user.token || "N/A"}</Typography>
                         <Typography variant="body1">🛠 API テスト結果: {testResult ? JSON.stringify(testResult) : "取得中..."}</Typography>
+                        <Typography variant="body1">🌍 都道府県ID: {prefecture !== null ? prefecture : "取得中..."}</Typography>
                     </>
                 ) : (
                     <Typography variant="body1" color="error">ログインしていません</Typography>

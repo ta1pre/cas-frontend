@@ -1,8 +1,8 @@
 // src/app/p/customer/search/components/cast/CastList.tsx
 import React from "react";
 import CastCard from "./CastCard";
-import CastFilters from "../filters/CastFilters";  // ✅ `CastFilters` を追加
-import { Cast } from "../../api/cast/getCasts";
+import CastFilters from "../sort/CastSort";  
+import { Cast } from "../../api/cast/castTypes";
 
 interface CastListProps {
     casts: Cast[];

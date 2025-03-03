@@ -1,60 +1,62 @@
-// src/app/p/customer/search/hooks/useSearch.ts
 import { useState, useEffect } from "react";
-import { getCasts, Cast } from "../api/cast/getCasts";
+import { getCasts } from "../api/cast/getCasts";
+import { Cast } from "../api/cast/castTypes";
+import { transformFilters } from "../api/cast/transformFilters"; 
+import { useFiltersState } from "../components/search_options/state/FiltersState";
 
-/**
- * 検索データ管理用のカスタムフック
- */
 export function useSearch(limit: number) {
+    const { appliedFilters } = useFiltersState();
     const [casts, setCasts] = useState<Cast[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [offset, setOffset] = useState<number | null>(null); // ✅ 初回は `null`
-    const [sort, setSort] = useState<string>("recommended"); // ✅ デフォルトを "おすすめ順" に変更
-    const [hasMore, setHasMore] = useState<boolean>(true); // ✅ `true` で初期化
+    const [offset, setOffset] = useState<number>(0);  // ✅ `number` 型で統一
+    const [sort, setSort] = useState<string>("recommended");
+    const [hasMore, setHasMore] = useState<boolean>(true);
 
-    // ✅ 初回ロード（最初の `offset` をセット）
     useEffect(() => {
-        if (offset !== null) return; // ✅ `offset` が `null` なら初回実行
-
-        setOffset(0); // ✅ 最初の `offset` を `0` にセット
-    }, []);
-
-    // ✅ `offset` が `null` でない場合にのみ `fetchCasts()` を実行
-    useEffect(() => {
-        if (offset === null || loading || !hasMore) return; // ✅ `offset === null` のときは実行しない
+        if (loading || !hasMore) return;  // ✅ `offset === null` のチェック不要
 
         async function fetchCasts() {
+            setLoading(true);
+            setError(null);
+            const filters = transformFilters(appliedFilters);
+            console.log("📡 APIリクエスト:", { limit, offset, sort, filters });
+
             try {
-                setLoading(true);
-                console.log("【useSearch】📡 APIリクエスト: limit =", limit, "offset =", offset, "sort =", sort);
+                const response = await getCasts(limit, offset, sort, filters);
 
-                const response = await getCasts(limit, offset ?? 0, sort); // ✅ `null` の場合は `0`
-                if (!response) throw new Error("キャスト情報の取得に失敗しました。");
-
-                if (response.length === 0) {
-                    console.warn("【useSearch】⚠️ 取得データなし（全件取得済み）");
+                if (!response || response.length === 0) {
+                    if (offset === 0) {
+                        setCasts([]); // ✅ 初回検索時のみ 0 件表示
+                    }
                     setHasMore(false);
-                    return;
+                } else {
+                    setCasts((prev) => {
+                        // ✅ `sort` が変わった場合は新しいデータでリセット
+                        if (offset === 0) {
+                            return response;
+                        }
+                        // ✅ `id` の重複を防ぐ
+                        const uniqueCasts = [...prev, ...response].reduce((acc, cast) => {
+                            if (!acc.some((item) => item.cast_id === cast.cast_id)) {
+                                acc.push(cast);
+                            }
+                            return acc;
+                        }, [] as Cast[]);
+                        return uniqueCasts;
+                    });
+                    setHasMore(response.length === limit);
                 }
-
-                setCasts((prev) => [...prev, ...response]);
             } catch (err) {
                 setError("キャスト情報の取得に失敗しました。");
+                console.error("🚨 APIエラー:", err);
             } finally {
                 setLoading(false);
             }
         }
 
         fetchCasts();
-    }, [offset, sort]);
+    }, [offset, sort, appliedFilters]); // ✅ `sort` を依存に追加
 
-    // ✅ `sort` が変更されたらリストをリセットして再取得
-    useEffect(() => {
-        setCasts([]);  // ✅ 並べ替え時にリストをリセット
-        setOffset(0);  // ✅ `offset` もリセットして最初から取得
-        setHasMore(true); // ✅ `hasMore` を `true` に戻す（全件取得リセット）
-    }, [sort]);
-
-    return { casts, loading, error, sort, setSort, setOffset, hasMore };
+    return { casts, loading, error, sort, setSort, setOffset, hasMore, offset };
 }

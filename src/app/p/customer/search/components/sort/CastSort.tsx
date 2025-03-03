@@ -1,4 +1,5 @@
-// src/app/p/customer/search/components/filters/CastFilters.tsx
+// src/app/p/customer/search/components/sort/CastSort.tsx
+
 interface CastFiltersProps {
     sort: string;
     setSort: (value: string) => void;

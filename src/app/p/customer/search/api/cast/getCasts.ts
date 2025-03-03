@@ -1,27 +1,22 @@
 // src/app/p/customer/search/api/cast/getCasts.ts
 import { fetchAPI } from "@/services/auth/axiosInterceptor";
+import { Cast, APIFilters } from "./castTypes";
+import { transformFilters } from "./transformFilters";  // ✅ フィルター変換をimport
 
-export interface Cast {
-    cast_id: number;
-    name: string;
-    age: number;
-    height?: number;
-    bust?: number;
-    waist?: number;
-    hip?: number;
-    cup?: string;
-    birthplace?: string;
-    support_area?: string;
-    blood_type?: string;
-    hobby?: string;
-    job?: string;
-    reservation_fee?: number;
-    rating?: number;
-    popularity?: number;
-    available_at?: string;
-    profile_image_url?: string;
-}
+export async function getCasts(
+    limit: number,
+    offset: number,
+    sort: string,
+    filters?: APIFilters
+): Promise<Cast[]> {
+    const transformedFilters = transformFilters(filters);  // ✅ 変換処理を外部関数に
 
-export async function getCasts(limit: number, offset: number, sort: string): Promise<Cast[]> {
-    return await fetchAPI("/api/v1/customer/search/", { limit, offset, sort });
+    console.log("【getCasts.ts】🚀 送信するAPIパラメータ:", { limit, offset, sort, transformedFilters });
+
+    return await fetchAPI("/api/v1/customer/search/", {
+        limit,
+        offset,
+        sort,
+        filters: transformedFilters,  // ✅ 変換済みフィルターをAPIへ送信
+    });
 }
