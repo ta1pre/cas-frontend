@@ -25,12 +25,8 @@ function SearchPageContent() {
     return (
         <Container 
             maxWidth="xl" // ✅ PC では幅広に
-            className="bg-green-100 min-h-screen px-0 sm:px-4 md:px-8 py-4 w-full" // ✅ スマホは余白なし
+            className="bg-white min-h-screen px-0 sm:px-4 md:px-8 py-4 w-full" // ✅ スマホは余白なし
         >
-            <Typography variant="h4" gutterBottom className="text-center">
-                キャスト検索
-            </Typography>
-
             {error && <Typography color="error">{error}</Typography>}
 
             <CastList 
