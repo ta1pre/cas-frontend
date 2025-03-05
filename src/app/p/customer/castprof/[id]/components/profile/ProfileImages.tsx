@@ -1,47 +1,44 @@
-// src/app/p/customer/castprof/[id]/components/profile/ProfileImages.tsx
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { Box } from "@mui/material";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Zoom } from "swiper/modules";
 
 interface ProfileImagesProps {
     images: { url: string; order_index: number }[];
+    fullWidth?: boolean;
 }
 
-export default function ProfileImages({ images }: ProfileImagesProps) {
-    const [error, setError] = useState(false);
-
-    // メイン画像 (order_index === 0) or 最初の画像
-    const mainImage = useMemo(() => {
-        if (images.length === 0) return "/default-avatar.png";
-        const firstImage = images.find(img => img.order_index === 0) || images[0];
-        return firstImage.url;
-    }, [images]);
-
-    // サムネイル画像 (order_index > 0)
-    const thumbnails = useMemo(() => images.filter(img => img.order_index > 0), [images]);
-
+export default function ProfileImages({ images, fullWidth = false }: ProfileImagesProps) {
     return (
-        <Box className="p-4">
-            {/* メイン画像 */}
-            <img
-                src={error ? "/default-avatar.png" : mainImage}
-                alt="メイン画像"
-                className="w-full h-auto object-cover rounded"
-                onError={() => setError(true)}
-            />
-
-            {/* サムネイルリスト */}
-            {thumbnails.length > 0 && (
-                <Box className="flex gap-2 mt-2">
-                    {thumbnails.map((image) => (
-                        <img
-                            key={image.order_index}
-                            src={image.url}
-                            alt="サムネイル画像"
-                            className="w-16 h-16 object-cover rounded cursor-pointer"
-                        />
-                    ))}
-                </Box>
-            )}
+        <Box className={fullWidth ? "w-full h-[75vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh] overflow-hidden" : "p-4"}> {/* ✅ 画像のサイズを縦長(3:4)に調整 */}
+            <Swiper
+                modules={[Navigation, Pagination, Zoom]}
+                navigation
+                pagination={{ clickable: true }}
+                zoom={true}
+                spaceBetween={10}
+                slidesPerView={1}
+                className="w-full h-full"
+                style={{ 
+                    ["--swiper-navigation-color" as any]: "rgba(255,255,255,0.8)", 
+                    ["--swiper-pagination-color" as any]: "rgba(255,255,255,0.8)" 
+    }}
+            >
+                {images.length > 0 ? (
+                    images.map((image, index) => (
+                        <SwiperSlide key={index}>
+                            <img src={image.url} className="w-full h-full object-cover cursor-pointer" />
+                        </SwiperSlide>
+                    ))
+                ) : (
+                    <SwiperSlide>
+                        <img src="/default-avatar.png" className="w-full h-full object-cover" />
+                    </SwiperSlide>
+                )}
+            </Swiper>
         </Box>
     );
 }

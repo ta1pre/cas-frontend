@@ -1,24 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Container } from "@mui/material";
-import CastProfileModal from "./CastProfileModal";
+import React from "react";
+import { Box } from "@mui/material";
 
 export default function CastProfilePage() {
-    const [isOpen, setIsOpen] = useState(false);
-    const castId = 181; // ✅ 仮で「181」を渡す
-
     return (
-        <Container>
-            <Button variant="contained" onClick={() => setIsOpen(true)}>
-                プロフィールを開く (castId: 181)
-            </Button>
-
-            <CastProfileModal
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                castId={castId} // ✅ `castId=181` を渡す
+        <Box 
+            className="w-full h-screen bg-green-500 flex justify-center items-center overflow-hidden"
+        >
+            <img 
+                src="https://8c0b37dc5a6a.ngrok.app/images/dummy_img/001.jpg" 
+                alt="Profile Background" 
+                className="w-full h-full object-cover"
             />
-        </Container>
+        </Box>
     );
 }

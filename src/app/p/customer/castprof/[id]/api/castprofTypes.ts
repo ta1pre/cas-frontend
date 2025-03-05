@@ -1,6 +1,24 @@
+// src/app/p/customer/castprof/[id]/api/castprofTypes.ts
+
 export interface ImageData {
     url: string;
     order_index: number;
+}
+
+// ✅ キャストの特徴（Traits）
+export interface Trait {
+    id: number;
+    name: string;
+    category: string;
+    weight: number;
+}
+
+// ✅ キャストのサービス種別（Service Types）
+export interface ServiceType {
+    id: number;
+    name: string;
+    category: string;
+    weight: number;
 }
 
 export interface CastProfileResponse {
@@ -28,4 +46,6 @@ export interface CastProfileResponse {
     is_active?: number | null;
     available_at?: string | null;
     images: ImageData[];
+    traits: Trait[];
+    service_types: ServiceType[];
 }

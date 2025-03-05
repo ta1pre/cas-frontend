@@ -2,7 +2,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Container, CircularProgress } from "@mui/material";
+import { Container, CircularProgress, Box } from "@mui/material";
 import CastProfile from "./components/profile/CastProfile";
 import { useProfile } from "./hooks/useProfile";
 import ErrorMessage from "./components/common/ErrorMessage"; // ✅ 修正後の `ErrorMessage.tsx` を使用
@@ -18,8 +18,6 @@ export default function CastProfilePage() {
     if (!profile) return <ErrorMessage message="キャストが見つかりません" />;
 
     return (
-        <Container maxWidth="md">
-            <CastProfile profile={profile} />
-        </Container>
+        <CastProfile profile={profile} />
     );
 }
