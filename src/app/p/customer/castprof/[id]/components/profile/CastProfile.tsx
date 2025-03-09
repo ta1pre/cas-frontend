@@ -6,6 +6,8 @@ import ProfileImages from "./ProfileImages";
 import ProfileDetails from "./ProfileDetails"; // ✅ 追加
 import { prefectureMap } from "@/app/p/customer/search/config/prefectures";
 import EastIcon from '@mui/icons-material/East';
+import OfferButton from "@/app/p/customer/offer/components/button/OfferButton";
+
 
 interface CastProfileProps {
     profile: CastProfileResponse;
@@ -49,33 +51,17 @@ export default function CastProfile({ profile }: CastProfileProps) {
         <Typography variant="h6" className="text-pink-600 font-bold">
             {new Date(profile.available_at).getHours()}時{new Date(profile.available_at).getMinutes()}分から待機中！
         </Typography>
-        {/* ボタン */}
-        <Button
-            variant="contained"
-            fullWidth
-            sx={{
-                backgroundColor: "#ec4899",
-                "&:hover": { backgroundColor: "#db2777" },
-                borderRadius: "9999px",
-                padding: "12px 24px",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                textTransform: "none",
-                marginTop: "16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between"
-            }}
-        >
-            <span style={{ flex: 1, textAlign: "center" }}>今すぐ簡単リクエスト</span>
-            <EastIcon />
-        </Button>
+
+        {/* ✅ OfferButton に置き換え */}
+        <OfferButton castId={profile.cast_id} type="first" />
+
         {/* 予約確定までポイント消費なし */}
         <Typography variant="body2" className="text-pink-600 font-bold" style={{ marginTop: "24px" }}>
             予約確定までポイント消費はありません
         </Typography>
     </Box>
 )}
+
 
 
 

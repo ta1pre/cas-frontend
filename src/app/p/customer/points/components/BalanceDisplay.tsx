@@ -24,9 +24,9 @@ export default function BalanceDisplay() {
             <h2 className="text-xl font-semibold">💳 あなたのポイント残高</h2>
             {points ? (
                 <div className="mt-2">
-                    <p>🟢 通常ポイント: <strong>{points.regular_points}</strong></p>
-                    <p>🔵 ボーナスポイント: <strong>{points.bonus_points}</strong></p>
-                    <p>💰 合計ポイント: <strong className="text-lg text-green-600">{points.total_points}</strong></p>
+                    <p>🟢 通常ポイント: <strong>{points.regular_points.toLocaleString()}</strong></p>
+                    <p>🔵 ボーナスポイント: <strong>{points.bonus_points.toLocaleString()}</strong></p>
+                    <p>💰 合計ポイント: <strong className="text-lg text-green-600">{points.total_points.toLocaleString()}</strong></p>
                 </div>
             ) : (
                 <p className="mt-2 text-gray-500">ポイント情報を取得中...</p>
