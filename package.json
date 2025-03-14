@@ -16,6 +16,7 @@
     "@mui/x-date-pickers": "^7.27.3",
     "axios": "^1.7.9",
     "date-fns": "^2.30.0",
+    "framer-motion": "^12.4.10",
     "jose": "^5.9.6",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",

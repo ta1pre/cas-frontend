@@ -5,6 +5,7 @@ export interface Course {
     course_name: string;
     duration: number;
     cost: number;
+    course_type: number;
 }
 
 // `castId` を受け取ってコースを取得するAPI

@@ -23,6 +23,7 @@ export default function FirstOfferPage() {
 
   const [station, setStation] = useState<number | null>(null);
   const [courseName, setCourseName] = useState<string | null>(null);
+  const [courseType, setCourseType] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
   // ✅ TimeSelector からのコールバックを受け取る
@@ -33,7 +34,7 @@ export default function FirstOfferPage() {
   };
 
   const handleSubmit = () => {
-    if (!station || !courseName) return; // 必須項目が未選択なら送信しない
+    if (!station || !courseName || !courseType) return; // 必須項目が未選択なら送信しない
 
     console.log("🚀 予約リクエスト送信:", {
       castId,
@@ -43,6 +44,7 @@ export default function FirstOfferPage() {
       time: customTime,
       station,
       courseName,
+      courseType,
       message,
     });
 
@@ -54,6 +56,7 @@ export default function FirstOfferPage() {
       + `&timeOption=${timeOption}`
       + `&station=${station}`
       + `&courseName=${courseName}`
+      + `&courseType=${courseType}`
       + `&message=${message}`
       + `&date=${dateParam}`
       + `&hour=${customTime || ""}`;
@@ -85,7 +88,10 @@ export default function FirstOfferPage() {
       <StationSelector userId={userId} castId={castId} onSelectStation={setStation} />
 
       {/* コース選択 */}
-      <CourseSelector castId={castId} onSelectCourse={(c) => setCourseName(c?.course_name || null)} />
+      <CourseSelector castId={castId} onSelectCourse={(c) => {
+        setCourseName(c?.course_name || null);
+        setCourseType(c?.course_type || null);
+      }} />
 
       <MessageInput value={message} onChange={setMessage} />
 
