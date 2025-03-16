@@ -1,6 +1,6 @@
 // ReservationDetail.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef  } from "react";
 import { motion } from "framer-motion";
 import { ReservationListItem } from "../../api/types";
 import { formatDateTime, formatNumberWithCommas } from "../../utils/format";
@@ -29,6 +29,7 @@ export default function ReservationDetail({
 }: Props) {
   const [castName, setCastName] = useState<string>("不明なキャスト");
   const [castImage, setCastImage] = useState<string | undefined>(undefined);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadCastInfo() {
@@ -42,6 +43,39 @@ export default function ReservationDetail({
     loadCastInfo();
   }, [reservation]);
 
+  useEffect(() => {
+  const handleScroll = (e: WheelEvent | TouchEvent) => {
+    if (!scrollContainerRef.current) return;
+
+    const el = scrollContainerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+
+    if (
+      (scrollTop === 0 && (e as WheelEvent).deltaY < 0) || 
+      (scrollTop + clientHeight >= scrollHeight && (e as WheelEvent).deltaY > 0)
+    ) {
+      e.preventDefault(); // ✅ スクロールの伝播を防ぐ
+    }
+  };
+
+  if (isOpen) {
+    document.body.style.overflow = "hidden"; // ✅ 背景スクロールを防止
+    scrollContainerRef.current?.addEventListener("wheel", handleScroll, { passive: false });
+    scrollContainerRef.current?.addEventListener("touchmove", handleScroll, { passive: false });
+  } else {
+    document.body.style.overflow = "auto";
+  }
+
+  return () => {
+    document.body.style.overflow = "auto"; // ✅ クリーンアップ
+    scrollContainerRef.current?.removeEventListener("wheel", handleScroll);
+    scrollContainerRef.current?.removeEventListener("touchmove", handleScroll);
+  };
+}, [isOpen]);
+
+
+
+
   if (!reservation) return null;
 
   const totalPrice =
@@ -52,21 +86,28 @@ export default function ReservationDetail({
 
   return (
   <motion.div
-  initial={{ x: "100%" }}
-  animate={{ x: "0%" }}
-  exit={{ x: "100%" }}
-  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-  drag="x"
-  dragConstraints={{ left: -100, right: 0 }}
-  onDragEnd={(e, info) => info.offset.x < -50 && onClose()}
-  onClick={onCloseMessage}
-  className="fixed top-0 right-0 z-50 h-full w-[90%] md:w-1/2 bg-white shadow-lg flex flex-col"
->
+    initial={{ x: "100%" }}
+    animate={{ x: "0%" }}
+    exit={{ x: "100%" }}
+    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    drag="x"
+    dragConstraints={{ left: -100, right: 0 }}
+    onDragEnd={(e, info) => {
+      if (info.offset.x < -50) {
+        onClose();
+        onCloseMessage(); // ✅ スワイプで閉じるときもメッセージを閉じる
+      }
+    }}
+    onClick={onCloseMessage} // ✅ 予約詳細をクリックして閉じるときもメッセージを閉じる
+    className="fixed top-0 right-0 z-50 h-full w-[90%] md:w-1/2 bg-white shadow-lg flex flex-col"
+  >
+
   {/* ✅ 左矢印（←）の位置はそのまま */}
   <button
     onClick={(e) => {
       e.stopPropagation();
       onClose();
+      onCloseMessage();
     }}
     className="absolute top-3 left-3 p-1"
   >
@@ -88,7 +129,7 @@ export default function ReservationDetail({
     </div>
   </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div ref={scrollContainerRef} className="flex-1 overflow-auto p-6">
         <div className="flex items-center mb-6">
           <Avatar src={castImage || "/default-avatar.png"} alt={castName} className="w-12 h-12 mr-3" />
           <a

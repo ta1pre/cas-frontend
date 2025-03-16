@@ -1,27 +1,35 @@
-// src/app/p/customer/points/components/PurchasePoint.tsx
-
 "use client";
 
 import { useState } from "react";
 import purchasePoint from "../api/purchasePoint";
 
 export default function PurchasePoint() {
-    const [amount, setAmount] = useState<number>(100);
+    const [amount, setAmount] = useState<string>("100");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    // 数値をカンマ区切りにする関数
+    const formatNumber = (num: number) => num.toLocaleString();
+
+    // 入力値の変更処理
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAmount(e.target.value);
+    };
+
     const handlePurchase = async () => {
-        if (amount < 100 || amount > 1000000) {
+        const numericAmount = Number(amount);
+
+        if (numericAmount < 100 || numericAmount > 1000000 || isNaN(numericAmount)) {
             setMessage("⚠️ 購入可能なポイントは100～1,000,000です");
             return;
         }
 
         setLoading(true);
-        setMessage("購入処理中...");
+        setMessage("⏳ 購入処理中...");
 
-        const response = await purchasePoint(amount);
+        const response = await purchasePoint(numericAmount);
         if (response) {
-            setMessage(`✅ ${amount}ポイントを購入しました！`);
+            setMessage(`✅ ${formatNumber(numericAmount)}ポイントを購入しました！`);
         } else {
             setMessage("🚨 購入に失敗しました");
         }
@@ -30,24 +38,30 @@ export default function PurchasePoint() {
     };
 
     return (
-        <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-            <h2 className="text-lg font-bold">ポイント購入</h2>
+        <div className="mt-6 p-6 bg-white shadow-md rounded-lg border border-gray-300">
+            <h2 className="text-lg font-bold text-gray-800 mb-2">ポイント購入</h2>
             <input
-                type="number"
+                type="text"
                 value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                min={100}
-                max={1000000}
-                className="border rounded p-2 w-full mb-2"
+                onChange={handleChange}
+                className="border border-gray-300 rounded-md p-2 w-full mb-3 text-lg shadow-sm"
             />
             <button
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 disabled:opacity-50"
+                className="w-full bg-green-500 text-white font-semibold px-4 py-3 rounded-md shadow-md hover:bg-green-600 disabled:opacity-50"
                 onClick={handlePurchase}
                 disabled={loading}
             >
-                {loading ? "処理中..." : `💰 ${amount}ポイント購入`}
+                {loading ? "⏳ 購入処理中..." : `💰 ${formatNumber(Number(amount))} ポイント購入`}
             </button>
-            {message && <p className="mt-2 text-sm">{message}</p>}
+            {message && (
+                <p
+                    className={`mt-3 text-sm font-medium ${
+                        message.startsWith("✅") ? "text-green-700" : "text-red-600"
+                    }`}
+                >
+                    {message}
+                </p>
+            )}
         </div>
     );
 }

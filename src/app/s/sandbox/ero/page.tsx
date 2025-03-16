@@ -25,18 +25,20 @@ export default function LoginPage() {
 
   return (
     <Box sx={{ position: "relative", width: "100vw", height: "100vh", overflow: "hidden" }}>
-      {/* 🎥 背景動画 */}
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover"
-      >
-        <source src="/sandbox/video.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+{/* 🖼️ 背景画像 */}
+<Box
+  sx={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundImage: "url('/sandbox/bg.jpg')", // ✅ ここを変更
+    backgroundSize: "cover",  // ✅ 画像を画面全体にフィット
+    backgroundPosition: "center",  // ✅ 中央配置
+    backgroundRepeat: "no-repeat",  // ✅ 繰り返しなし
+  }}
+/>
 
       {/* 🔥 半透明のオーバーレイ */}
       <Box sx={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", bgcolor: "rgba(0, 0, 0, 0.4)" }} />
@@ -82,13 +84,13 @@ export default function LoginPage() {
             <Box 
               component="span"
               sx={{ 
-                fontSize: "1.4rem", 
+                fontSize: "1.5rem", 
                 fontWeight: "bold", 
                 color: "#FFFFFF",
                 opacity: 1,
               }}
             >
-              Cas
+              PreCas
             </Box>
             <Box 
               component="span" 
@@ -100,7 +102,7 @@ export default function LoginPage() {
                 verticalAlign: "middle",
               }}
             >
-              (キャス)
+              (プレキャス)
             </Box>
             <Box 
               component="span" 
@@ -127,20 +129,32 @@ export default function LoginPage() {
               mt: 0.5,
             }}
           >
-            かわいい女の子専門
+            えっちな女の子
             <Box 
               component="span" 
               sx={{ 
                 fontSize: "1.2rem",  
                 fontWeight: "bold",  
                 opacity: 0.9,        
-                ml: 0.5,
+                ml: 0,
                 verticalAlign: "middle",
               }}
             >
-              の
+            専門
             </Box>
           </Box>
+                      <Box 
+              component="span" 
+              sx={{ 
+                fontSize: "1.2rem",  
+                fontWeight: "bold",  
+                opacity: 0.9,        
+                ml: 0.2,
+                verticalAlign: "middle",
+              }}
+            >
+            の
+            </Box>
           <br />
           <Box 
             component="span"

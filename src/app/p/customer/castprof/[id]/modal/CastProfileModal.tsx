@@ -39,13 +39,13 @@ export default function CastProfileModal({ isOpen, onClose, castId, source }: Ca
             onClose={onClose} 
             disableEnforceFocus 
             disableRestoreFocus
-            sx={{ backgroundColor: "green" }} // ✅ 背景色を一時的に設定して確認
+            sx={{ backgroundColor: "white" }} // ✅ 背景色を一時的に設定して確認
         >
             <AppBar position="static" sx={{ backgroundColor: "primary.main" }}>
                 <Toolbar onClick={onClose} sx={{ cursor: "pointer" }}>
                     <ArrowBackIosRoundedIcon />
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        {source ? ` ${source} に戻る` : " プロフィールに戻る"}
+                        {source ? ` ${source}に戻る` : " プロフィールに戻る"}
                     </Typography>
                 </Toolbar>
             </AppBar>

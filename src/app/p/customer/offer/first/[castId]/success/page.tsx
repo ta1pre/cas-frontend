@@ -3,6 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sendReservationRequest } from "./api/reservation";
+import { Card, CardContent, Typography, Button, CircularProgress, Alert } from "@mui/material";
+import Link from "next/link";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -17,10 +19,10 @@ export default function SuccessPage() {
   const date = searchParams.get("date");
   const hour = searchParams.get("hour");
 
-  // ✅ ステート管理
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [reservationId, setReservationId] = useState<number|null>(null);
+  const [reservationId, setReservationId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("📡 URL パラメータ:", {
@@ -47,45 +49,58 @@ export default function SuccessPage() {
       hour
     )
       .then((res) => {
-        // ✅ 成功時
         if (res && res.reservation_id) {
           console.log("🎉 予約成功:", res);
           setReservationId(res.reservation_id);
           setIsSuccess(true);
         } else {
-          console.log("🚨 予約APIは200だが、reservation_idがありません", res);
+          setError("予約に失敗しました。再度お試しください。");
         }
       })
       .catch((error) => {
         console.error("🚨 予約リクエストエラー:", error);
+        setError("サーバーエラーが発生しました。しばらくしてから再試行してください。");
       })
       .finally(() => {
-        // ✅ ローディング完了
         setIsLoading(false);
       });
   }, []);
 
-  // ✅ ローディング中なら「処理中」表示
-  if (isLoading) {
-    return <div>予約処理中...</div>;
-  }
-
-  // ✅ 成功したら結果を表示
-  if (isSuccess) {
-    return (
-      <div>
-        <p>予約が完了しました！</p>
-        <p>Reservation ID: {reservationId}</p>
-        {/* 他の情報を表示するなど */}
-      </div>
-    );
-  }
-
-  // ✅ 失敗 or 予約IDなしの場合
   return (
-    <div>
-      <p>予約処理に失敗した可能性があります。</p>
-      {/* リトライボタンなど */}
+    <div className="flex justify-center items-center h-screen bg-black px-4">
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <CircularProgress className="text-white" />
+        </div>
+      ) : error ? (
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg mx-4">
+          <Alert severity="error">{error}</Alert>
+        </div>
+      ) : isSuccess ? (
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg mx-4">
+          <CardContent>
+            <Typography variant="h6" className="font-bold text-center">予約リクエスト完了！</Typography>
+            <Typography variant="body1" className="mt-2 text-center">
+              Reservation ID: {reservationId}
+            </Typography>
+
+            <Typography variant="body2" className="mt-2">
+              予約内容の確認や変更は、下のボタンから行えます。
+            </Typography>
+            <div className="flex justify-center mt-4">
+              <Link href="/p/customer/reserve">
+                <Button variant="contained" color="primary">
+                  予約を確認する
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg mx-4">
+          <Alert severity="error">予約処理に失敗した可能性があります。</Alert>
+        </div>
+      )}
     </div>
   );
 }

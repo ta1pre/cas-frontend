@@ -1,3 +1,5 @@
+// src/app/p/customer/reserve/components/Message/MessagePanel.tsx
+
 import { motion } from "framer-motion";
 import MessageToggleButton from "./MessageToggleButton"; // ✅ インポート
 import { useState } from "react";

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Box, TextField, Button, Typography } from '@mui/material';
+import { Box, TextField, Button, Typography, Container } from '@mui/material';
 
 interface SMSVerificationStepProps {
     onNextStep: () => void;
@@ -89,65 +89,79 @@ export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerif
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>📱 SMS認証</Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>電話番号を入力し、SMSで受け取った認証コードを入力してください。</Typography>
+        <Container maxWidth="md">
+            {/* コンテンツエリア */}
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    px: 3,
+                    py: 4,
+                }}
+            >
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>📱 SMS認証</Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4 }}>
+                    電話番号を入力し、SMSで受け取った認証コードを入力してください。
+                </Typography>
 
-            {!isCodeSent ? (
-                <>
-                    <TextField
-                        label="電話番号"
-                        variant="outlined"
-                        fullWidth
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="例: 09012345678"
-                        disabled={isLoading}
-                    />
-                    {error && <Typography color="error">{error}</Typography>}
-                    {message && <Typography color="success.main">{message}</Typography>}
+                {!isCodeSent ? (
+                    <Box sx={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                            label="電話番号"
+                            variant="outlined"
+                            fullWidth
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            placeholder="例: 09012345678"
+                            disabled={isLoading}
+                        />
+                        {error && <Typography color="error">{error}</Typography>}
+                        {message && <Typography color="success.main">{message}</Typography>}
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        onClick={handleSendCode}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? '送信中...' : '認証コードを送信'}
-                    </Button>
-                </>
-            ) : (
-                <>
-                    <TextField
-                        label="認証コード"
-                        variant="outlined"
-                        fullWidth
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        placeholder="認証コードを入力"
-                        disabled={isLoading}
-                    />
-                    {error && <Typography color="error">{error}</Typography>}
-                    {message && <Typography color="success.main">{message}</Typography>}
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleSendCode}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? '送信中...' : '認証コードを送信'}
+                        </Button>
+                    </Box>
+                ) : (
+                    <Box sx={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                            label="認証コード"
+                            variant="outlined"
+                            fullWidth
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            placeholder="認証コードを入力"
+                            disabled={isLoading}
+                        />
+                        {error && <Typography color="error">{error}</Typography>}
+                        {message && <Typography color="success.main">{message}</Typography>}
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        onClick={handleVerifyCode}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? '認証中...' : '認証する'}
-                    </Button>
-                </>
-            )}
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleVerifyCode}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? '認証中...' : '認証する'}
+                        </Button>
+                    </Box>
+                )}
 
-            {/* ✅ 戻るボタン & スキップ（次へ）ボタン */}
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-                <Button variant="outlined" color="secondary" onClick={onPrevStep} disabled={isLoading}>戻る</Button>
-                <Button variant="contained" color="success" onClick={onNextStep}>次へ（スキップ）</Button>
+                {/* ✅ 戻るボタン & スキップ（次へ）ボタン */}
+                <Box sx={{ width: '100%', maxWidth: 360, display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                   
+                    <Button variant="contained" color="success" onClick={onNextStep}>次へ（開発環境 -スキップ可能！-）</Button>
+                </Box>
             </Box>
-        </Box>
+        </Container>
     );
 }

@@ -1,3 +1,4 @@
+// src/app/p/customer/search/hooks/useSearch.ts
 import { useState, useEffect, useRef } from "react";
 import { getCasts } from "../api/cast/getCasts";
 import { Cast } from "../api/cast/castTypes";

@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   compiler: {
     emotion: true, // ✅ MUI の `emotion` を Next.js に統合
   },
+    devIndicators: {
+    appIsrStatus: false,
+  },
 };
 
 export default nextConfig;

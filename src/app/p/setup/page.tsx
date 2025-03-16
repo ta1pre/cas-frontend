@@ -28,7 +28,7 @@ export default function SetupPage() {
                 const setupStatus = response.data?.setup_status;
 
                 if (setupStatus === 'completed') {
-                    router.replace('/dashboard');  // ✅ 完了していたらダッシュボードへリダイレクト
+                    router.replace('/p');  // ✅ 完了していたらダッシュボードへリダイレクト
                 } else {
                     setLoading(false); // ✅ 未完了なら SetupFlow を表示
                 }

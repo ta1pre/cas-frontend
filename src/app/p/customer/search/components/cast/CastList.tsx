@@ -1,6 +1,6 @@
 import React from "react";
 import CastCard from "./CastCard";
-import CastFilters from "../sort/CastSort";  
+import CastSort from "../sort/CastSort";  
 import { Cast } from "../../api/cast/castTypes";
 import { Typography } from "@mui/material";
 
@@ -10,13 +10,18 @@ interface CastListProps {
     setSort: (sort: string) => void;
     loading: boolean;
     noResults: boolean;
+    prefectureName: string | null; // ✅ 追加
 }
 
-const CastList: React.FC<CastListProps> = ({ casts, sort, setSort, loading, noResults }) => {
+const CastList: React.FC<CastListProps> = ({ casts, sort, setSort, loading, noResults, prefectureName }) => { 
     return (
         <div className="w-full px-0 sm:px-4"> {/* ✅ スマホ時の余白をなくす */}
             {/* ✅ 並べ替えフィルター */}
-            <CastFilters sort={sort} setSort={setSort} />
+            <CastSort 
+                sort={sort} 
+                setSort={setSort} 
+                prefectureName={prefectureName}  // ✅ 修正: `CastList` の props から渡す
+            />
 
             {/* ✅ ロード中の表示 */}
             {loading && <Typography variant="body1">ロード中...</Typography>}

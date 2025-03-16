@@ -11,17 +11,18 @@ export default function SearchFilters({ setOffset }: SearchFiltersProps) {
     const { openFilters } = useFilters();
     const { hasActiveFilters } = useFiltersState();
 
-    const filterText = hasActiveFilters ? "検索条件あり" : "絞り込み";
+    const filterText = hasActiveFilters ? "条件設定中！" : "絞り込み";
 
     return (
         <>
-            <button 
-                className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full shadow-lg 
-                    ${hasActiveFilters ? "bg-red-500 text-white" : "bg-blue-500 text-white"}`}
-                onClick={openFilters}
-            >
-                {filterText}
-            </button>
+<button 
+    className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full shadow-lg w-48
+        ${hasActiveFilters ? "bg-red-500 text-white opacity-80" : "bg-blue-500 text-white opacity-80"}`}
+    onClick={openFilters}
+>
+    {filterText}
+</button>
+
 
             <FiltersModal setOffset={setOffset} /> {/* ✅ `setOffset` を渡す */}
         </>

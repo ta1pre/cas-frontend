@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography } from '@mui/material';
+import { Box, TextField, Button, Typography, Container } from '@mui/material';
 import { handleCustomerProfileStep } from '@/app/p/setup/hooks/logic/step/handleCustomerProfileStep';
 
 interface Props {
@@ -19,45 +19,47 @@ export default function CustomerProfileStep({ onNextStep }: Props): React.JSX.El
     };
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                gap: 3,
-                px: 3,
-            }}
-        >
-            {/* ✅ タイトルを変更 */}
-            <Typography variant="h5" fontWeight="bold">
-                ニックネーム設定
-            </Typography>
+        <Container maxWidth="md">
+            {/* コンテンツエリア */}
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    px: 3,
+                    py: 4,
+                }}
+            >
+                {/* ✅ タイトルを変更 */}
+                <Typography variant="h5" fontWeight="bold">
+                    ニックネーム設定
+                </Typography>
 
-            {/* ✅ 名前の入力のみ */}
-            <Box component="form" sx={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField
-                    label="ニックネーム"
-                    variant="outlined"
-                    required
-                    fullWidth
-                    value={nickname}
-                    onChange={handleChange}
-                />
+                {/* ✅ 名前の入力のみ */}
+                <Box component="form" sx={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
+                    <TextField
+                        label="ニックネーム"
+                        variant="outlined"
+                        required
+                        fullWidth
+                        value={nickname}
+                        onChange={handleChange}
+                    />
 
-                {/* 「次へ」ボタン */}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    size="large"
-                    onClick={onNextStep}
-                    sx={{ mt: 2 }}
-                    disabled={!nickname.trim()} // ✅ 入力がないと次へ進めない
-                >
-                    次へ
-                </Button>
+                    {/* 「次へ」ボタン */}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        onClick={onNextStep}
+                        sx={{ mt: 2 }}
+                        disabled={!nickname.trim()} // ✅ 入力がないと次へ進めない
+                    >
+                        次へ
+                    </Button>
+                </Box>
             </Box>
-        </Box>
+        </Container>
     );
 }

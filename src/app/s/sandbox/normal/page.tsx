@@ -82,7 +82,7 @@ export default function LoginPage() {
             <Box 
               component="span"
               sx={{ 
-                fontSize: "1.4rem", 
+                fontSize: "1.6rem", 
                 fontWeight: "bold", 
                 color: "#FFFFFF",
                 opacity: 1,

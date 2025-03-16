@@ -1,14 +1,21 @@
-import { Select, MenuItem, FormControl } from "@mui/material";
+import { Select, MenuItem, FormControl, Typography } from "@mui/material";
 
-interface CastFiltersProps {
+interface CastSortProps {
     sort: string;
     setSort: (value: string) => void;
+    prefectureName: string | null;
 }
 
-const CastFilters = ({ sort, setSort }: CastFiltersProps) => {
+const CastSort = ({ sort, setSort, prefectureName }: CastSortProps) => {
     return (
-        <div className="flex justify-end my-2"> {/* ✅ 右寄せ & 上下の余白追加 */}
-            <FormControl className="w-32">
+        <div className="flex justify-between items-center my-2"> {/* ✅ 左にエリア、右にソートを配置 */}
+            {/* ✅ 都道府県名を左側に表示 */}
+            <Typography variant="body2" color="textSecondary">
+                {prefectureName ? `エリア: ${prefectureName}` : "エリア: 未設定"}
+            </Typography>
+
+            {/* ✅ 右側にソートフィルターを配置 */}
+            <FormControl className="w-34">
                 <Select
                     value={sort}
                     onChange={(e) => setSort(e.target.value)}
@@ -36,4 +43,4 @@ const CastFilters = ({ sort, setSort }: CastFiltersProps) => {
     );
 };
 
-export default CastFilters;
+export default CastSort;

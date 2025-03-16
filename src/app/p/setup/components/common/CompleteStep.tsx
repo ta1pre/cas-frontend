@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Button, CircularProgress, Box, Typography, Container } from "@mui/material";
+import { useRouter } from "next/navigation";
 import useUser from "@/hooks/useUser";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-/**
- * ✅ `profile_data` を取得し、API に送信する
- */
 export const sendProfileData = async (
-  token: string, 
-  userId: number, 
-  userType: string, 
+  token: string,
+  userId: number,
+  userType: string,
   profileData: any
 ): Promise<string> => {
   if (!token || !userId || !userType || !profileData) {
@@ -19,9 +18,10 @@ export const sendProfileData = async (
   }
 
   try {
-    const response = await axios.post(`${apiUrl}/api/v1/setup/status/update`, 
+    const response = await axios.post(
+      `${apiUrl}/api/v1/setup/status/update`,
       { user_id: userId, user_type: userType, profile_data: profileData },
-      { headers: { "Authorization": `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     console.log("✅ プロフィールデータ送信成功:", response.data);
@@ -39,6 +39,7 @@ export default function CompleteStep() {
   const [userId, setUserId] = useState<number | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (user?.token && user?.user_id) {
@@ -55,7 +56,6 @@ export default function CompleteStep() {
 
     console.log("🔄 認証情報を取得:", { userId, token });
 
-    // ✅ `localStorage` から `profile_data` と `user_type` を取得
     const profileDataString = localStorage.getItem("profile_data");
     const storedUserType = localStorage.getItem("user_type");
 
@@ -80,14 +80,55 @@ export default function CompleteStep() {
     sendProfileData(token, userId, userType, profileData)
       .then(setProfileMessage)
       .catch(() => setProfileMessage("プロフィールデータ送信に失敗しました"));
-
   }, [token, userId, userType, profileData]);
 
   return (
-    <div>
-      <h2>セットアップ完了！</h2>
-      <p>お疲れ様でした。</p>
-      {profileMessage && <p>プロフィール更新: {profileMessage}</p>}
-    </div>
+    <Container maxWidth="md">
+      {/* コンテンツエリア */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          px: 3,
+          py: 4,
+        }}
+      >
+        <Typography variant="h5" fontWeight="bold">
+          セットアップ完了！
+        </Typography>
+        <Typography sx={{ color: "text.secondary", mb: 4 }}>お疲れ様でした。</Typography>
+
+        {profileMessage ? (
+          <Typography sx={{ color: "success.main", fontWeight: "medium" }}>{profileMessage}</Typography>
+        ) : (
+          <CircularProgress sx={{ color: "primary.main" }} />
+        )}
+
+        <Box sx={{ width: "100%", maxWidth: 360, mt: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+          {userType === "customer" && (
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={() => router.push("/p/customer/search")}
+            >
+              メインページへ
+            </Button>
+          )}
+          {userType === "cast" && (
+            <Button
+              variant="contained"
+              color="secondary"
+              fullWidth
+              onClick={() => router.push("/p/customer")}
+            >
+              メインページへ
+            </Button>
+          )}
+        </Box>
+      </Box>
+    </Container>
   );
 }

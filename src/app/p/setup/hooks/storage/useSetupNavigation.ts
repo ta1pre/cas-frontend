@@ -47,7 +47,7 @@ export function useSetupNavigation() {
             case 'sms_verification':
                 updateStatus(userType === 'customer' ? 'customer_profile' : 'service_selection'); // ✅ ユーザータイプによる分岐
                 break;
-            case 'complete':
+            case 'completed':
                 updateStatus('sms_verification');
                 break;
             default:
