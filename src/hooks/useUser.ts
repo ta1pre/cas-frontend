@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
 // ✅ `DecodedToken` の型に `token` を追加
-interface DecodedToken {
+export interface DecodedToken {
   token: string;  // ✅ `token` を追加
   user_id: number;
   user_type: string;

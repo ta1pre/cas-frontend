@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Button, Box, Typography } from "@mui/material";
 import OfferHeader from "./components/OfferHeader";
@@ -14,7 +15,8 @@ export default function FirstOfferPage() {
   const params = useParams();
   const castId = params.castId ? Number(params.castId) : 0;
   const router = useRouter();
-  const userId = 41;
+  const { user } = useAuth();
+  const userId = user ? user.userId : null;
 
   // 状態管理
   const [timeOption, setTimeOption] = useState<"fast" | "custom">("fast");
@@ -85,7 +87,10 @@ export default function FirstOfferPage() {
       <TimeSelector onTimeChange={handleTimeChange} />
 
       {/* 駅選択 */}
-      <StationSelector userId={userId} castId={castId} onSelectStation={setStation} />
+{/* 駅選択 */}
+{userId !== null && (
+  <StationSelector userId={userId} castId={castId} onSelectStation={setStation} />
+)}
 
       {/* コース選択 */}
       <CourseSelector castId={castId} onSelectCourse={(c) => {

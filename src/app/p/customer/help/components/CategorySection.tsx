@@ -15,13 +15,9 @@ export function CategorySection({ sectionTitle, articles }: CategorySectionProps
 
   return (
     <div>
-      <Typography variant="h5" sx={{ mt: 4, fontWeight: "bold" }}>
-        {sectionTitle}
-      </Typography>
 
       {normalArticles.length > 0 && (
         <>
-          <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: "bold" }}>通常</Typography>
           <HelpAccordion articles={normalArticles} />
         </>
       )}

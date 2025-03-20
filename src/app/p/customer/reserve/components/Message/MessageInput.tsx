@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import sendMessage from "./api/messages_send";
 import SendIcon from "@mui/icons-material/Send"; // ✅ 送信アイコン
 
@@ -35,30 +35,21 @@ export default function MessageInput({ reservationId, onMessageSent }: Props) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // ✅ Enter単体で送信
-      handleSendMessage();
-    }
-  };
-
   return (
     <div className="border-t pt-3 flex items-center gap-2 px-3 bg-white shadow-md pb-3">
-      {/* ✅ 普段は1行、フォーカス時に3行に拡張 */}
       <textarea
         className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none transition-all"
         placeholder="メッセージを入力..."
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
-        onKeyDown={handleKeyDown} // ✅ Enterで送信, Shift+Enterで改行
         rows={rows}
-        onFocus={() => setRows(3)} // ✅ フォーカス時に拡張
+        onFocus={() => setRows(3)} // ✅ フォーカス時に3行に拡張
         onBlur={() => !newMessage && setRows(1)} // ✅ 空なら1行に戻す
       />
       <SendIcon
         fontSize="large"
-        className="text-gray-500 cursor-pointer hover:text-gray-700 transition-all" // ✅ アイコンだけクリック可能
-        onClick={handleSendMessage}
+        className="text-gray-500 cursor-pointer hover:text-gray-700 transition-all"
+        onClick={handleSendMessage} // ✅ 送信ボタンのみで送信
       />
     </div>
   );

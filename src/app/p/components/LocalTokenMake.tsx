@@ -11,7 +11,7 @@ export default function LocalTokenMake({ children }: { children: React.ReactNode
             try {
                 console.log("📡 `/extend_refresh_token` をリクエスト...");
                 await extendRefreshToken();
-                console.log("✅ トークンの更新成功");
+                console.log("【LocalTokenMake】✅ トークンの更新成功");
             } catch (error) {
                 console.error("❌ トークンの更新失敗:", error);
             } finally {

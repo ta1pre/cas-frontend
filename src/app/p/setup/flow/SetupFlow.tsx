@@ -67,7 +67,7 @@ export default function SetupFlow() {
             case "completed":
                 return <CompleteStep />;
             default:
-                return <p>不明なステータスです。</p>;
+                return<AgeVerificationStep onNextStep={() => setSetupStatus("sex_selection")} />;
         }
     };
 

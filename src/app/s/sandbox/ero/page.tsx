@@ -60,7 +60,7 @@ export default function LoginPage() {
         }}
       >
         {/* 🌟 ロゴ */}
-        <Image src="/images/common/logo.png" alt="Logo" width={100} height={100} priority className="object-contain" />
+        <Image src="/images/common/logo.png" alt="Logo" width={50} height={50} priority className="object-contain" />
 
         {/* ✨ キャッチコピー */}
         <Typography 

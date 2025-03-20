@@ -30,7 +30,7 @@ export default function AgeVerificationStep({ onNextStep }: Props) {
                     年齢確認
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 4, color: "text.secondary" }}>
-                    18歳以上の方のみご利用いただけます。
+                    18歳以上の方のみご利用いただけます
                 </Typography>
 
                 {/* ボタン */}

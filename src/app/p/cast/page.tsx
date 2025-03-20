@@ -1,19 +1,18 @@
-'use client';
+// 📂 src/app/p/cast/cont/reserve/page.tsx
+"use client";
 
-import React from 'react';
-import { Container, Typography, Box } from '@mui/material';
+import { useCastUser } from "@/app/p/cast/hooks/useCastUser";
 
-export default function CastDashboard() {
+export default function CastPageTSX() {
+  const user = useCastUser();  // ✅ これ1行で完結！！！
+
   return (
-    <Container maxWidth="md">
-      <Box textAlign="center" py={5} className="bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-lg shadow-lg p-6">
-        <Typography variant="h4" gutterBottom className="text-4xl font-bold">
-          ダッシュボード
-        </Typography>
-        <Typography variant="body1" className="text-lg">
-          ここはキャスト専用のページです。
-        </Typography>
-      </Box>
-    </Container>
+    <div style={{ padding: '16px' }}>
+      <h1>キャスト予約ページ</h1>
+      <p><strong>ユーザーID:</strong> {user.user_id}</p>
+      <p><strong>ユーザータイプ:</strong> {user.user_type}</p>
+      <p><strong>トークン:</strong> {user.token}</p>
+      <p><strong>有効期限:</strong> {user.exp}</p>
+    </div>
   );
 }

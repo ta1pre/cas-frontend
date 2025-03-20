@@ -20,7 +20,9 @@ interface Props {
 
 export default function MessageList({ reservationId, messages, setMessages }: Props) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [castImage, setCastImage] = useState<string>("/default-avatar.png");
+  const [isUserScrolling, setIsUserScrolling] = useState(false); // ✅ スクロール中かどうかを判定
 
   useEffect(() => {
     async function loadCastInfo() {
@@ -51,32 +53,30 @@ export default function MessageList({ reservationId, messages, setMessages }: Pr
     return () => clearInterval(interval);
   }, [reservationId]);
 
+  // ✅ ユーザーがスクロールしているかを検出
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      const { scrollTop, clientHeight, scrollHeight } = containerRef.current;
+
+      // ✅ スクロール位置が一番下から100px以上離れていたら "スクロール中"
+      setIsUserScrolling(scrollHeight - (scrollTop + clientHeight) > 100);
+    };
+
+    const container = containerRef.current;
+    container?.addEventListener("scroll", handleScroll);
+    return () => container?.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // ✅ 新しいメッセージが追加された時のスクロール処理
+  useEffect(() => {
+    if (!isUserScrolling) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
-  // ✅ URLをリンク化する関数
-  function convertToLinks(text: string) {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.split(urlRegex).map((part, index) =>
-      urlRegex.test(part) ? (
-        <a
-          key={index}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 underline"
-        >
-          {part}
-        </a>
-      ) : (
-        part
-      )
-    );
-  }
-
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-4">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-2 space-y-4">
       {messages.length === 0 ? (
         <p className="text-gray-500 text-center">メッセージがありません。</p>
       ) : (
@@ -97,7 +97,7 @@ export default function MessageList({ reservationId, messages, setMessages }: Pr
             )}
             <div className="flex flex-col max-w-[75%]">
               <div className={`relative p-3 rounded-lg shadow-md text-sm ${msg.sender_type === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"}`}>
-                <p>{convertToLinks(msg.content)}</p> {/* ✅ メッセージ本文をリンク化 */}
+                <p>{msg.content}</p>
               </div>
               <span className="text-xs text-gray-500 mt-1 text-right">
                 {new Date(msg.sent_at).toLocaleDateString("ja-JP", {

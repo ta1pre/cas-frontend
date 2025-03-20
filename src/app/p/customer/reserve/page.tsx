@@ -8,7 +8,9 @@ import Backdrop from "./components/Backdrop";
 import { ReservationListItem } from "./api/types";
 import fetchCustomerReserve from "./api/resvlist";
 import useUser from "@/hooks/useUser";
-import { Typography, Button } from "@mui/material";
+import { Typography, Button, Box } from "@mui/material";
+import EventNoteIcon from "@mui/icons-material/EventNote"; // ✅ アイコン追加
+
 
 export default function CustomerReservePage() {
   const user = useUser();
@@ -73,7 +75,12 @@ export default function CustomerReservePage() {
   
   return (
     <div className="p-4 max-w-xl mx-auto">
-      <Typography variant="h6" className="font-bold mb-4">予約一覧</Typography>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
+  <EventNoteIcon fontSize="large" sx={{ color: "blue.600", mr: 1 }} />
+  <Typography variant="h5" fontWeight="bold">
+    予約一覧
+  </Typography>
+</Box>
 
       {loading && reservations.length === 0 ? (
         <p className="p-4">読み込み中...</p>

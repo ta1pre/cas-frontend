@@ -7,10 +7,10 @@ import { refreshToken } from "../hooks/cookies/extend_token";
  */
 export async function tokenMiddlewareLogic(request: NextRequest): Promise<string | null> {
     try {
-        console.log("🚀 【tokenMiddleware】refreshToken を実行して token を更新します...");
+        console.log("🚀 【tokenMiddleware】Token更新 を実行して token を更新します...");
         const token = await refreshToken(request);
         if (!token) {
-            console.warn("【tokenMiddleware】⛔ refreshToken が null を返しました。");
+            console.warn("【tokenMiddleware】⛔ Token更新 が null を返しました。");
             return null;
         }
 
