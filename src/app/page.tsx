@@ -1,14 +1,15 @@
-// src/app/auth/login/page.tsx
+// src/app/page.tsx
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { Container, Box, Typography } from '@mui/material';
 import AuthButton from '@/components/Auth/AuthButton';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function LoginPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function HomeContent() {
     const { handleLogin, loading } = useAuth();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -31,8 +32,8 @@ export default function LoginPage() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                overflow: "hidden", // ✅ スクロールなし
-                justifyContent: "flex-start", // ✅ タイトルを上1/3に
+                overflow: "hidden", // スクロールなし
+                justifyContent: "flex-start", // タイトルを上1/3に
             }}
         >
             {/* precasロゴ */}
@@ -41,8 +42,8 @@ export default function LoginPage() {
                 sx={{
                     fontFamily: '"Quicksand", sans-serif',
                     fontWeight: 500,
-                    color: "#FF6F61", // ✅ コーラルオレンジ
-                    marginTop: "33vh", // ✅ 上1/3に配置
+                    color: "#FF6F61", // コーラルオレンジ
+                    marginTop: "33vh", // 上1/3に配置
                     opacity: isVisible ? 1 : 0,
                     transform: isVisible ? "translateY(0px)" : "translateY(-10px)",
                     transition: "opacity 0.8s ease-out, transform 0.8s ease-out",
@@ -65,5 +66,14 @@ export default function LoginPage() {
                 <AuthButton onClick={() => handleLogin('line')} loading={loading} />
             </Box>
         </Container>
+    );
+}
+
+// メインのページコンポーネント
+export default function HomePage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+            <HomeContent />
+        </Suspense>
     );
 }
