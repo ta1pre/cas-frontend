@@ -73,17 +73,28 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
     }
     if (mediaId) {
       console.log(`🗿️ メディアID設定: ${mediaId}`);
-      setIdPhotoMediaId(mediaId);
+      // 直接変数に保存してから状態を更新
+      const newMediaId = mediaId;
+      setIdPhotoMediaId(newMediaId);
+      
+      // 遅延を長くして状態の更新が確実に反映されるようにする
       setTimeout(() => {
-        console.log(`🔄 遅延チェック実行 - メディアID: ${mediaId}`);
+        console.log(`🔄 遅延チェック実行 - メディアID: ${newMediaId}`);
+        // 直接newMediaIdを使用して判定
         if (serviceType === 'A') {
           console.log('✅ Aサービス: 身分証がアップロードされました。提出処理を開始します。');
-          setTimeout(() => handleSubmit(), 500);
+          // 遅延を長くして状態の更新が確実に反映されるようにする
+          setTimeout(() => {
+            // 直接handleSubmitに引数としてメディアIDを渡す
+            handleSubmit(newMediaId, juminhyoMediaId);
+          }, 1000);
         } else if (serviceType === 'B' && juminhyoMediaId) {
           console.log('✅ Bサービス: 両方の書類がアップロードされました。提出処理を開始します。');
-          setTimeout(() => handleSubmit(), 500);
+          setTimeout(() => {
+            handleSubmit(newMediaId, juminhyoMediaId);
+          }, 1000);
         }
-      }, 2000);
+      }, 3000);
     }
     if (file) {
       setErrors(prev => ({...prev, idPhoto: undefined}));
@@ -97,32 +108,46 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
     }
     if (mediaId) {
       console.log(`🗿️ メディアID設定: ${mediaId}`);
-      setJuminhyoMediaId(mediaId);
-      // IDがセットされた後、ファイルがアップロードされたかチェック
-      // setTimeoutを延長して、状態更新が確実に反映された後にcheckFilesUploadedが呼ばれるようにする
-      setTimeout(() => checkFilesUploaded(), 1000);
+      // 直接変数に保存してから状態を更新
+      const newMediaId = mediaId;
+      setJuminhyoMediaId(newMediaId);
+      
+      // 遅延を長くして状態の更新が確実に反映されるようにする
+      setTimeout(() => {
+        // 直接newMediaIdを使用して判定
+        if (serviceType === 'B' && idPhotoMediaId) {
+          console.log('✅ Bサービス: 両方の書類がアップロードされました。提出処理を開始します。');
+          setTimeout(() => {
+            handleSubmit(idPhotoMediaId, newMediaId);
+          }, 1000);
+        }
+      }, 3000);
     }
     if (file) {
       setErrors(prev => ({...prev, juminhyo: undefined}));
     }
   };
 
-  const validateForm = () => {
+  const validateForm = (idPhotoId?: number | null, juminhyoId?: number | null) => {
     const newErrors: {idPhoto?: string, juminhyo?: string} = {};
     
+    // 引数で渡されたIDがある場合はそれを使用し、なければ状態変数を使用
+    const effectiveIdPhotoMediaId = idPhotoId !== undefined ? idPhotoId : idPhotoMediaId;
+    const effectiveJuminhyoMediaId = juminhyoId !== undefined ? juminhyoId : juminhyoMediaId;
+    
     // メディアIDを使用して検証
-    if (!idPhotoMediaId) {
+    if (!effectiveIdPhotoMediaId) {
       newErrors.idPhoto = '顔写真付き身分証明書をアップロードしてください';
     }
     
-    if (serviceType === 'B' && !juminhyoMediaId) {
+    if (serviceType === 'B' && !effectiveJuminhyoMediaId) {
       newErrors.juminhyo = '本籍入り住民票をアップロードしてください';
     }
     
     // デバッグログを追加
     console.log('🔍 バリデーション詳細:', {
-      idPhotoMediaId,
-      juminhyoMediaId,
+      idPhotoMediaId: effectiveIdPhotoMediaId,
+      juminhyoMediaId: effectiveJuminhyoMediaId,
       serviceType,
       hasErrors: Object.keys(newErrors).length > 0,
       errors: newErrors
@@ -132,13 +157,13 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
     return Object.keys(newErrors).length === 0 ? true : false; 
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (idPhotoId?: number | null, juminhyoId?: number | null) => {
     console.log('✅ handleSubmit開始');
     setIsSubmitting(true);
     setSubmitError(undefined);
 
     // フォームのバリデーション
-    const isValid = validateForm();
+    const isValid = validateForm(idPhotoId, juminhyoId);
     console.log(`✅ フォームバリデーション結果: ${isValid}`);
     if (!isValid) {
       setIsSubmitting(false);
@@ -146,11 +171,15 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
     }
 
     try {
+      // 引数で渡されたIDがある場合はそれを使用し、なければ状態変数を使用
+      const effectiveIdPhotoMediaId = idPhotoId !== undefined ? idPhotoId : idPhotoMediaId;
+      const effectiveJuminhyoMediaId = juminhyoId !== undefined ? juminhyoId : juminhyoMediaId;
+      
       // APIに送信するデータ
       const requestData = {
         service_type: serviceType,
-        id_photo_media_id: idPhotoMediaId || 0,
-        juminhyo_media_id: serviceType === 'B' ? juminhyoMediaId : null
+        id_photo_media_id: effectiveIdPhotoMediaId || 0,
+        juminhyo_media_id: serviceType === 'B' ? (effectiveJuminhyoMediaId || 0) : null
       };
 
       console.log('✅ 本人確認申請を送信します:', requestData);

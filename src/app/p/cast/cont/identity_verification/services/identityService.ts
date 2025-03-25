@@ -217,14 +217,8 @@ export const submitVerification = async (data: { service_type: string, id_photo_
     console.log('✅ identityService: submitVerification開始');
     console.log('✅ APIリクエストデータ:', data);
     
-    // fetchAPIを使用してAPIを呼び出す
-    const response = await fetchAPI(`${API_IDENTITY_URL}/submit`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
+    // 絶対パスを使用せず、エンドポイントのみを指定
+    const response = await fetchAPI('/api/v1/cast/identity-verification/submit', data);
 
     console.log('✅ APIレスポンスデータ:', response);
     return response;
