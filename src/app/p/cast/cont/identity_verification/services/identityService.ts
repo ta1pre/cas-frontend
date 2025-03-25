@@ -217,42 +217,17 @@ export const submitVerification = async (data: { service_type: string, id_photo_
     console.log('✅ identityService: submitVerification開始');
     console.log('✅ APIリクエストデータ:', data);
     
-    // globalThis.userの存在とトークンを確認
-    console.log('✅ APIリクエスト詳細: globalThis.userの存在とトークン', {
-      exists: typeof globalThis.user !== "undefined",
-      hasToken: typeof globalThis.user !== "undefined" && !!globalThis.user.token,
-      tokenLength: typeof globalThis.user !== "undefined" && globalThis.user.token ? globalThis.user.token.length : 0
-    });
-
-    if (!globalThis.user || !globalThis.user.token) {
-      console.error('🚫 エラー: APIリクエスト詳細: globalThis.userの存在とトークンが不足しています');
-      throw new Error('トークンの取得に失敗しました');
-    }
-    
-    const response = await fetch('/api/v1/cast/identity-verification/submit', {
+    // fetchAPIを使用してAPIを呼び出す
+    const response = await fetchAPI(`${API_IDENTITY_URL}/submit`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${globalThis.user.token}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(data)
     });
 
-    console.log('✅ APIレスポンスステータス:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('🚫 APIエラー:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorText
-      });
-      throw new Error(`APIエラー: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ APIレスポンスデータ:', result);
-    return result;
+    console.log('✅ APIレスポンスデータ:', response);
+    return response;
   } catch (error) {
     console.error('🚫 submitVerificationエラー:', error);
     throw error;

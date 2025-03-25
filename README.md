@@ -20,6 +20,28 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## ブランチ戦略
+
+このプロジェクトでは以下のブランチ戦略を採用しています：
+
+### メインブランチ
+
+- `main`: 本番環境用のブランチ。常に安定した状態を維持します。
+- `develop`: 開発用統合ブランチ。新機能の統合とテストを行います。
+
+### 作業ブランチ
+
+- `feature/機能名`: 新機能開発用のブランチ。`develop`から分岐し、完了後`develop`にマージします。
+- `bugfix/バグ名`: バグ修正用のブランチ。
+- `release/バージョン`: リリース準備用のブランチ。
+
+### 開発フロー
+
+1. `develop`ブランチから機能ブランチを作成
+2. 機能開発とコミット
+3. プルリクエストを作成して`develop`にマージ
+4. テスト後、`main`ブランチにマージしてリリース
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

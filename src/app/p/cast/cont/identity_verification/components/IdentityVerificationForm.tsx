@@ -74,9 +74,16 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
     if (mediaId) {
       console.log(`🗿️ メディアID設定: ${mediaId}`);
       setIdPhotoMediaId(mediaId);
-      // IDがセットされた後、ファイルがアップロードされたかチェック
-      // setTimeoutを延長して、状態更新が確実に反映された後にcheckFilesUploadedが呼ばれるようにする
-      setTimeout(() => checkFilesUploaded(), 1000);
+      setTimeout(() => {
+        console.log(`🔄 遅延チェック実行 - メディアID: ${mediaId}`);
+        if (serviceType === 'A') {
+          console.log('✅ Aサービス: 身分証がアップロードされました。提出処理を開始します。');
+          setTimeout(() => handleSubmit(), 500);
+        } else if (serviceType === 'B' && juminhyoMediaId) {
+          console.log('✅ Bサービス: 両方の書類がアップロードされました。提出処理を開始します。');
+          setTimeout(() => handleSubmit(), 500);
+        }
+      }, 2000);
     }
     if (file) {
       setErrors(prev => ({...prev, idPhoto: undefined}));
@@ -103,13 +110,23 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
   const validateForm = () => {
     const newErrors: {idPhoto?: string, juminhyo?: string} = {};
     
-    if (!idPhotoFile || !idPhotoUrl) {
+    // メディアIDを使用して検証
+    if (!idPhotoMediaId) {
       newErrors.idPhoto = '顔写真付き身分証明書をアップロードしてください';
     }
     
-    if (serviceType === 'B' && (!juminhyoFile || !juminhyoUrl)) {
+    if (serviceType === 'B' && !juminhyoMediaId) {
       newErrors.juminhyo = '本籍入り住民票をアップロードしてください';
     }
+    
+    // デバッグログを追加
+    console.log('🔍 バリデーション詳細:', {
+      idPhotoMediaId,
+      juminhyoMediaId,
+      serviceType,
+      hasErrors: Object.keys(newErrors).length > 0,
+      errors: newErrors
+    });
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0 ? true : false; 
