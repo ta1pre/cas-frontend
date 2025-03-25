@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Image from 'next/image';
 import InfoIcon from '@mui/icons-material/Info';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function LoginPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function SimpleNormalPageContent() {
   const { handleLogin, loading } = useAuth();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function LoginPage() {
 
       }}
     >
-      {/* 📌 中央のコンテンツエリア */}
+      {/* 中央のコンテンツエリア */}
       <Container
         maxWidth="sm"
         sx={{
@@ -41,13 +42,13 @@ export default function LoginPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 2, // ✅ 各要素の間隔を統一
+          gap: 2, // 各要素の間隔を統一
         }}
       >
-        {/* 🌟 ロゴ */}
+        {/* ロゴ */}
         <Image src="/images/common/logo2.png" alt="Logo" width={80} height={0} priority className="object-contain" />
 
-        {/* ✨ キャッチコピー */}
+        {/* キャッチコピー */}
         <Typography 
           variant="h5" 
           sx={{ 
@@ -152,7 +153,7 @@ export default function LoginPage() {
           </Box>
         </Typography>
 
-        {/* 🟢 新規会員登録ボタン */}
+        {/* 新規会員登録ボタン */}
         <Button
           variant="contained"
           onClick={() => handleLogin('line')} 
@@ -185,7 +186,7 @@ export default function LoginPage() {
           <ArrowForwardIcon sx={{ position: "absolute", right: 20 }} />
         </Button>
 
-        {/* 📝 ボタン下の補足文 */}
+        {/* ボタン下の補足文 */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 0 }}>
           <InfoIcon sx={{ color: "#FF80AB", fontSize: "1.2rem" }} />
           <Typography sx={{ fontSize: "0.9rem", opacity: 0.8, textAlign: "center" }}>
@@ -196,5 +197,14 @@ export default function LoginPage() {
 
       </Container>
     </Box>
+  );
+}
+
+// メインのページコンポーネント
+export default function SimpleNormalPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+      <SimpleNormalPageContent />
+    </Suspense>
   );
 }

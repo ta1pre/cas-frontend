@@ -11,9 +11,10 @@ import { useAuth } from '@/hooks/useAuth';
 import RecruitIntro from './components/RecruitIntro';
 import RecruitDetail from './components/RecruitDetail';
 import RecruitExample from './components/RecruitExample';
+import { Suspense } from 'react';
 
-
-export default function RecruitPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function RecruitPageContent() {
   const { handleLogin, loading } = useAuth();
   const buttonAreaHeight = 160;
 
@@ -94,5 +95,14 @@ export default function RecruitPage() {
 </Box>
 
     </Box>
+  );
+}
+
+// メインのページコンポーネント
+export default function RecruitPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+      <RecruitPageContent />
+    </Suspense>
   );
 }

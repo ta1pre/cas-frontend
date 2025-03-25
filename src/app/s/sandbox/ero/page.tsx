@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, Suspense } from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Image from 'next/image';
@@ -8,7 +8,8 @@ import InfoIcon from '@mui/icons-material/Info';
 import { useAuth } from '@/hooks/useAuth'; // `useAuth()` をインポート
 import Cookies from 'js-cookie'; // クッキー操作用のライブラリをインポート
 
-export default function LoginPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function EroPageContent() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const { handleLogin, loading } = useAuth(); // Hooks をコンポーネント内で呼び出す
 
@@ -199,35 +200,46 @@ export default function LoginPage() {
             minWidth: "280px", // ✅ ボタンをさらに横長に
             textTransform: "none",
             backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 1.5,
-            transition: "all 0.3s ease-in-out",
-            mt: 6,
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? "not-allowed" : "pointer",
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
-            },
+            boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            '&:hover': {
+              backgroundColor: "rgba(255, 255, 255, 0.3)",
+            }
           }}
         >
-          <Box sx={{ flexGrow: 1, textAlign: "center" }}>
-            {loading ? "ログイン中..." : "新規会員登録"}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Box sx={{ mr: 1 }}>LINE認証でログイン</Box>
+            <ArrowForwardIcon fontSize="small" />
           </Box>
-          <ArrowForwardIcon sx={{ position: "absolute", right: 20 }} />
         </Button>
 
-        {/* 📝 ボタン下の補足文 */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 0 }}>
-          <InfoIcon sx={{ color: "#", fontSize: "1.2rem" }} />
-          <Typography sx={{ fontSize: "0.9rem", opacity: 0.8, textAlign: "center" }}>
-            アプリの利用は、
-            <Box component="span" sx={{ color: "", fontWeight: "bold" }}>ずっと無料！</Box>
+        {/* ℹ️ 注意書き */}
+        <Box 
+          sx={{ 
+            display: "flex", 
+            alignItems: "center", 
+            mt: 2,
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+            padding: "8px 16px",
+            borderRadius: "4px",
+            maxWidth: "280px",
+          }}
+        >
+          <InfoIcon sx={{ fontSize: 18, mr: 1, opacity: 0.7 }} />
+          <Typography variant="caption" sx={{ opacity: 0.7, textAlign: "left" }}>
+            ログインすると利用規約とプライバシーポリシーに同意したことになります
           </Typography>
         </Box>
-
       </Container>
     </Box>
+  );
+}
+
+// メインのページコンポーネント
+export default function EroPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+      <EroPageContent />
+    </Suspense>
   );
 }

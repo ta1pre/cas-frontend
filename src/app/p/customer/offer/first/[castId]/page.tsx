@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Button, Box, Typography } from "@mui/material";
 import OfferHeader from "./components/OfferHeader";
 import TimeSelector from "./components/TimeSelector";
@@ -11,7 +11,8 @@ import CourseSelector from "./components/CourseSelector";
 import MessageInput from "./components/MessageInput";
 import TrendingFlatIcon from "@mui/icons-material/TrendingFlat";
 
-export default function FirstOfferPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function FirstOfferPageContent() {
   const params = useParams();
   const castId = params.castId ? Number(params.castId) : 0;
   const router = useRouter();
@@ -87,10 +88,10 @@ export default function FirstOfferPage() {
       <TimeSelector onTimeChange={handleTimeChange} />
 
       {/* 駅選択 */}
-{/* 駅選択 */}
-{userId !== null && (
-  <StationSelector userId={userId} castId={castId} onSelectStation={setStation} />
-)}
+      {/* 駅選択 */}
+      {userId !== null && (
+        <StationSelector userId={userId} castId={castId} onSelectStation={setStation} />
+      )}
 
       {/* コース選択 */}
       <CourseSelector castId={castId} onSelectCourse={(c) => {
@@ -139,5 +140,14 @@ export default function FirstOfferPage() {
         </Button>
       </Box>
     </Box>
+  );
+}
+
+// メインのページコンポーネント
+export default function FirstOfferPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+      <FirstOfferPageContent />
+    </Suspense>
   );
 }

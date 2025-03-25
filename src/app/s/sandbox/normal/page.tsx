@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, Suspense } from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Image from 'next/image';
@@ -8,7 +8,8 @@ import InfoIcon from '@mui/icons-material/Info';
 import { useAuth } from '@/hooks/useAuth'; // `useAuth()` をインポート
 import Cookies from 'js-cookie'; // クッキー操作用のライブラリをインポート
 
-export default function LoginPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function NormalPageContent() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const { handleLogin, loading } = useAuth(); // Hooks をコンポーネント内で呼び出す
 
@@ -206,14 +207,23 @@ export default function LoginPage() {
 
         {/* ボタン下の補足文 */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 0 }}>
-          <InfoIcon sx={{ color: "#", fontSize: "1.2rem" }} />
+          <InfoIcon sx={{ color: "#FF80AB", fontSize: "1.2rem" }} />
           <Typography sx={{ fontSize: "0.9rem", opacity: 0.8, textAlign: "center" }}>
             アプリの利用は、
-            <Box component="span" sx={{ color: "", fontWeight: "bold" }}>ずっと無料！</Box>
+            <Box component="span" sx={{ color: "#FF80AB", fontWeight: "bold" }}>ずっと無料！</Box>
           </Typography>
         </Box>
 
       </Container>
     </Box>
+  );
+}
+
+// メインのページコンポーネント
+export default function NormalPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+      <NormalPageContent />
+    </Suspense>
   );
 }

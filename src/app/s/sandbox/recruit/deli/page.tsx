@@ -10,8 +10,10 @@ import { useAuth } from '@/hooks/useAuth';
 import DeliRecruitIntro from './components/DeliRecruitIntro';
 import DeliRecruitDetail from './components/DeliRecruitDetail';
 import DeliRecruitExample from './components/DeliRecruitExample';
+import { Suspense } from 'react';
 
-export default function DeliRecruitPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function DeliRecruitPageContent() {
   const { handleLogin, loading } = useAuth();
   const buttonAreaHeight = 160;
 
@@ -88,4 +90,13 @@ export default function DeliRecruitPage() {
       </Box>
     </Box>
   );
-} 
+}
+
+// メインのページコンポーネント
+export default function DeliRecruitPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
+      <DeliRecruitPageContent />
+    </Suspense>
+  );
+}
