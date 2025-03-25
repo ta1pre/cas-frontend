@@ -1,5 +1,4 @@
 // 📂 src/app/p/cast/layout.tsx
-// サーバーコンポーネントと一緒にレンダリング
 
 import React from "react";
 import CastClientLayout from "./components/layout/CastClientLayout";
