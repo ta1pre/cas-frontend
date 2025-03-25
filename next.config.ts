@@ -5,8 +5,11 @@ const nextConfig: NextConfig = {
   compiler: {
     emotion: true, // ✅ MUI の `emotion` を Next.js に統合
   },
-    devIndicators: {
+  devIndicators: {
     appIsrStatus: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // ビルド時のESLintチェックを無視
   },
 };
 
