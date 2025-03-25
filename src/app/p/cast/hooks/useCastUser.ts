@@ -2,7 +2,7 @@
 "use client";
 
 import { useContext } from "react";
-import { CastUserContext } from "@/app/p/cast/layout";
+import { CastUserContext } from "@/app/p/cast/components/layout/CastClientLayout";
 import { DecodedToken } from "@/hooks/useUser";
 
 export const useCastUser = (): DecodedToken => {
