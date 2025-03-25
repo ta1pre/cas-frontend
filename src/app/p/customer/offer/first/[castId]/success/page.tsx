@@ -1,12 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { sendReservationRequest } from "./api/reservation";
 import { Card, CardContent, Typography, Button, CircularProgress, Alert } from "@mui/material";
 import Link from "next/link";
 
-export default function SuccessPage() {
+// Suspense内でuseSearchParamsを使用するコンポーネント
+function SuccessContent() {
   const searchParams = useSearchParams();
 
   const castId = Number(searchParams.get("castId"));
@@ -102,5 +103,14 @@ export default function SuccessPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// メインコンポーネント
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen bg-black"><CircularProgress className="text-white" /></div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }

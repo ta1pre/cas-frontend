@@ -2,11 +2,12 @@
 
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import AuthButton from '@/components/Auth/AuthButton';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function LoginPage() {
+// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
+function LoginContent() {
     const { handleLogin, loading } = useAuth(); // useAuth から関数を取得
 
     return (
@@ -14,5 +15,14 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold mb-4">LINEログイン</h1>
             <AuthButton onClick={() => handleLogin('line')} loading={loading} />
         </div>
+    );
+}
+
+// メインのページコンポーネント
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<p>🔄 読み込み中...</p>}>
+            <LoginContent />
+        </Suspense>
     );
 }
