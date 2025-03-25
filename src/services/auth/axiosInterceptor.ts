@@ -39,18 +39,20 @@ const apiClient = axios.create({
  * 
  * @param {string} endpoint - API のエンドポイント（例: `/api/v1/setup/status/test`）
  * @param {object} [data] - API に送信するデータ（オプション）
+ * @param {string} [method="POST"] - HTTPメソッド（デフォルトは「POST」）
  * 
  * ✅ 認証情報の自動付与
  * ✅ `globalThis.user` から `token` を取得
- * ✅ `axios.post()` を使ってリクエストを送信
+ * ✅ `axios.post()` または `axios.get()` を使ってリクエストを送信
  * ✅ エラー時は `null` を返す
  * 
  * 🔹 使い方:
  * ```tsx
  * const result = await fetchAPI("/api/v1/setup/status/test", { user_id: 123 });
+ * const status = await fetchAPI("/api/v1/cast/identity-verification/status", null, "GET");
  * ```
  */
-export const fetchAPI = async (endpoint: string, data?: object) => {
+export const fetchAPI = async (endpoint: string, data?: object, method: string = "POST") => {
     /**
      * `globalThis.user`: ユーザー情報を保持するグローバル変数
      * 
@@ -73,22 +75,34 @@ export const fetchAPI = async (endpoint: string, data?: object) => {
     const token = globalThis.user.token;
 
     try {
-        console.log(`【fetchAPI】🔍 ${API_URL}${endpoint} をリクエスト中...`);
+        console.log(`【fetchAPI】🔍 ${method} ${API_URL}${endpoint} をリクエスト中...`);
         
         /**
-         * `axios.post()`: API を呼び出す
+         * `axios.post()` または `axios.get()`: API を呼び出す
          * 
          * `Authorization` ヘッダーに `token` をセットし、API を実行する。
          * レスポンスデータは `response.data` に含まれるため、直接返す。
          */
-        const response = await apiClient.post(endpoint, data, {
+        let response;
+        const config = {
             headers: { Authorization: `Bearer ${token}` },
-        });
+        };
+        
+        if (method.toUpperCase() === "GET") {
+            // GETリクエストの場合、dataをパラメータとして渡す
+            response = await apiClient.get(endpoint, {
+                ...config,
+                params: data
+            });
+        } else {
+            // POSTリクエストの場合（デフォルト）
+            response = await apiClient.post(endpoint, data, config);
+        }
 
-        console.log("【fetchAPI】✅ レスポンス:", response.data);
+        console.log(`【fetchAPI】✅ ${method} レスポンス:`, response.data);
         return response.data;
     } catch (error) {
-        console.error("【fetchAPI】❌ API 呼び出し失敗:", error);
+        console.error(`【fetchAPI】❌ ${method} API 呼び出し失敗:`, error);
         return null;
     }
 };

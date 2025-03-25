@@ -11,7 +11,7 @@ export default function SearchFilters({ setOffset }: SearchFiltersProps) {
     const { openFilters } = useFilters();
     const { hasActiveFilters } = useFiltersState();
 
-    const filterText = hasActiveFilters ? "条件設定中！" : "絞り込み";
+    const filterText = hasActiveFilters ? "絞り込み！" : "絞り込み";
 
     return (
         <>

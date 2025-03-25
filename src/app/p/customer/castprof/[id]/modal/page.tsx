@@ -9,7 +9,7 @@ export default function CastProfilePage() {
             className="w-full h-screen bg-green-500 flex justify-center items-center overflow-hidden"
         >
             <img 
-                src="https://8c0b37dc5a6a.ngrok.app/images/dummy_img/001.jpg" 
+                src="https://60c151628549.ngrok.app/images/dummy_img/001.jpg" 
                 alt="Profile Background" 
                 className="w-full h-full object-cover"
             />

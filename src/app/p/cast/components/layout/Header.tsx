@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
@@ -16,6 +15,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PhotoCameraBackIcon from '@mui/icons-material/PhotoCameraBack';
+import Link from 'next/link';
 
 export default function CastHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,9 +39,9 @@ export default function CastHeader() {
   return (
     <>
       <header className="bg-pink-100 shadow-md fixed top-0 left-0 w-full z-50 h-12 flex items-center justify-center">
-        <Link href="/p/cast/dashboard" className="absolute left-1/2 transform -translate-x-1/2">
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <Image src="/images/common/logo.png" alt="Logo" width={30} height={30} priority className="object-contain" />
-        </Link>
+        </div>
         <button onClick={() => setIsOpen(true)} className="absolute right-4">
           <ListIcon fontSize="large" />
         </button>
@@ -80,8 +80,8 @@ export default function CastHeader() {
               <nav className="mt-4 px-4">
                 <ul className="list-none space-y-4">
                   <NavLink href="/p/cast/cont/reserve" icon={AssignmentIcon} pathname={pathname} setIsOpen={setIsOpen}>予約管理</NavLink>
-                  <NavLink href="#" icon={PersonIcon} pathname={pathname} setIsOpen={setIsOpen}>プロフィール編集</NavLink>
-                  <NavLink href="#" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント管理</NavLink>
+                  <NavLink href="/p/cast/cont/prof" icon={PersonIcon} pathname={pathname} setIsOpen={setIsOpen}>プロフィール編集</NavLink>
+                  <NavLink href="/p/cast/cont/points" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント管理</NavLink>
                   <NavLink href="#" icon={ChatIcon} pathname={pathname} setIsOpen={setIsOpen}>メッセージ</NavLink>
                   <NavLink href="#" icon={PhotoCameraBackIcon} pathname={pathname} setIsOpen={setIsOpen}>フォトポスト</NavLink>
                   <NavLink href="/p/cast/cont/help" icon={HelpOutlineIcon} pathname={pathname} setIsOpen={setIsOpen}>ヘルプ</NavLink>

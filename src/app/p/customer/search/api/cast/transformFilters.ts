@@ -52,6 +52,11 @@ export function transformFilters(filters?: APIFilters): Record<string, any> {
         delete transformed.location; // `location` は API に送らない
     }
 
+    // ✅ キャストタイプフィルター（A, B, AB）
+    if (filters.cast_type) {
+        transformed.cast_type = filters.cast_type; // キャストタイプをそのまま送信
+    }
+
     console.log("📡 送信フィルター:", transformed); // ✅ デバッグ用ログ
     return transformed;
 }

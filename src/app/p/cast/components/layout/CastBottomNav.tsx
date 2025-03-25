@@ -7,6 +7,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PhotoCameraBackIcon from '@mui/icons-material/PhotoCameraBack';
 import PersonIcon from '@mui/icons-material/Person';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -20,7 +21,8 @@ export default function CastBottomNav() {
     if (pathname.includes('/dashboard')) setValue(0);
     else if (pathname.includes('/reserve')) setValue(1);
     else if (pathname.includes('/photopost')) setValue(2);
-    else if (pathname.includes('/mypage')) setValue(3);
+    else if (pathname.includes('/identity_verification')) setValue(3);
+    else if (pathname.includes('/mypage')) setValue(4);
   }, [pathname]);
 
   return (
@@ -34,6 +36,7 @@ export default function CastBottomNav() {
         <BottomNavigationAction label="ホーム" icon={<HomeIcon />} component={Link} href="/p/cast/dashboard" />
         <BottomNavigationAction label="予約管理" icon={<AssignmentIcon />} component={Link} href="/p/cast/reserve" />
         <BottomNavigationAction label="フォト投稿" icon={<PhotoCameraBackIcon />} component={Link} href="/p/cast/photopost" />
+        <BottomNavigationAction label="本人確認" icon={<VerifiedUserIcon />} component={Link} href="/p/cast/cont/identity_verification" />
         <BottomNavigationAction label="マイページ" icon={<PersonIcon />} component={Link} href="/p/cast/mypage" />
       </BottomNavigation>
     </Paper>

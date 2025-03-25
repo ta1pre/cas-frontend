@@ -4,6 +4,13 @@ import DropdownFilter from "./DropdownFilter";
 import CheckboxFilter from "./CheckboxFilter";
 import { PREFECTURE_OPTIONS } from "../../config/prefectures"; // ✅ インポート
 
+// ✅ キャストタイプのオプションを定義
+export const CAST_TYPE_OPTIONS = [
+    { label: "Cas", value: "A" },
+    { label: "Deli Cas", value: "B" },
+    { label: "どちらも", value: "AB" }
+];
+
 // ✅ 配列に変換（`value` を `string` に統一）
 const PREFECTURE_OPTIONS_ARRAY = Object.entries(PREFECTURE_OPTIONS).map(([label, value]) => ({
     label,
@@ -16,5 +23,7 @@ export const FilterUIComponents: Record<string, { component: React.FC<any>; labe
     height: { component: (props) => <RangeFilter {...props} min={140} max={190} step={5} unit="cm" />, label: "身長" },
     reservation_fee: { component: (props) => <RangeFilter {...props} min={1000} max={50000} step={2000} unit="円" />, label: "料金" },
     available_soon: { component: (props) => <CheckboxFilter {...props} label="今からOKのキャストに絞り込む" />, label: "今からOK！" },
-    location: { component: (props) => <DropdownFilter {...props} options={PREFECTURE_OPTIONS_ARRAY} />, label: "エリア" }
+    location: { component: (props) => <DropdownFilter {...props} options={PREFECTURE_OPTIONS_ARRAY} />, label: "エリア" },
+    // ✅ cast_type フィルターを追加
+    cast_type: { component: (props) => <DropdownFilter {...props} options={CAST_TYPE_OPTIONS} />, label: "キャストタイプ" }
 };

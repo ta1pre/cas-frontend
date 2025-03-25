@@ -5,13 +5,18 @@ import { Box, Button, Container, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Image from 'next/image';
 import InfoIcon from '@mui/icons-material/Info';
-import { useAuth } from '@/hooks/useAuth'; // ✅ `useAuth()` をインポート
+import { useAuth } from '@/hooks/useAuth'; // `useAuth()` をインポート
+import Cookies from 'js-cookie'; // クッキー操作用のライブラリをインポート
 
 export default function LoginPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const { handleLogin, loading } = useAuth(); // ✅ Hooks をコンポーネント内で呼び出す
+  const { handleLogin, loading } = useAuth(); // Hooks をコンポーネント内で呼び出す
 
   useEffect(() => {
+    // クッキーを設定 - customer:delicasを設定
+    Cookies.set('StartPage', 'customer:delicas', { path: '/' });
+    console.log('StartPage cookie set to customer:delicas');
+    
     const video = videoRef.current;
     if (video) {
       video.play().catch((error) => console.error('🔴 Video autoplay failed:', error));
@@ -25,20 +30,20 @@ export default function LoginPage() {
 
   return (
     <Box sx={{ position: "relative", width: "100vw", height: "100vh", overflow: "hidden" }}>
-{/* 🖼️ 背景画像 */}
-<Box
-  sx={{
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundImage: "url('/sandbox/bg.jpg')", // ✅ ここを変更
-    backgroundSize: "cover",  // ✅ 画像を画面全体にフィット
-    backgroundPosition: "center",  // ✅ 中央配置
-    backgroundRepeat: "no-repeat",  // ✅ 繰り返しなし
-  }}
-/>
+      {/* 🖼️ 背景画像 */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundImage: "url('/sandbox/bg.jpg')", // ✅ ここを変更
+          backgroundSize: "cover",  // ✅ 画像を画面全体にフィット
+          backgroundPosition: "center",  // ✅ 中央配置
+          backgroundRepeat: "no-repeat",  // ✅ 繰り返しなし
+        }}
+      />
 
       {/* 🔥 半透明のオーバーレイ */}
       <Box sx={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", bgcolor: "rgba(0, 0, 0, 0.4)" }} />
@@ -62,7 +67,7 @@ export default function LoginPage() {
         {/* 🌟 ロゴ */}
         <Image src="/images/common/logo.png" alt="Logo" width={50} height={50} priority className="object-contain" />
 
-        {/* ✨ キャッチコピー */}
+        {/* 📝 タイトル */}
         <Typography 
           variant="h5" 
           sx={{ 
@@ -214,13 +219,13 @@ export default function LoginPage() {
         </Button>
 
         {/* 📝 ボタン下の補足文 */}
-<Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 0 }}>
-  <InfoIcon sx={{ color: "#", fontSize: "1.2rem" }} />
-  <Typography sx={{ fontSize: "0.9rem", opacity: 0.8, textAlign: "center" }}>
-    アプリの利用は、
-    <Box component="span" sx={{ color: "", fontWeight: "bold" }}>ずっと無料！</Box>
-  </Typography>
-</Box>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 0 }}>
+          <InfoIcon sx={{ color: "#", fontSize: "1.2rem" }} />
+          <Typography sx={{ fontSize: "0.9rem", opacity: 0.8, textAlign: "center" }}>
+            アプリの利用は、
+            <Box component="span" sx={{ color: "", fontWeight: "bold" }}>ずっと無料！</Box>
+          </Typography>
+        </Box>
 
       </Container>
     </Box>

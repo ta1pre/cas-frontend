@@ -53,14 +53,16 @@ export default function ProfileDetails({ traits = [], serviceTypes = [] }: Profi
                 <Box className="mt-4 flex flex-wrap gap-2">
                     {sortedCategories.map(([category, names]) =>
                         names.map((name) => (
-                            <Box
-                                key={`${category}-${name}`}
-                                className={`px-3 py-1 text-sm rounded-full ${
-                                    category === "高収入" ? "bg-pink-100" : "bg-blue-100"
-                                }`}
-                            >
-                                {name}
-                            </Box>
+                            (category !== "高収入") ? (
+                                <Box
+                                    key={`${category}-${name}`}
+                                    className={`px-3 py-1 text-sm rounded-full ${
+                                         "bg-blue-100"
+                                    }`}
+                                >
+                                    {name}
+                                </Box>
+                            ) : null
                         ))
                     )}
                 </Box>

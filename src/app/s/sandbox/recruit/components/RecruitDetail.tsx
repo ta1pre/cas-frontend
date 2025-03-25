@@ -28,7 +28,7 @@ export default function RecruitDetail({ buttonAreaHeight }: { buttonAreaHeight: 
         transition={{ repeat: Infinity, duration: 1.5 }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: '10px' }}
       >
-        <SwipeLeftRoundedIcon sx={{ fontSize: '1.2rem', color: '#FF80AB' }} />
+        <SwipeLeftRoundedIcon sx={{ fontSize: '2rem', color: '#FF80AB' }} />
       </motion.div>
     </RecruitSlide>
   );
