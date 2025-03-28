@@ -2,16 +2,14 @@
 
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
 import { Container, Box, Typography } from '@mui/material';
 import AuthButton from '@/components/Auth/AuthButton';
-import { useAuth } from '@/hooks/useAuth';
 
-// Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
-function HomeContent() {
-    const { handleLogin, loading } = useAuth();
+// シンプルなページコンポーネント
+export default function HomePage() {
     const [isVisible, setIsVisible] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         // Google Fonts のインライン読み込み
@@ -23,6 +21,17 @@ function HomeContent() {
         // ふわっと表示のアニメーション
         setTimeout(() => setIsVisible(true), 100);
     }, []);
+
+    // LINEログイン処理(シンプル化)
+    const handleLogin = async () => {
+        try {
+            setLoading(true);
+            // LINEログインページへのリンク
+            window.location.href = '/auth/login';
+        } catch (err) {
+            console.error('ログインエラー:', err);
+        }
+    };
 
     return (
         <Container 
@@ -52,7 +61,7 @@ function HomeContent() {
                 precas
             </Typography>
 
-            {/* ログインボタン（画面下部に固定） */}
+            {/* ログインボタン(簡略化) */}
             <Box 
                 sx={{
                     position: "absolute",
@@ -63,17 +72,8 @@ function HomeContent() {
                     px: 6
                 }}
             >
-                <AuthButton onClick={() => handleLogin('line')} loading={loading} />
+                <AuthButton onClick={handleLogin} loading={loading} />
             </Box>
         </Container>
-    );
-}
-
-// メインのページコンポーネント
-export default function HomePage() {
-    return (
-        <Suspense fallback={<div className="flex justify-center items-center h-screen"><p>🔄 読み込み中...</p></div>}>
-            <HomeContent />
-        </Suspense>
     );
 }
