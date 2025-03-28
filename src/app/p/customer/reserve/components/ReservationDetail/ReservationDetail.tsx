@@ -54,12 +54,12 @@ export default function ReservationDetail({
       (scrollTop === 0 && (e as WheelEvent).deltaY < 0) || 
       (scrollTop + clientHeight >= scrollHeight && (e as WheelEvent).deltaY > 0)
     ) {
-      e.preventDefault(); // ✅ スクロールの伝播を防ぐ
+      e.preventDefault(); // スクロールの伝播を防ぐ
     }
   };
 
   if (isOpen) {
-    document.body.style.overflow = "hidden"; // ✅ 背景スクロールを防止
+    document.body.style.overflow = "hidden"; // 背景スクロールを防止
     scrollContainerRef.current?.addEventListener("wheel", handleScroll, { passive: false });
     scrollContainerRef.current?.addEventListener("touchmove", handleScroll, { passive: false });
   } else {
@@ -67,7 +67,7 @@ export default function ReservationDetail({
   }
 
   return () => {
-    document.body.style.overflow = "auto"; // ✅ クリーンアップ
+    document.body.style.overflow = "auto"; // クリーンアップ
     scrollContainerRef.current?.removeEventListener("wheel", handleScroll);
     scrollContainerRef.current?.removeEventListener("touchmove", handleScroll);
   };
@@ -95,14 +95,14 @@ export default function ReservationDetail({
     onDragEnd={(e, info) => {
       if (info.offset.x < -50) {
         onClose();
-        onCloseMessage(); // ✅ スワイプで閉じるときもメッセージを閉じる
+        onCloseMessage(); // スワイプで閉じるときもメッセージを閉じる
       }
     }}
-    onClick={onCloseMessage} // ✅ 予約詳細をクリックして閉じるときもメッセージを閉じる
+    onClick={onCloseMessage} // 予約詳細をクリックして閉じるときもメッセージを閉じる
     className="fixed top-0 right-0 z-50 h-full w-[90%] md:w-1/2 bg-white shadow-lg flex flex-col"
   >
 
-  {/* ✅ 左矢印（←）の位置はそのまま */}
+  {/* 左矢印（←）の位置はそのまま */}
   <button
     onClick={(e) => {
       e.stopPropagation();
@@ -114,16 +114,16 @@ export default function ReservationDetail({
     <KeyboardArrowLeftIcon fontSize="large" className="text-gray-600" />
   </button>
 
-  {/* ✅ ステータスと予約詳細を右にずらす */}
+  {/* ステータスと予約詳細を右にずらす */}
   <div className="flex items-center justify-between p-4 border-b bg-gray-100">
-    <div className="flex items-center gap-2 ml-8"> {/* ✅ 矢印にかぶらないように `ml-8` を追加 */}
+    <div className="flex items-center gap-2 ml-8"> {/* 矢印にかぶらないように `ml-8` を追加 */}
       <Chip label={reservation.status} style={{ backgroundColor: reservation.color_code, color: "#fff" }} />
 <Typography 
   variant="subtitle1" 
   component="span" 
   sx={{ fontWeight: "bold" }} 
 >
-  📌 予約詳細 <span className="text-gray-600">#{reservation.reservation_id}</span>
+  予約詳細 <span className="text-gray-600">#{reservation.reservation_id}</span>
 </Typography>
 
     </div>
@@ -162,6 +162,8 @@ export default function ReservationDetail({
         <StatusHandler
           reservationId={reservation.reservation_id}
           statusKey={reservation.status_key}
+          status={reservation.status}
+          colorCode={reservation.color_code}
           onUpdate={onUpdate}
         />
 
@@ -197,8 +199,8 @@ export default function ReservationDetail({
 
 <div className="p-4">
   <div onClick={(e) => { 
-    e.stopPropagation(); // ✅ クリックイベントのバブリングを防ぐ
-    onOpenMessage(); // ✅ メッセージパネルを開く
+    e.stopPropagation(); // クリックイベントのバブリングを防ぐ
+    onOpenMessage(); // メッセージパネルを開く
   }}>
     <MessageToggleButton isOpen={false} onClick={() => {}} />
   </div>

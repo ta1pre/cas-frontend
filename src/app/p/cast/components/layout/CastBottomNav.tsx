@@ -33,8 +33,8 @@ export default function CastBottomNav() {
         onChange={(event, newValue) => setValue(newValue)}
         sx={{ backgroundColor: '#fff0f5' }}
       >
-        <BottomNavigationAction label="ホーム" icon={<HomeIcon />} component={Link} href="/p/cast/dashboard" />
-        <BottomNavigationAction label="予約管理" icon={<AssignmentIcon />} component={Link} href="/p/cast/reserve" />
+        <BottomNavigationAction label="ホーム" icon={<HomeIcon />} component={Link} href="/p/cast/cont/dashboard" />
+        <BottomNavigationAction label="予約管理" icon={<AssignmentIcon />} component={Link} href="/p/cast/contreserve" />
         <BottomNavigationAction label="フォト投稿" icon={<PhotoCameraBackIcon />} component={Link} href="/p/cast/photopost" />
         <BottomNavigationAction label="本人確認" icon={<VerifiedUserIcon />} component={Link} href="/p/cast/cont/identity_verification" />
         <BottomNavigationAction label="マイページ" icon={<PersonIcon />} component={Link} href="/p/cast/mypage" />
