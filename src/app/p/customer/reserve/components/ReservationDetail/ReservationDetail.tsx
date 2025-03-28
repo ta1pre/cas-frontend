@@ -116,17 +116,32 @@ export default function ReservationDetail({
 
   {/* ステータスと予約詳細を右にずらす */}
   <div className="flex items-center justify-between p-4 border-b bg-gray-100">
-    <div className="flex items-center gap-2 ml-8"> {/* 矢印にかぶらないように `ml-8` を追加 */}
-      <Chip label={reservation.status} style={{ backgroundColor: reservation.color_code, color: "#fff" }} />
-<Typography 
-  variant="subtitle1" 
-  component="span" 
-  sx={{ fontWeight: "bold" }} 
->
-  予約詳細 <span className="text-gray-600">#{reservation.reservation_id}</span>
-</Typography>
-
+    <div className="flex items-center gap-2 ml-8"> 
+      <Chip 
+        label={reservation.status} 
+        style={{ 
+          backgroundColor: reservation.color_code, 
+          color: "#fff",
+          fontWeight: "bold", 
+          fontSize: "1rem", 
+          padding: "8px 12px"
+        }} 
+      />
+      <Typography 
+        variant="subtitle1" 
+        component="span" 
+        sx={{ fontWeight: "bold" }} 
+      >
+        予約詳細
+      </Typography>
     </div>
+    <Typography 
+      variant="h6" 
+      component="span" 
+      sx={{ fontWeight: "bold", color: "#1976d2" }} 
+    >
+      #{reservation.reservation_id}
+    </Typography>
   </div>
 
       <div ref={scrollContainerRef} className="flex-1 overflow-auto p-6">
@@ -140,7 +155,28 @@ export default function ReservationDetail({
           </a>
         </div>
 
-        <div className="bg-gray-100 p-4 rounded-lg">
+        <div 
+          className="p-4 rounded-lg mb-6 shadow-sm" 
+          style={{ 
+            backgroundColor: `${reservation.color_code}10`, 
+            borderWidth: "2px",
+            borderStyle: "solid",
+            borderColor: reservation.color_code 
+          }}
+        >
+          <Typography variant="subtitle1" component="h3" sx={{ fontWeight: "bold", mb: 2, color: reservation.color_code }}>
+            予約ステータスの管理
+          </Typography>
+          <StatusHandler
+            reservationId={reservation.reservation_id}
+            statusKey={reservation.status_key}
+            status={reservation.status}
+            colorCode={reservation.color_code}
+            onUpdate={onUpdate}
+          />
+        </div>
+
+        <div className="bg-gray-100 p-4 rounded-lg mb-6"> 
           <table className="w-full border-collapse">
             <tbody>
               <tr>
@@ -158,14 +194,6 @@ export default function ReservationDetail({
             </tbody>
           </table>
         </div>
-
-        <StatusHandler
-          reservationId={reservation.reservation_id}
-          statusKey={reservation.status_key}
-          status={reservation.status}
-          colorCode={reservation.color_code}
-          onUpdate={onUpdate}
-        />
 
         <table className="w-full border-collapse mt-4">
           <tbody>
@@ -198,6 +226,7 @@ export default function ReservationDetail({
       </div>
 
 <div className="p-4">
+  {/* MessageToggleButton */}
   <div onClick={(e) => { 
     e.stopPropagation(); // クリックイベントのバブリングを防ぐ
     onOpenMessage(); // メッセージパネルを開く

@@ -80,7 +80,7 @@ export default function StatusButton({ reservationId, label, nextStatus, color, 
             <button
                 onClick={handleClick}
                 style={{ backgroundColor: color }}
-                className="px-4 py-2 rounded text-white hover:opacity-80 transition-opacity duration-200 disabled:opacity-50"
+                className="px-5 py-2.5 rounded-md text-white font-bold text-base hover:opacity-80 transition-opacity duration-200 disabled:opacity-50 shadow-md"
                 disabled={isLoading}
             >
                 {isLoading ? "処理中..." : label}

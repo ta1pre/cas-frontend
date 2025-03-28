@@ -24,9 +24,9 @@ const fallbackStatusConfig: Record<string, { text: string; subText?: string; but
     },
     confirmed: { 
         text: "✅ 予約確定済み", 
-        subText: "待ち合わせ場所に到着したら下の到着ボタンを押して下さい。",
+        subText: "待ち合わせ場所に到着したら到着ボタンを押して下さい。",
         buttons: [
-            { label: "到着しました", nextStatus: "user_arrived", color: "blue" },
+            { label: "到着", nextStatus: "user_arrived", color: "blue" },
         ],
     },
     user_arrived: { 
@@ -55,15 +55,14 @@ export default function StatusHandler({ reservationId, statusKey, status, colorC
     }, [status, colorCode]);
 
     return (
-        <div className={`p-2 mt-4 rounded text-center ${bgColor}`}>
-            <p className="font-semibold">📌 予約ID: {reservationId}</p>
-            <p className="text-lg font-medium">{displayText}</p>
+        <div className={`p-4 mt-4 rounded text-center ${bgColor}`}>
+            <p className="text-xl font-bold">{displayText}</p>
             {displaySubText && (
-                <p className="text-md text-gray-600 mt-2">{displaySubText}</p>
+                <p className="text-md text-gray-700 mt-2 font-medium">{displaySubText}</p>
             )}
 
             {fallbackConfig.buttons && (
-                <div className="mt-2 flex justify-center gap-2">
+                <div className="mt-4 flex justify-center gap-3">
                     {fallbackConfig.buttons.map((button) => (
                         <StatusButton
                             key={button.nextStatus}
