@@ -20,7 +20,7 @@ export const login = async (provider: 'line' | 'phone' | 'email', credentials?: 
                 }
                 break;
             case 'phone':
-                await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/account/phone/login`, {
+                await axios.post(`/api/v1/account/phone/login`, {
                     phone: credentials?.phone,
                     password: credentials?.password,
                 }, {
@@ -28,7 +28,7 @@ export const login = async (provider: 'line' | 'phone' | 'email', credentials?: 
                 });
                 break;
             case 'email':
-                await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/account/email/login`, {
+                await axios.post(`/api/v1/account/email/login`, {
                     email: credentials?.email,
                     password: credentials?.password,
                 }, {

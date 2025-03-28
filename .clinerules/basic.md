@@ -23,8 +23,8 @@ FAST API と Next.js (フロントエンド) を使用した、以下の機能�
 ### 開発環境URL（ngrok経由）
 | 種別 | URL |
 |------|-----|
-| API | https://a8166f23e4a5.ngrok.app → http://localhost:8000 |
-| WEB | https://60c151628549.ngrok.app → http://localhost:3000 |
+| API | http://localhost:8000 |
+| WEB | http://localhost:3000 |
 
 ---
 # バックエンド
