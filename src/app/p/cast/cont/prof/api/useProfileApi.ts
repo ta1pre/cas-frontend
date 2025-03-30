@@ -32,6 +32,7 @@ export interface ProfileData {
   created_at?: string;
   updated_at?: string;
   station_name?: string;
+  selected_prefecture_id?: string; // 都道府県IDを一時的に保存するフィールド
 }
 
 /**

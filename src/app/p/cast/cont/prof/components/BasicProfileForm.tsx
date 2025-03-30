@@ -44,6 +44,7 @@ const initialFormState: ProfileData = {
   self_introduction: '',
   dispatch_prefecture: '',
   station_name: '',
+  selected_prefecture_id: '', // 都道府県IDを一時的に保存するフィールド
 };
 
 /**
@@ -107,7 +108,12 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
   const handlePrefectureChange = (event: SelectChangeEvent<string>) => {
     // 文字列IDを数値IDに変換して設定
     const prefectureId = event.target.value ? Number(event.target.value) : '';
-    setFormData((prev) => ({ ...prev, dispatch_prefecture: prefectureId }));
+    setFormData((prev) => ({
+      ...prev,
+      dispatch_prefecture: prefectureId,
+      // 都道府県IDを一時的にsupport_areaにも保存
+      selected_prefecture_id: event.target.value // 都道府県IDを別のフィールドに保存
+    }));
   };
 
   // 駅選択の変更ハンドラ
@@ -192,11 +198,13 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
         }
       });
       
-      // dispatch_prefectureの値をsupport_areaにもコピー
-      // dispatch_prefectureは都道府県IDなので、そのままsupport_areaにコピー
-      if (submissionData.dispatch_prefecture) {
-        submissionData.support_area = String(submissionData.dispatch_prefecture);
-        console.log('support_areaに設定する都道府県ID:', submissionData.support_area);
+      // support_areaに都道府県IDを設定
+      if (submissionData.selected_prefecture_id) {
+        // 選択された都道府県IDをsupport_areaに設定
+        submissionData.support_area = submissionData.selected_prefecture_id;
+        console.log('support_areaに都道府県IDを設定:', submissionData.support_area);
+        // 一時フィールドを削除
+        delete submissionData.selected_prefecture_id;
       }
       
       await updateProfile(submissionData);
@@ -442,7 +450,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
             <Grid item xs={12} sm={6}>
               <StationAutocomplete
                 value={formData.station_name || ''}
-                prefectureId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
+                stationId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
                 onChange={handleStationChange}
                 label="最寄り駅"
               />
