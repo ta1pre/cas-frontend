@@ -20,16 +20,16 @@ import {
   Checkbox,
   FormControlLabel,
   IconButton,
+  FormControl,
+  Select,
+  MenuItem,
+  Autocomplete,
   CircularProgress,
   Alert,
   Stack,
   Divider,
-  Autocomplete,
-  MenuItem,
-  Select,
-  FormControl,
   InputLabel,
-  FormHelperText
+  FormHelperText,
 } from "@mui/material";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -109,14 +109,14 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
   const [detail, setDetail] = useState<ReservationDetail | null>(null);
   const [startTime, setStartTime] = useState("");
   const [note, setNote] = useState("");
-  const [transportationFee, setTransportationFee] = useState<number>(0); 
+  const [transportationFee, setTransportationFee] = useState(String(detail?.traffic_fee || 0)); 
   
   const [stationInput, setStationInput] = useState("");
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   
   const [availableOptions, setAvailableOptions] = useState<AvailableOption[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<AvailableOption[]>([]);
+  const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
   const [customOptions, setCustomOptions] = useState<CustomOption[]>([]);
   
   const [newCustomName, setNewCustomName] = useState("");
@@ -172,7 +172,13 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
           
           setStartTime(formatDateTimeForInput(detailData.start_time));
           setNote(detailData.reservation_note || "");
-          setTransportationFee(detailData.traffic_fee || 0); 
+          setTransportationFee(String(detailData.traffic_fee || 0)); 
+          
+          // 
+          if (detailData.course_id) {
+            setSelectedCourseId(detailData.course_id);
+            console.log("予約詳細からコースIDを設定:", detailData.course_id);
+          }
           
           if (detailData.station_id) {
             setSelectedStation({
@@ -182,7 +188,7 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
           }
           
           if (detailData.options && detailData.options.length > 0) {
-            const selectedOptions: AvailableOption[] = [];
+            const selectedIds: number[] = [];
             const customs: CustomOption[] = [];
             
             detailData.options.forEach((opt: { option_id: number; name: string; price: number; is_custom: boolean; }) => {
@@ -192,14 +198,11 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                   price: opt.price
                 });
               } else {
-                const option = availableOptions.find(option => option.option_id === opt.option_id);
-                if (option) {
-                  selectedOptions.push(option);
-                }
+                selectedIds.push(opt.option_id);
               }
             });
             
-            setSelectedOptions(selectedOptions);
+            setSelectedOptionIds(selectedIds);
             setCustomOptions(customs);
           }
           
@@ -258,11 +261,23 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
           if (coursesData) {
             setCourses(coursesData);
             console.log("コース情報:", coursesData);
-            if (formData.courseId) {
-              const selectedCourse = coursesData.find(course => course.id === formData.courseId);
-              if (selectedCourse) {
-                setSelectedCourseId(formData.courseId);
-                setSelectedCourse(selectedCourse);
+            
+            // 予約詳細からコースIDを設定した場合、コース情報取得後に再度確認する
+            if (selectedCourseId) {
+              const initialCourse = coursesData.find(course => course.id === selectedCourseId);
+              if (initialCourse) {
+                setSelectedCourse(initialCourse);
+                console.log("コース情報取得後にコースを設定:", initialCourse);
+              } else {
+                console.warn(`コースID ${selectedCourseId} が取得したコース一覧に見つかりません。`);
+              }
+            } else if (detail && detail.course_id) {
+              // 予約詳細にコースIDがある場合、コース情報取得後に再度確認する
+              const initialCourse = coursesData.find(course => course.id === detail.course_id);
+              if (initialCourse) {
+                setSelectedCourseId(detail.course_id);
+                setSelectedCourse(initialCourse);
+                console.log("予約詳細からコースを設定:", initialCourse);
               }
             }
           } else {
@@ -290,11 +305,11 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
     return isoString.substring(0, 16);
   };
 
-  const toggleOption = (option: AvailableOption) => {
-    setSelectedOptions(prev => 
-      prev.includes(option)
-        ? prev.filter(opt => opt.option_id !== option.option_id)
-        : [...prev, option]
+  const toggleOption = (optionId: number) => {
+    setSelectedOptionIds(prev => 
+      prev.includes(optionId)
+        ? prev.filter(id => id !== optionId)
+        : [...prev, optionId]
     );
   };
 
@@ -347,24 +362,20 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return;
-    
     setSubmitting(true);
     setErrorMessage("");
-    
+
     try {
-      // 選択されているオプションIDsを取得
-      const selectedOptionIds = selectedOptions.map(option => option.option_id);
       const currentCustomOptions = customOptionsRef.current;
       
-      // 開始時間から終了時間を計算
+      // 
       const startDate = new Date(startTime);
       const endDate = new Date(startDate.getTime() + (selectedCourse?.duration_minutes || 0) * 60000);
       
       const requestData: ReservationEditRequest = {
         reservation_id: reservationId,
         cast_id: user.user_id,
-        course_id: selectedCourseId || (detail?.course_id || 0), // コースIDを設定
+        course_id: selectedCourseId || (detail?.course_id || 0), // 
         start_time: startDate.toISOString(),
         end_time: endDate.toISOString(),
         location: selectedStation ? String(selectedStation.id) : detail?.location || "",
@@ -372,12 +383,9 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
         status: "waiting_user_confirm",
         option_ids: selectedOptionIds,
         custom_options: currentCustomOptions,
-        transportation_fee: transportationFee, 
+        transportation_fee: Number(transportationFee) || 0, 
       };
 
-      console.log("送信データ（詳細）:", JSON.stringify(requestData, null, 2));
-      console.log("交通費データ:", transportationFee, typeof transportationFee);
-      
       const response = await sendReservationEdit(requestData);
       console.log("送信結果:", response);
       router.refresh();
@@ -557,20 +565,25 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                   交通費
                 </Typography>
               </Box>
-              <TextField
-                fullWidth
-                type="number"
-                value={transportationFee || ''}
-                onChange={(e) => {
-                  // u7a7au306eu5834u5408u306f0u3001u305du308cu4ee5u5916u306fu5165u529bu5024u3092u6570u5024u5316
-                  const value = e.target.value === '' ? 0 : Number(e.target.value);
-                  setTransportationFee(value);
-                }}
-                placeholder="交通費を入力"
-                InputProps={{
-                  inputProps: { min: 0 }
-                }}
-              />
+              {/* 交通費入力をテキストフィールドからセレクトボックスに変更 */}
+              <FormControl fullWidth>
+                <Select
+                  value={transportationFee}
+                  onChange={(e) => setTransportationFee(e.target.value)}
+                  displayEmpty
+                  sx={{ 
+                    borderRadius: 1,
+                    '& .MuiSelect-select': { py: 1.5 }
+                  }}
+                >
+                  <MenuItem value="0">0円</MenuItem>
+                  <MenuItem value="1000">1,000円</MenuItem>
+                  <MenuItem value="2000">2,000円</MenuItem>
+                  <MenuItem value="3000">3,000円</MenuItem>
+                  <MenuItem value="4000">4,000円</MenuItem>
+                  <MenuItem value="5000">5,000円</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </Paper>
@@ -594,8 +607,8 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                 key={option.option_id}
                 control={
                   <Checkbox
-                    checked={selectedOptions.includes(option)}
-                    onChange={() => toggleOption(option)}
+                    checked={selectedOptionIds.includes(option.option_id)}
+                    onChange={() => toggleOption(option.option_id)}
                   />
                 }
                 label={

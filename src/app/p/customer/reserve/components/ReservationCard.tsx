@@ -76,19 +76,6 @@ export default function ReservationCard({ reservation, onClick }: Props) {
               <Typography variant="body2" className="text-gray-600 font-medium mr-2">
                 予約ID: #{reservation.reservation_id} / {reservation.course_name}
               </Typography>
-              <Tooltip 
-                title={showCopiedTooltip ? "コピーしました！" : "共有リンクをコピー"}
-                placement="top"
-                arrow
-              >
-                <IconButton 
-                  size="small" 
-                  onClick={copyShareLink}
-                  className="text-gray-500 hover:text-blue-500"
-                >
-                  <ShareIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
             </div>
           </div>
 
