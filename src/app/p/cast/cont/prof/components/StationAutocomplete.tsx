@@ -5,7 +5,7 @@ import { useStationSuggest } from '../api/useStationSuggest';
 
 interface StationAutocompleteProps {
   value?: string;
-  stationId?: number;
+  prefectureId?: number;
   onChange: (value: string, stationId?: number) => void;
   label?: string;
   helperText?: string;
@@ -14,7 +14,7 @@ interface StationAutocompleteProps {
 
 const StationAutocomplete: React.FC<StationAutocompleteProps> = ({
   value = '',
-  stationId,
+  prefectureId,
   onChange,
   label = '最寄り駅',
   helperText = '最寄り駅名を入力してください',
@@ -29,7 +29,7 @@ const StationAutocomplete: React.FC<StationAutocompleteProps> = ({
     setOpen,
     handleInputChange,
     handleSelectStation,
-  } = useStationSuggest('');
+  } = useStationSuggest('', prefectureId);
 
   // ユーザーがフィールドとインタラクションしたかどうかを追跡
   const [userInteracted, setUserInteracted] = useState(false);

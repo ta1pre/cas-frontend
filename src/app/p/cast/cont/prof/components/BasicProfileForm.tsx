@@ -193,8 +193,10 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
       });
       
       // dispatch_prefectureの値をsupport_areaにもコピー
+      // dispatch_prefectureは都道府県IDなので、そのままsupport_areaにコピー
       if (submissionData.dispatch_prefecture) {
         submissionData.support_area = String(submissionData.dispatch_prefecture);
+        console.log('support_areaに設定する都道府県ID:', submissionData.support_area);
       }
       
       await updateProfile(submissionData);
@@ -440,7 +442,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
             <Grid item xs={12} sm={6}>
               <StationAutocomplete
                 value={formData.station_name || ''}
-                stationId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
+                prefectureId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
                 onChange={handleStationChange}
                 label="最寄り駅"
               />

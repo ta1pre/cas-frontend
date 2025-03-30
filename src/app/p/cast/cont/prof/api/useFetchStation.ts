@@ -9,11 +9,13 @@ export interface Station {
 /**
  * 駅名サジェスト取得API
  * @param query 検索クエリ（駅名の一部）
+ * @param prefectureId 都道府県ID（オプション）
  * @returns 駅リスト
  */
-export const fetchStationSuggest = async (query: string): Promise<Station[]> => {
+export const fetchStationSuggest = async (query: string, prefectureId?: number): Promise<Station[]> => {
   try {
-    const body = { query };
+    // 都道府県IDがある場合はリクエストに含める
+    const body = { query, prefecture_id: prefectureId };
     console.log("📡 駅名サジェストAPIリクエスト:", body);
     
     const response = await fetchAPI("/api/v1/reserve/cast/station/suggest", body);

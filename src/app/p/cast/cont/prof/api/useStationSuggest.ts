@@ -5,10 +5,11 @@ import { fetchStationSuggest, Station } from './useFetchStation';
 
 /**
  * u99c5u540du30b5u30b8u30a7u30b9u30c8u6a5fu80fdu7528u30abu30b9u30bfu30e0u30d5u30c3u30af
- * @param initialQuery u521du671fu691cu7d22u30cfu30a8u30eau30ea
+ * @param initialQuery u521du671fu691cu7d22u30cfu30a8u30eau304cu3042u308bu5834u5408u306fu5b9fu884c
+ * @param prefectureId u90fdu9053u5e9cu770cIDuff08u30aau30d7u30b7u30e7u30f3uff09
  * @returns u691cu7d22u95a2u9023u30b9u30c6u30fcu30c8u3068u95a2u6570
  */
-export const useStationSuggest = (initialQuery: string = '') => {
+export const useStationSuggest = (initialQuery: string = '', prefectureId?: number) => {
   const [query, setQuery] = useState<string>(initialQuery);
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -26,7 +27,8 @@ export const useStationSuggest = (initialQuery: string = '') => {
     setError(null);
 
     try {
-      const result = await fetchStationSuggest(searchQuery);
+      // u90fdu9053u5e9cu770cIDu3092u6e21u3059u3088u3046u306bu4feeu6b63
+      const result = await fetchStationSuggest(searchQuery, prefectureId);
       setStations(result);
       setOpen(result.length > 0);
     } catch (err) {
@@ -36,7 +38,7 @@ export const useStationSuggest = (initialQuery: string = '') => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [prefectureId]); // u4f9du5b58u914du5217u306bprefectureIdu3092u8ffdu52a0
 
   // u30c7u30d0u30a6u30f3u30b9u51e6u7406u3092u9069u7528u3057u305fu691cu7d22u5b9fu884cu95a2u6570
   const debouncedSearchStations = useCallback(
@@ -67,10 +69,10 @@ export const useStationSuggest = (initialQuery: string = '') => {
   // u521du671fu691cu7d22u30cfu30a8u30eau304cu3042u308bu5834u5408u306fu5b9fu884c
   useEffect(() => {
     if (initialQuery) {
-      // 初期値がある場合はクエリを設定するが、サジェストは開かない
+      // u521du671fu691cu7d22u30cfu30a8u30eau304cu3042u308bu5834u5408u306fu5b9fu884c
       setQuery(initialQuery);
       if (initialQuery.trim()) {
-        // サジェストは表示せずに駅データだけ取得
+        // u30b5u30b8u30a7u30b9u30c8u9805u76eeu304cu9078u629eu3055u308cu305fu3068u304du306eu30cfu30f3u30c9u30e9
         searchStations(initialQuery);
       }
     }
