@@ -550,9 +550,16 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
               <TextField
                 fullWidth
                 type="number"
-                value={transportationFee}
-                onChange={(e) => setTransportationFee(Number(e.target.value))}
+                value={transportationFee || ''}
+                onChange={(e) => {
+                  // u7a7au306eu5834u5408u306f0u3001u305du308cu4ee5u5916u306fu5165u529bu5024u3092u6570u5024u5316
+                  const value = e.target.value === '' ? 0 : Number(e.target.value);
+                  setTransportationFee(value);
+                }}
                 placeholder="交通費を入力"
+                InputProps={{
+                  inputProps: { min: 0 }
+                }}
               />
             </Grid>
           </Grid>
