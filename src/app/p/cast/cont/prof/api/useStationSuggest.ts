@@ -5,16 +5,16 @@ import { fetchStationSuggest, Station } from './useFetchStation';
 
 /**
  * u99c5u540du30b5u30b8u30a7u30b9u30c8u6a5fu80fdu7528u30abu30b9u30bfu30e0u30d5u30c3u30af
- * @param initialQuery u521du671fu691cu7d22u30cfu30a8u30eau304cu3042u308bu5834u5408u306fu5b9fu884c
- * @param prefectureId u90fdu9053u5e9cu770cIDuff08u30aau30d7u30b7u30e7u30f3uff09
+ * @param initialQuery u521du671fu691cu7d22u30cfu30a8u30eau30ea
  * @returns u691cu7d22u95a2u9023u30b9u30c6u30fcu30c8u3068u95a2u6570
  */
-export const useStationSuggest = (initialQuery: string = '', prefectureId?: number) => {
+export const useStationSuggest = (initialQuery: string = '') => {
   const [query, setQuery] = useState<string>(initialQuery);
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<boolean>(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // u691cu7d22u5b9fu884cu95a2u6570
   const searchStations = useCallback(async (searchQuery: string) => {
@@ -27,10 +27,8 @@ export const useStationSuggest = (initialQuery: string = '', prefectureId?: numb
     setError(null);
 
     try {
-      // u90fdu9053u5e9cu770cIDu3092u6e21u3059u3088u3046u306bu4feeu6b63
-      const result = await fetchStationSuggest(searchQuery, prefectureId);
+      const result = await fetchStationSuggest(searchQuery);
       setStations(result);
-      setOpen(result.length > 0);
     } catch (err) {
       console.error('u99c5u540du691cu7d22u4e2du306bu30a8u30e9u30fcu304cu767au751fu3057u307eu3057u305f:', err);
       setError('u99c5u540du306eu53d6u5f97u306bu5931u6557u3057u307eu3057u305f');
@@ -38,7 +36,7 @@ export const useStationSuggest = (initialQuery: string = '', prefectureId?: numb
     } finally {
       setLoading(false);
     }
-  }, [prefectureId]); // u4f9du5b58u914du5217u306bprefectureIdu3092u8ffdu52a0
+  }, []);
 
   // u30c7u30d0u30a6u30f3u30b9u51e6u7406u3092u9069u7528u3057u305fu691cu7d22u5b9fu884cu95a2u6570
   const debouncedSearchStations = useCallback(
@@ -53,6 +51,10 @@ export const useStationSuggest = (initialQuery: string = '', prefectureId?: numb
     setQuery(value);
     if (value.trim()) {
       debouncedSearchStations(value);
+      // 初期化完了後、かつ入力があればドロップダウンを開く
+      if (isInitialized) {
+        setOpen(true);
+      }
     } else {
       setStations([]);
       setOpen(false);
@@ -69,14 +71,14 @@ export const useStationSuggest = (initialQuery: string = '', prefectureId?: numb
   // u521du671fu691cu7d22u30cfu30a8u30eau304cu3042u308bu5834u5408u306fu5b9fu884c
   useEffect(() => {
     if (initialQuery) {
-      // u521du671fu691cu7d22u30cfu30a8u30eau304cu3042u308bu5834u5408u306fu5b9fu884c
       setQuery(initialQuery);
-      if (initialQuery.trim()) {
-        // u30b5u30b8u30a7u30b9u30c8u9805u76eeu304cu9078u629eu3055u308cu305fu3068u304du306eu30cfu30f3u30c9u30e9
-        searchStations(initialQuery);
-      }
     }
-  }, [initialQuery, searchStations]);
+    // 最初のレンダリング後に初期化完了とする
+    const timer = setTimeout(() => {
+        setIsInitialized(true);
+    }, 0); // すぐに実行されるが、最初のレンダリングサイクルの後になる
+    return () => clearTimeout(timer);
+  }, [initialQuery]); // initialQueryが変わった場合も考慮
 
   return {
     query,

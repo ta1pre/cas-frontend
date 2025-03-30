@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Autocomplete, TextField, CircularProgress, Typography, Box } from '@mui/material';
 import { Station } from '../api/useFetchStation';
 import { useStationSuggest } from '../api/useStationSuggest';
 
 interface StationAutocompleteProps {
   value?: string;
-  prefectureId?: number;
+  stationId?: number;
   onChange: (value: string, stationId?: number) => void;
   label?: string;
   helperText?: string;
@@ -14,7 +14,7 @@ interface StationAutocompleteProps {
 
 const StationAutocomplete: React.FC<StationAutocompleteProps> = ({
   value = '',
-  prefectureId,
+  stationId,
   onChange,
   label = '最寄り駅',
   helperText = '最寄り駅名を入力してください',
@@ -29,10 +29,7 @@ const StationAutocomplete: React.FC<StationAutocompleteProps> = ({
     setOpen,
     handleInputChange,
     handleSelectStation,
-  } = useStationSuggest('', prefectureId);
-
-  // ユーザーがフィールドとインタラクションしたかどうかを追跡
-  const [userInteracted, setUserInteracted] = useState(false);
+  } = useStationSuggest('');
 
   // 外部から渡されるvalueが変更されたらqueryを更新
   useEffect(() => {
@@ -61,15 +58,11 @@ const StationAutocomplete: React.FC<StationAutocompleteProps> = ({
   return (
     <Autocomplete
       freeSolo
-      open={open && userInteracted} // ユーザーが操作した場合のみサジェストを表示
+      open={open}
       onOpen={() => {
-        // ユーザーがフィールドをクリックしたことを記録
-        setUserInteracted(true);
-        setOpen(true);
+        if (query.trim() !== '') setOpen(true);
       }}
-      onClose={() => {
-        setOpen(false);
-      }}
+      onClose={() => setOpen(false)}
       isOptionEqualToValue={(option, value) => {
         if (typeof option === 'string' && typeof value === 'string') {
           return option === value;
@@ -102,7 +95,7 @@ const StationAutocomplete: React.FC<StationAutocompleteProps> = ({
       renderOption={(props, option) => {
         const { key, ...otherProps } = props;
         return (
-          <li key={option.id || key} {...otherProps}>
+          <li key={key} {...otherProps}>
             {typeof option === 'string' ? option : option.name}
           </li>
         );

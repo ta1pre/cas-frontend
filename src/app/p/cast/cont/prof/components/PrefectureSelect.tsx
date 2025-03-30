@@ -13,18 +13,18 @@ interface PrefectureSelectProps {
 }
 
 /**
- * 都道府県選択コンポーネント
+ * u90fdu9053u5e9cu770cu9078u629eu30b3u30f3u30ddu30fcu30cdu30f3u30c8
  */
 const PrefectureSelect: React.FC<PrefectureSelectProps> = ({
   value,
   onChange,
   name = 'prefecture',
-  label = '都道府県',
+  label = 'u90fdu9053u5e9cu770c',
   helperText,
   required = false,
   error = false,
 }) => {
-  // valueが必ずMUIのSelectの型に適合するように文字列化
+  // valueu304cu5fc5u305aamuiu306eSelectu306eu578bu306bu9069u5408u3059u308bu3088u3046u306bu6587u5b57u5217u5316
   const displayValue = value || '';
 
   return (
@@ -38,12 +38,12 @@ const PrefectureSelect: React.FC<PrefectureSelectProps> = ({
         onChange={onChange}
         label={label}
       >
-        {/* 空選択項目 */}
+        {/* u7a7au9078u629eu9805u76ee */}
         <MenuItem value="">
-          <em>選択してください</em>
+          <em>u9078u629eu3057u3066u304fu3060u3055u3044</em>
         </MenuItem>
         
-        {/* 都道府県リスト */}
+        {/* u90fdu9053u5e9cu770cu30eau30b9u30c8 */}
         {PREFECTURES.map((prefecture) => (
           <MenuItem key={prefecture.id} value={String(prefecture.id)}>
             {prefecture.name}

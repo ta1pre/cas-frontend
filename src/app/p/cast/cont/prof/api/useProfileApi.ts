@@ -25,6 +25,7 @@ export interface ProfileData {
   job?: string;
   dispatch_prefecture?: string | number;
   support_area?: string;
+  support_area_names?: string[];
   popularity?: number;
   rating?: number;
   is_active?: number;
@@ -32,7 +33,6 @@ export interface ProfileData {
   created_at?: string;
   updated_at?: string;
   station_name?: string;
-  selected_prefecture_id?: string; // 都道府県IDを一時的に保存するフィールド
 }
 
 /**
@@ -51,6 +51,10 @@ export const useProfileApi = () => {
     
     try {
       const response = await fetchAPI('/api/v1/cast/prof/get', {}, 'POST');
+      
+      // レスポンスデータをログ出力
+      console.log('プロフィールAPI応答:', response);
+      console.log('サポートエリア名:', response.support_area_names);
       
       // 駅名の処理（"駅ID:"が含まれる場合は取り除く）
       if (response.station_name && response.station_name.includes('駅ID:')) {
