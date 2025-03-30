@@ -449,6 +449,24 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                 <Typography variant="subtitle1" fontWeight="medium">
                   駅名
                 </Typography>
+                {/* 現在の駅名を表示 */}
+                {detail && detail.station_name && (
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    sx={{ 
+                      ml: 2, 
+                      bgcolor: 'rgba(0,0,0,0.04)', 
+                      px: 1.5, 
+                      py: 0.5, 
+                      borderRadius: 1,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    現在の駅: <Typography component="span" fontWeight="bold" sx={{ ml: 0.5 }}>{detail.station_name}</Typography>
+                  </Typography>
+                )}
               </Box>
               <Autocomplete
                 value={selectedStation}
@@ -467,6 +485,7 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                   }
                   return option.line_name ? `${option.name} (${option.line_name})` : option.name;
                 }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 renderInput={(params) => (
                   <TextField
                     {...params}
