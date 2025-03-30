@@ -7,16 +7,39 @@ import InfoIcon from "@mui/icons-material/Info";
 
 interface Props {
     onServiceChange?: (updatedServices: number[], updatedNames: string[]) => void; // ✅ 名前の配列も通知
+    castType?: string; // キャストタイプを受け取るプロパティを追加
 }
 
-export default function BasicServiceType({ onServiceChange }: Props) {
+export default function BasicServiceType({ onServiceChange, castType }: Props) {
     const { serviceTypesByCategory, selectedServiceTypes, error, toggleServiceType } = useServiceType();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentDescription, setCurrentDescription] = useState<string>("");
+    const [filteredServiceTypes, setFilteredServiceTypes] = useState<Record<string, any>>({});
 
     useEffect(() => {
         console.log("初期選択状態:", selectedServiceTypes);
     }, []);
+
+    // キャストタイプに基づいてサービスタイプをフィルタリング
+    useEffect(() => {
+        if (!serviceTypesByCategory || Object.keys(serviceTypesByCategory).length === 0) {
+            return;
+        }
+
+        // Aタイプの場合は「通常」カテゴリのみ表示
+        if (castType === 'A') {
+            const filtered: Record<string, any> = {};
+            Object.entries(serviceTypesByCategory).forEach(([category, services]) => {
+                if (category === '通常') {
+                    filtered[category] = services;
+                }
+            });
+            setFilteredServiceTypes(filtered);
+        } else {
+            // それ以外のタイプ（B、AB）はすべて表示
+            setFilteredServiceTypes(serviceTypesByCategory);
+        }
+    }, [serviceTypesByCategory, castType]);
 
     const handleOpenPopover = (event: React.MouseEvent<HTMLElement>, description: string | null) => {
         event.stopPropagation();
@@ -54,13 +77,13 @@ export default function BasicServiceType({ onServiceChange }: Props) {
         <div>
             {error && <p className="text-red-500">{error}</p>}
 
-            {!error && Object.keys(serviceTypesByCategory).length > 0 && (
+            {!error && Object.keys(filteredServiceTypes).length > 0 && (
                 <div className="mt-4">
-                    {Object.entries(serviceTypesByCategory).map(([category, services]) => (
+                    {Object.entries(filteredServiceTypes).map(([category, services]) => (
                         <div key={category} className="mb-6">
                             <h2 className="text-lg font-semibold mb-2">{category}</h2>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                                {services.map((service) => (
+                                {services.map((service: any) => (
                                     <div key={service.id} className="flex items-center w-full p-1">
                                         {/* ✅ ボタン */}
                                         <Button
