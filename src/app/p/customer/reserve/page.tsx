@@ -23,10 +23,103 @@ export default function CustomerReservePage() {
   const [error, setError] = useState<string | null>(null); // 
   const limit = 10;
 
+  // URLハッシュから予約IDを取得する関数
+  const getReservationIdFromHash = (): number | null => {
+    if (typeof window === 'undefined') return null;
+    
+    const hash = window.location.hash;
+    if (!hash) return null;
+    
+    // #33 のような形式から数字部分を取得
+    const reservationId = parseInt(hash.substring(1));
+    return isNaN(reservationId) ? null : reservationId;
+  };
+
+  // 特定の予約IDから予約データを見つける関数
+  const findReservationById = (id: number): ReservationListItem | null => {
+    return reservations.find(r => r.reservation_id === id) || null;
+  };
+
   useEffect(() => {
     if (!user) return;
     loadReservations(1, true);
   }, [user]);
+
+  // URLハッシュが変更されたときに予約を選択する
+  useEffect(() => {
+    if (typeof window === 'undefined' || reservations.length === 0) return;
+
+    const handleHashChange = () => {
+      const reservationId = getReservationIdFromHash();
+      if (reservationId) {
+        const reservation = findReservationById(reservationId);
+        if (reservation) {
+          setSelectedReservation(reservation);
+        } else if (!loading) {
+          // 予約が見つからない場合、全ページのデータを読み込む
+          loadAllReservations(reservationId);
+        }
+      }
+    };
+
+    // 初期ロード時にもハッシュをチェック
+    handleHashChange();
+
+    // ハッシュ変更イベントをリッスン
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [reservations, loading]);
+
+  // 全ページの予約データを読み込む関数
+  const loadAllReservations = async (targetReservationId: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      let allReservations: ReservationListItem[] = [];
+      let currentPage = 1;
+      let hasMorePages = true;
+      
+      while (hasMorePages) {
+        const data = await fetchCustomerReserve(currentPage, limit);
+        if (!data || data.reservations.length === 0) {
+          hasMorePages = false;
+          break;
+        }
+        
+        allReservations = [...allReservations, ...data.reservations];
+        
+        // 目的の予約が見つかったかチェック
+        const foundReservation = data.reservations.find(r => r.reservation_id === targetReservationId);
+        if (foundReservation) {
+          setSelectedReservation(foundReservation);
+          break;
+        }
+        
+        // 次のページがあるかチェック
+        if (allReservations.length >= data.totalCount) {
+          hasMorePages = false;
+        } else {
+          currentPage++;
+        }
+      }
+      
+      // 全ての予約を状態に設定
+      setReservations(allReservations);
+      setTotalCount(allReservations.length);
+      setPage(currentPage);
+      
+      // 予約が見つからなかった場合
+      if (!selectedReservation) {
+        setError(`予約ID ${targetReservationId} が見つかりませんでした。`);
+      }
+    } catch (error) {
+      console.error("全予約データの読み込み中にエラーが発生しました", error);
+      setError("予約データの読み込みに失敗しました。");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpdateReservations = async (): Promise<void> => {
       console.log("");
@@ -42,11 +135,18 @@ export default function CustomerReservePage() {
               setTotalCount(data.totalCount);
 
               if (selectedReservation) {
-                  const updated = data.reservations.find(
+                  const updatedReservationData = data.reservations.find(
                       (r) => r.reservation_id === selectedReservation.reservation_id
                   );
-                  console.log("", updated);
-                  setSelectedReservation(updated || null);
+                  if (updatedReservationData) {
+                      // 更新後のデータが見つかった場合のみ、選択中の予約情報を更新する
+                      setSelectedReservation(updatedReservationData);
+                      console.log("選択中の予約情報を更新:", updatedReservationData);
+                  } else {
+                      // 更新後のデータが見つからない場合、パネルを閉じずに情報を維持
+                      // (必要であれば、エラーログなどを出す)
+                      console.warn("更新後の予約データが見つかりませんでした。ID:", selectedReservation.reservation_id);
+                  }
               }
           }
       } catch (error) {
@@ -72,6 +172,15 @@ export default function CustomerReservePage() {
         setReservations((prev) => (reset ? data.reservations : [...prev, ...data.reservations]));
         setTotalCount(data.totalCount);
         setPage(pageNum); 
+        
+        // ページロード後にURLハッシュをチェック
+        const reservationId = getReservationIdFromHash();
+        if (reservationId && reset) {
+          const reservation = data.reservations.find(r => r.reservation_id === reservationId);
+          if (reservation) {
+            setSelectedReservation(reservation);
+          }
+        }
       }
     } catch (error) {
       console.error("", error);
@@ -114,7 +223,10 @@ export default function CustomerReservePage() {
         <Typography>予約がありません。</Typography>
       ) : (
         <>
-          <ReservationList reservations={reservations} onSelect={setSelectedReservation} />
+          <ReservationList 
+            reservations={reservations} 
+            onSelect={setSelectedReservation} 
+          />
           
           {reservations.length < totalCount && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}>
@@ -145,7 +257,13 @@ export default function CustomerReservePage() {
             />
             <ReservationDetail 
               isOpen={!!selectedReservation} 
-              onClose={() => setSelectedReservation(null)}
+              onClose={() => {
+                setSelectedReservation(null);
+                // 予約詳細を閉じるときにURLハッシュを削除
+                if (typeof window !== 'undefined' && window.location.hash) {
+                  history.pushState("", document.title, window.location.pathname + window.location.search);
+                }
+              }}
               onOpenMessage={() => setShowMessage(true)}
               onCloseMessage={() => setShowMessage(false)}
               reservation={selectedReservation}

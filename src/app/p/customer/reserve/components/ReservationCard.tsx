@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, Chip, Typography, Avatar } from "@mui/material";
+import { Card, CardContent, Chip, Typography, Avatar, IconButton, Tooltip } from "@mui/material";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import ShareIcon from "@mui/icons-material/Share";
 import { useRouter } from "next/navigation"; // ✅ ルーターをインポート
 import { ReservationListItem } from "../api/types";
 import { formatDateTime } from "../utils/format";
@@ -15,6 +16,7 @@ export default function ReservationCard({ reservation, onClick }: Props) {
   const router = useRouter();
   const [castName, setCastName] = useState<string | null>(null);
   const [castImage, setCastImage] = useState<string | null>(null);
+  const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
 
   useEffect(() => {
     async function loadCastInfo() {
@@ -36,6 +38,26 @@ export default function ReservationCard({ reservation, onClick }: Props) {
     return diffDays > 0 && diffDays <= 3;
   })();
 
+  // 共有リンクをクリップボードにコピーする関数
+  const copyShareLink = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 親要素のクリックイベントを停止
+    
+    // 現在のURLを取得し、ハッシュを追加
+    const baseUrl = window.location.href.split('#')[0];
+    const shareUrl = `${baseUrl}#${reservation.reservation_id}`;
+    
+    // クリップボードにコピー
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        // コピー成功時にツールチップを表示
+        setShowCopiedTooltip(true);
+        setTimeout(() => setShowCopiedTooltip(false), 2000);
+      })
+      .catch(err => {
+        console.error('クリップボードへのコピーに失敗しました:', err);
+      });
+  };
+
   return (
     <Card
       className="cursor-pointer transition-transform transform hover:scale-[1.02] shadow-md rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg"
@@ -50,9 +72,24 @@ export default function ReservationCard({ reservation, onClick }: Props) {
               sx={{ backgroundColor: reservation.color_code, color: "white" }}
               size="small"
             />
-            <Typography variant="body2" className="text-gray-600 font-medium">
-              予約ID: #{reservation.reservation_id} / {reservation.course_name}
-            </Typography>
+            <div className="flex items-center">
+              <Typography variant="body2" className="text-gray-600 font-medium mr-2">
+                予約ID: #{reservation.reservation_id} / {reservation.course_name}
+              </Typography>
+              <Tooltip 
+                title={showCopiedTooltip ? "コピーしました！" : "共有リンクをコピー"}
+                placement="top"
+                arrow
+              >
+                <IconButton 
+                  size="small" 
+                  onClick={copyShareLink}
+                  className="text-gray-500 hover:text-blue-500"
+                >
+                  <ShareIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </div>
           </div>
 
           {/* ✅ 3日以内ラベルを日付の上に追加 */}

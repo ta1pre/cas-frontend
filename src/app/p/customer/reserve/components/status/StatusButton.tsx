@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useUser from "@/hooks/useUser";
-import fetchChangeStatus from "./api/fetchChangeStatus"; // 
+import fetchChangeStatus from "./api/fetchChangeStatus"; // API呼び出し関数
 
 interface StatusButtonProps {
     reservationId: number;
@@ -12,15 +12,27 @@ interface StatusButtonProps {
 }
 
 export default function StatusButton({ reservationId, label, nextStatus, color, onPointShortage, onStatusChange }: StatusButtonProps) {
-    const [message, setMessage] = useState<string | null>(null);
+    // message state は alert を使うため不要に
+    // const [message, setMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const user = useUser();
 
     const handleClick = async () => {
         if (!user) {
-            setMessage("ユーザー情報が取得できません");
+            alert("ユーザー情報が取得できません"); // alertに変更
             return;
         }
+
+        // --- ▼▼▼ 予約確定の場合のみ確認ダイアログを表示 ▼▼▼ ---
+        if (nextStatus === 'confirmed') {
+            const isConfirmed = window.confirm(
+                "予約を確定しますか？\nポイントがデポジットとして使用されます。"
+            );
+            if (!isConfirmed) {
+                return; // キャンセルされたら何もしない
+            }
+        }
+        // --- ▲▲▲ 確認ダイアログここまで ▲▲▲ ---
 
         setIsLoading(true);
         
@@ -30,7 +42,7 @@ export default function StatusButton({ reservationId, label, nextStatus, color, 
             let longitude: number | undefined;
 
             if (nextStatus === "user_arrived" && navigator.geolocation) {
-                setMessage("位置情報を取得中...");
+                // setMessage("位置情報を取得中..."); // alertに変更するため不要に
                 try {
                     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
                         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -45,7 +57,7 @@ export default function StatusButton({ reservationId, label, nextStatus, color, 
                     console.log("GPS情報取得成功:", { latitude, longitude });
                 } catch (geoError: any) {
                     console.error("GPSエラー:", geoError.message);
-                    setMessage(`位置情報の取得に失敗しました: ${geoError.message}`);
+                    alert(`位置情報の取得に失敗しました: ${geoError.message}`); // alertに変更
                     setIsLoading(false);
                     return; // 位置情報が取得できなければ処理を中止
                 }
@@ -54,22 +66,22 @@ export default function StatusButton({ reservationId, label, nextStatus, color, 
             // 統一した関数を呼び出す
             const response = await fetchChangeStatus(nextStatus, reservationId, user.user_id, latitude, longitude);
 
-            // ポイント不足時は通知
+            // --- ▼▼▼ APIレスポンスに応じた処理 (修正) ▼▼▼ ---
+            // まずポイント不足を確認
             if (response.status === "INSUFFICIENT_POINTS") {
                 onPointShortage(response.shortfall);
-                return;
+            } else {
+                // ポイント不足でなく、API呼び出しでエラーがスローされなければ成功とみなす
+                alert(response.message || "処理が完了しました。"); 
+                if (onStatusChange) {
+                    onStatusChange(); // UI更新
+                }
             }
+            // --- ▲▲▲ レスポンス処理ここまで ▲▲▲ ---
 
-            // それ以外は正常
-            setMessage(`${response.message}`);
-
-            // ステータス変更成功後、一覧を更新（`onStatusChange` があれば実行）
-            if (onStatusChange) {
-                onStatusChange();
-            }
-
-        } catch (error) {
-            setMessage("エラーが発生しました");
+        } catch (error: any) {
+            console.error("ステータス変更エラー:", error);
+            alert(`エラーが発生しました: ${error.message || error}`); // エラー通知
         } finally {
             setIsLoading(false);
         }
@@ -85,7 +97,8 @@ export default function StatusButton({ reservationId, label, nextStatus, color, 
             >
                 {isLoading ? "処理中..." : label}
             </button>
-            {message && <p className="mt-2 text-sm text-gray-600">{message}</p>}
+            {/* message state と関連する表示は削除 */}
+            {/* {message && <p className="mt-2 text-sm text-gray-600">{message}</p>} */}
         </div>
     );
 }
