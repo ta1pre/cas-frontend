@@ -116,7 +116,7 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
   const [stations, setStations] = useState<Station[]>([]);
   
   const [availableOptions, setAvailableOptions] = useState<AvailableOption[]>([]);
-  const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<AvailableOption[]>([]);
   const [customOptions, setCustomOptions] = useState<CustomOption[]>([]);
   
   const [newCustomName, setNewCustomName] = useState("");
@@ -182,7 +182,7 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
           }
           
           if (detailData.options && detailData.options.length > 0) {
-            const selectedIds: number[] = [];
+            const selectedOptions: AvailableOption[] = [];
             const customs: CustomOption[] = [];
             
             detailData.options.forEach((opt: { option_id: number; name: string; price: number; is_custom: boolean; }) => {
@@ -192,11 +192,14 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                   price: opt.price
                 });
               } else {
-                selectedIds.push(opt.option_id);
+                const option = availableOptions.find(option => option.option_id === opt.option_id);
+                if (option) {
+                  selectedOptions.push(option);
+                }
               }
             });
             
-            setSelectedOptionIds(selectedIds);
+            setSelectedOptions(selectedOptions);
             setCustomOptions(customs);
           }
           
@@ -287,11 +290,11 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
     return isoString.substring(0, 16);
   };
 
-  const toggleOption = (optionId: number) => {
-    setSelectedOptionIds(prev => 
-      prev.includes(optionId)
-        ? prev.filter(id => id !== optionId)
-        : [...prev, optionId]
+  const toggleOption = (option: AvailableOption) => {
+    setSelectedOptions(prev => 
+      prev.includes(option)
+        ? prev.filter(opt => opt.option_id !== option.option_id)
+        : [...prev, option]
     );
   };
 
@@ -344,20 +347,24 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    
     setSubmitting(true);
     setErrorMessage("");
-
+    
     try {
+      // 選択されているオプションIDsを取得
+      const selectedOptionIds = selectedOptions.map(option => option.option_id);
       const currentCustomOptions = customOptionsRef.current;
       
-      // 
+      // 開始時間から終了時間を計算
       const startDate = new Date(startTime);
       const endDate = new Date(startDate.getTime() + (selectedCourse?.duration_minutes || 0) * 60000);
       
       const requestData: ReservationEditRequest = {
         reservation_id: reservationId,
         cast_id: user.user_id,
-        course_id: selectedCourseId || (detail?.course_id || 0), // 
+        course_id: selectedCourseId || (detail?.course_id || 0), // コースIDを設定
         start_time: startDate.toISOString(),
         end_time: endDate.toISOString(),
         location: selectedStation ? String(selectedStation.id) : detail?.location || "",
@@ -368,6 +375,9 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
         transportation_fee: transportationFee, 
       };
 
+      console.log("送信データ（詳細）:", JSON.stringify(requestData, null, 2));
+      console.log("交通費データ:", transportationFee, typeof transportationFee);
+      
       const response = await sendReservationEdit(requestData);
       console.log("送信結果:", response);
       router.refresh();
@@ -584,8 +594,8 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
                 key={option.option_id}
                 control={
                   <Checkbox
-                    checked={selectedOptionIds.includes(option.option_id)}
-                    onChange={() => toggleOption(option.option_id)}
+                    checked={selectedOptions.includes(option)}
+                    onChange={() => toggleOption(option)}
                   />
                 }
                 label={
