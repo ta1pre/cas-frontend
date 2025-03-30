@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import ListIcon from "@mui/icons-material/List";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import SearchIcon from "@mui/icons-material/Search";
-import FavoriteIcon from "@mui/icons-material/Favorite"; // ✅ お気に入りキャストアイコン追加
+import FavoriteIcon from "@mui/icons-material/Favorite"; // お気に入りキャストアイコン追加
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -24,23 +24,23 @@ export default function Header() {
     setIsOpen(false);
   }, [pathname]);
 
-  // ✅ ログアウト処理
+  // ログアウト処理
   const handleLogout = () => {
-    console.log("🚪 【Header】ログアウト処理開始");
+    console.log("【Header】ログアウト処理開始");
 
     document.cookie.split(";").forEach((cookie) => {
       const name = cookie.split("=")[0].trim();
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     });
 
-    console.log("✅ 【Header】クッキー削除完了");
+    console.log("【Header】クッキー削除完了");
     router.push("/auth/login");
   };
 
   return (
     <>
       <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50 h-12 flex items-center justify-center">
-        <Link href="/" className="absolute left-1/2 transform -translate-x-1/2">
+        <Link href="/p/customer/search" className="absolute left-1/2 transform -translate-x-1/2">
           <Image src="/images/common/logo.png" alt="Logo" width={30} height={30} priority className="object-contain" />
         </Link>
         <button onClick={() => setIsOpen(true)} className="absolute right-4">
@@ -73,7 +73,7 @@ export default function Header() {
                 }
               }}
             >
-              {/* ✅ メニューのヘッダー */}
+              {/* メニューのヘッダー */}
               <div className="w-full flex items-center justify-end px-4 h-12 bg-gray-100">
                 <button onClick={() => setIsOpen(false)} className="flex items-center space-x-1 text-gray-700 text-base font-semibold text-nowrap">
                   <span>メニューを閉じる</span>
@@ -86,7 +86,7 @@ export default function Header() {
                 <ul className="list-none space-y-4">
                   <NavLink href="/p/customer/search" icon={SearchIcon} pathname={pathname} setIsOpen={setIsOpen}>キャスト検索</NavLink>
 
-                  {/* ✅ 追加: お気に入りキャスト */}
+                  {/* 追加: お気に入りキャスト */}
                   <NavLink href="/p/customer/favorites" icon={FavoriteIcon} pathname={pathname} setIsOpen={setIsOpen}>
                     お気に入りキャスト
                   </NavLink>
@@ -95,12 +95,12 @@ export default function Header() {
                   <NavLink href="/p/customer/reserve" icon={EventNoteIcon} pathname={pathname} setIsOpen={setIsOpen}>予約管理</NavLink>
                   <NavLink href="/p/customer/area" icon={LocationOnIcon} pathname={pathname} setIsOpen={setIsOpen}>エリア設定</NavLink>
 
-                  {/* ✅ 追加: アプリインフォ */}
+                  {/* 追加: アプリインフォ */}
                   <NavLink href="/p/customer/appinfo" icon={InfoIcon} pathname={pathname} setIsOpen={setIsOpen}>アプリインフォ</NavLink>
 
                   <NavLink href="/p/customer/help" icon={HelpOutlineIcon} pathname={pathname} setIsOpen={setIsOpen}>ヘルプ</NavLink>
 
-                  {/* ✅ ログアウトの前にスペースを入れる */}
+                  {/* ログアウトの前にスペースを入れる */}
                   <li className="mt-6 border-t border-gray-300 pt-4">
                     <button onClick={handleLogout} className="flex items-center py-3 px-4 rounded-lg text-red-600 hover:bg-gray-100 text-lg">
                       <LogoutIcon className="mr-3 text-red-600" fontSize="large" />
@@ -119,7 +119,7 @@ export default function Header() {
   );
 }
 
-// ✅ 「今いるページ」のアイコンだけ色を変える！
+// 「今いるページ」のアイコンだけ色を変える！
 function NavLink({ href, icon: Icon, children, pathname, setIsOpen }: { href: string; icon: any; children: React.ReactNode; pathname: string; setIsOpen: (open: boolean) => void }) {
   const isActive = pathname === href;
 
