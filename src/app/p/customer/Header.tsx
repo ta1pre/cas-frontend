@@ -28,12 +28,18 @@ export default function Header() {
   const handleLogout = () => {
     console.log("【Header】ログアウト処理開始");
 
+    // クッキーをすべて削除
     document.cookie.split(";").forEach((cookie) => {
       const name = cookie.split("=")[0].trim();
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     });
 
     console.log("【Header】クッキー削除完了");
+    
+    // ローカルストレージをクリア
+    localStorage.clear();
+    console.log("【Header】ローカルストレージクリア完了");
+    
     router.push("/auth/login");
   };
 

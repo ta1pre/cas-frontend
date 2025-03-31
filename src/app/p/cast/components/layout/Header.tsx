@@ -25,11 +25,18 @@ export default function CastHeader() {
 
   const handleLogout = () => {
     console.log("🚪 【CastHeader】ログアウト処理開始");
+    
+    // クッキーをすべて削除
     document.cookie.split(';').forEach((cookie) => {
       const name = cookie.split('=')[0].trim();
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     });
     console.log("✅ 【CastHeader】クッキー削除完了");
+    
+    // ローカルストレージをクリア
+    localStorage.clear();
+    console.log("✅ 【CastHeader】ローカルストレージクリア完了");
+    
     router.push("/auth/login");
   };
 
