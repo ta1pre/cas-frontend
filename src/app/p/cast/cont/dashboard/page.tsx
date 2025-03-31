@@ -12,6 +12,7 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import Cookies from 'js-cookie';
 
 interface VerificationDataType {
   status: string;
@@ -23,6 +24,7 @@ interface VerificationDataType {
 
 const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [castType, setCastType] = useState<string>('通常キャスト'); 
   const [verificationData, setVerificationData] = useState<VerificationDataType>({
     status: 'unsubmitted',
     message: '',
@@ -31,9 +33,17 @@ const DashboardPage = () => {
     rejection_reason: null
   });
 
-  // 初期ロード時に本人確認ステータスを取得
+  // 初期ロード時に本人確認ステータスを取得とキャストタイプの設定
   useEffect(() => {
     fetchVerificationStatus();
+    
+    // クッキーからキャストタイプを判定
+    const startPage = Cookies.get('StartPage');
+    if (startPage === 'cast:delicas') {
+      setCastType('高収入キャスト');
+    } else if (startPage === 'cast:cas') {
+      setCastType('通常キャスト');
+    }
   }, []);
 
   // 本人確認ステータスを取得
@@ -90,21 +100,40 @@ const DashboardPage = () => {
       {/* ウェルカムカード */}
       <Card sx={{ mb: 3, borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         <Box sx={{ 
-          background: 'linear-gradient(45deg, #ff69b4, #ff8fbf)', 
+          background: castType === '高収入キャスト' ? 'linear-gradient(45deg, #ff69b4, #ff8fbf)' : 'linear-gradient(45deg, #87ceeb, #4682b4)', 
           p: 2, 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between'
         }}>
-          <Typography variant="subtitle1" fontWeight="medium" color="white">
+          <Typography variant="subtitle1" fontWeight="medium" color={castType === '高収入キャスト' ? 'white' : 'white'}>
             おはようございます！
           </Typography>
-          <NotificationsIcon sx={{ color: 'white' }} />
+          <NotificationsIcon sx={{ color: castType === '高収入キャスト' ? 'white' : 'white' }} />
         </Box>
         <CardContent sx={{ p: 2 }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             今日も素敵な一日をお過ごしください。
           </Typography>
+          {/* キャストタイプ表示 */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: castType === '高収入キャスト' ? '#fff0f5' : '#f0f8ff',
+            borderRadius: 1,
+            p: 1,
+            mt: 1
+          }}>
+            <Typography 
+              variant="body2" 
+              fontWeight="bold" 
+              sx={{ 
+                color: castType === '高収入キャスト' ? '#ff4081' : '#4169e1',
+              }}
+            >
+              {castType}
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
 

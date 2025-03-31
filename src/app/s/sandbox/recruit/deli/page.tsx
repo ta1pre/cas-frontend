@@ -10,12 +10,18 @@ import { useAuth } from '@/hooks/useAuth';
 import DeliRecruitIntro from './components/DeliRecruitIntro';
 import DeliRecruitDetail from './components/DeliRecruitDetail';
 import DeliRecruitExample from './components/DeliRecruitExample';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 // Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
 function DeliRecruitPageContent() {
   const { handleLogin, loading } = useAuth();
   const buttonAreaHeight = 160;
+
+  // Cookieに'StartPage'を設定
+  useEffect(() => {
+    Cookies.set('StartPage', 'cast:delicas', { expires: 30 }); // 30日有効期限のCookieを設定
+  }, []);
 
   return (
     <Box sx={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
@@ -49,7 +55,7 @@ function DeliRecruitPageContent() {
             fontSize: '1rem'
           }}
         >
-          今なら5,000円分のボーナスポイント進呈中！
+          今なら10,000円分のボーナスポイント進呈中！
         </Typography>
 
         {/* 登録ボタン */}
@@ -76,7 +82,7 @@ function DeliRecruitPageContent() {
             '&:hover': { backgroundColor: '#FF4081' }
           }}
         >
-          {loading ? 'ログイン中...' : '簡単配達スタッフ登録'}
+          {loading ? 'ログイン中...' : '簡単キャスト登録'}
           <ArrowForwardIcon sx={{ ml: 1 }} />
         </Button>
 

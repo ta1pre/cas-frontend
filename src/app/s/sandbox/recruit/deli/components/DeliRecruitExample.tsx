@@ -31,11 +31,11 @@ export default function DeliRecruitExample({ buttonAreaHeight }: { buttonAreaHei
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                 <Typography sx={{ fontSize: '0.95rem', mb: 0.5, color: '#333' }}>日当目安</Typography>
-                <Typography sx={{ fontSize: '0.95rem', mb: 0.5, color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>6,000円</Typography>
+                <Typography sx={{ fontSize: '0.95rem', mb: 0.5, color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>25,000円</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                 <Typography sx={{ fontSize: '0.95rem', color: '#333' }}>月収目安</Typography>
-                <Typography sx={{ fontSize: '0.95rem', color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>約72,000円</Typography>
+                <Typography sx={{ fontSize: '0.95rem', color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>約300,000円</Typography>
               </Box>
             </Box>
             <Button variant="outlined" color="secondary" onClick={() => setOpenA(true)} sx={{ fontSize: '0.9rem' }}>
@@ -60,11 +60,11 @@ export default function DeliRecruitExample({ buttonAreaHeight }: { buttonAreaHei
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                 <Typography sx={{ fontSize: '0.95rem', mb: 0.5, color: '#333' }}>日当目安</Typography>
-                <Typography sx={{ fontSize: '0.95rem', mb: 0.5, color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>12,000円</Typography>
+                <Typography sx={{ fontSize: '0.95rem', mb: 0.5, color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>55,000円</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                 <Typography sx={{ fontSize: '0.95rem', color: '#333' }}>月収目安</Typography>
-                <Typography sx={{ fontSize: '0.95rem', color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>約264,000円</Typography>
+                <Typography sx={{ fontSize: '0.95rem', color: '#FF3B3B', fontWeight: 'bold', minWidth: '80px', textAlign: 'right' }}>約1,100,000円</Typography>
               </Box>
             </Box>
             <Button variant="outlined" color="secondary" onClick={() => setOpenB(true)} sx={{ fontSize: '0.9rem' }}>
@@ -84,7 +84,7 @@ export default function DeliRecruitExample({ buttonAreaHeight }: { buttonAreaHei
             <Typography>🕒 15:30 アプリで配達開始</Typography>
             <Typography>🕒 18:30 夕食タイムに集中配達</Typography>
             <Typography>🕒 20:00 配達終了</Typography>
-            <Typography sx={{ mt: 2, fontWeight: 'bold', color: '#FF3B3B' }}>収入：6,000円</Typography>
+            <Typography sx={{ mt: 2, fontWeight: 'bold', color: '#FF3B3B' }}>収入：25,000円</Typography>
             <Typography sx={{ mt: 2 }}>
               🚲 自転車を使った効率的な配達<br />
               🚲 夕方の需要が高い時間帯に集中
@@ -104,7 +104,7 @@ export default function DeliRecruitExample({ buttonAreaHeight }: { buttonAreaHei
             <Typography>🕒 14:00 小休憩</Typography>
             <Typography>🕒 17:00 夕方の配達再開</Typography>
             <Typography>🕒 21:00 配達終了</Typography>
-            <Typography sx={{ mt: 2, fontWeight: 'bold', color: '#FF3B3B' }}>収入：12,000円</Typography>
+            <Typography sx={{ mt: 2, fontWeight: 'bold', color: '#FF3B3B' }}>収入：45,000円</Typography>
             <Typography sx={{ mt: 2 }}>
               🛵 バイクを使って広範囲をカバー<br />
               🛵 需要ピーク時に集中して効率アップ

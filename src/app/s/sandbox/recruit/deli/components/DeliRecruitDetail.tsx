@@ -9,15 +9,14 @@ export default function DeliRecruitDetail({ buttonAreaHeight }: { buttonAreaHeig
   return (
     <DeliRecruitSlide
       bgGradient="linear-gradient(135deg, #FFF8DC 0%, #FFE4EC 100%)"
-      title="自由なスケジュールで配達。"
+      title="自由に稼ごう！"
       buttonAreaHeight={buttonAreaHeight}
     >
       <Typography sx={{ fontSize: '1.1rem', opacity: 0.8, mb: 2, textAlign: 'left' }}>
-        飲食店や小売店から顧客へ商品をお届けする簡単なお仕事です。
-        バイクや自転車での配達なので、交通渋滞を気にせず効率よく移動できます。
+        初めての風俗バイト。ノルマも無し、でとっても高収入。
         配達経験がなくても安心のサポート体制あり。
         空いた時間を使って、フレキシブルに働けます。
-        シフトの縛りがなく、アプリで簡単に配達依頼を受注できるシステムです。<br />
+        シフトの縛りがなく、簡単に稼げます。<br />
         プライベートも大切にしながら、自分のペースでOK！
       </Typography>
 

@@ -4,6 +4,7 @@
 import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth/useAuth";
+import Cookies from "js-cookie";
 
 // Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
 function PageContent() {
@@ -12,6 +13,15 @@ function PageContent() {
 
   useEffect(() => {
     if (loading) return; // ロード中なら何もしない
+
+    // StartPageクッキーの値を取得
+    const startPage = Cookies.get('StartPage');
+    
+    // StartPageの値がcast:casまたはcast:delicasならp/cast/cont/dashboardへリダイレクト
+    if (startPage && (startPage === 'cast:cas' || startPage === 'cast:delicas')) {
+      router.replace("/p/cast/cont/dashboard");
+      return;
+    }
 
     if (isAuthenticated && user) {
       if (user.userType === "customer") {

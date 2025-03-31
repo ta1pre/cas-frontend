@@ -18,18 +18,18 @@ export default function DeliRecruitIntro({ buttonAreaHeight }: { buttonAreaHeigh
           好きな時間、
           好きな場所で<br />
           <Box component="span" sx={{ color: '#FF80AB', fontWeight: 'bold' }}>スキマをつかって
-            <Box component="span" sx={{ color: '#FF3B3B', fontWeight: 'bold', fontSize: '1.8rem' }}>高収入</Box>
+            <Box component="span" sx={{ color: '#FF3B3B', fontWeight: 'bold', fontSize: '1.8rem' }}>超高収入</Box>
           </Box>
         </Typography>
 
         <Box sx={{ backgroundColor: 'white', p: 2, borderRadius: 2, boxShadow: 2, textAlign: 'left', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleRoundedIcon sx={{ color: 'green', fontSize: '1.2rem' }} />
-            <Typography sx={{ fontSize: '0.95rem', color: '#555' }}>オンライン登録制</Typography>
+            <Typography sx={{ fontSize: '0.95rem', color: '#555' }}>オンライン登録制(面接なし！)</Typography>
           </Box>          
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleRoundedIcon sx={{ color: 'green', fontSize: '1.2rem' }} />
-            <Typography sx={{ fontSize: '0.95rem', color: '#555' }}>高収入・時給1,500円以上可</Typography>
+            <Typography sx={{ fontSize: '0.95rem', color: '#555' }}>高収入・時給10,00円以上可</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleRoundedIcon sx={{ color: 'green', fontSize: '1.2rem' }} />
@@ -41,7 +41,7 @@ export default function DeliRecruitIntro({ buttonAreaHeight }: { buttonAreaHeigh
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleRoundedIcon sx={{ color: 'green', fontSize: '1.2rem' }} />
-            <Typography sx={{ fontSize: '0.95rem', color: '#555' }}>バイク・自転車での配達</Typography>
+            <Typography sx={{ fontSize: '0.95rem', color: '#555' }}>脱がなくてもできちゃう</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleRoundedIcon sx={{ color: 'green', fontSize: '1.2rem' }} />

@@ -11,12 +11,18 @@ import { useAuth } from '@/hooks/useAuth';
 import RecruitIntro from './components/RecruitIntro';
 import RecruitDetail from './components/RecruitDetail';
 import RecruitExample from './components/RecruitExample';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 // Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
 function RecruitPageContent() {
   const { handleLogin, loading } = useAuth();
   const buttonAreaHeight = 160;
+
+  // ページ読み込み時にクッキーを設定
+  useEffect(() => {
+    Cookies.set('StartPage', 'cast:cas', { expires: 30 }); // 30日間有効なクッキーを設定
+  }, []);
 
   return (
     <Box sx={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>

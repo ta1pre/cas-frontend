@@ -10,11 +10,8 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import ChatIcon from '@mui/icons-material/Chat';
-import HistoryIcon from '@mui/icons-material/History';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PhotoCameraBackIcon from '@mui/icons-material/PhotoCameraBack';
 import Link from 'next/link';
 
 export default function CastHeader() {
@@ -82,8 +79,6 @@ export default function CastHeader() {
                   <NavLink href="/p/cast/cont/reserve" icon={AssignmentIcon} pathname={pathname} setIsOpen={setIsOpen}>予約管理</NavLink>
                   <NavLink href="/p/cast/cont/prof" icon={PersonIcon} pathname={pathname} setIsOpen={setIsOpen}>プロフィール編集</NavLink>
                   <NavLink href="/p/cast/cont/points" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント管理</NavLink>
-                  <NavLink href="#" icon={ChatIcon} pathname={pathname} setIsOpen={setIsOpen}>メッセージ</NavLink>
-                  <NavLink href="#" icon={PhotoCameraBackIcon} pathname={pathname} setIsOpen={setIsOpen}>フォトポスト</NavLink>
                   <NavLink href="/p/cast/cont/help" icon={HelpOutlineIcon} pathname={pathname} setIsOpen={setIsOpen}>ヘルプ</NavLink>
                   <li className="mt-6 border-t border-gray-300 pt-4">
                     <button onClick={handleLogout} className="flex items-center py-3 px-4 rounded-lg text-red-600 hover:bg-gray-100 text-lg">
