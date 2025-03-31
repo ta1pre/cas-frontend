@@ -2,8 +2,10 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Container, CircularProgress,Box } from "@mui/material";
+import { Container, CircularProgress, Box } from "@mui/material";
 import { useSetupNavigation } from "../hooks/storage/useSetupNavigation";
+import { useSetupStorage } from "../hooks/storage/useSetupStorage";
+import { getCookie } from "../utils/cookieUtils";
 import BackButton from "./BackButton";
 
 // ✅ 各ステップのコンポーネント
@@ -21,6 +23,32 @@ import CompleteStep from "../components/common/CompleteStep";
 
 export default function SetupFlow() {
     const { setupStatus, setSetupStatus, handlePrevStep } = useSetupNavigation();
+    const { setStorage } = useSetupStorage();
+
+    // ✅ クッキーに基づいて初期フローを設定
+    useEffect(() => {
+        if (setupStatus === "empty") {
+            const startPageCookie = getCookie("StartPage");
+            
+            if (startPageCookie) {
+                const [type, genre] = startPageCookie.split(':');
+                
+                // クッキーに基づいてユーザータイプを設定
+                if (type === 'cast') {
+                    // キャスト向けフロー
+                    setStorage('user_type', 'cast');
+                    // 年齢確認ステップをスキップして性別選択へ
+                    setSetupStatus("sex_selection");
+                } else if (type === 'customer') {
+                    // カスタマー向けフロー
+                    setStorage('user_type', 'customer');
+                    // 年齢確認ステップをスキップして性別選択へ
+                    setSetupStatus("sex_selection");
+                }
+                // 注: 性別選択ステップで自動的に適切なフローに進む
+            }
+        }
+    }, [setupStatus]);
 
     // ✅ デバッグ用ログ出力
     useEffect(() => {

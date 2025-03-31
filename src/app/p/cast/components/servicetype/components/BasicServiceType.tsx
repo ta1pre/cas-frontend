@@ -26,19 +26,23 @@ export default function BasicServiceType({ onServiceChange, castType }: Props) {
             return;
         }
 
-        // Aタイプの場合は「通常」カテゴリのみ表示
+        // キャストタイプに基づいてフィルタリング
+        const filtered: Record<string, any> = {};
+        
         if (castType === 'A') {
-            const filtered: Record<string, any> = {};
+            // Aタイプの場合は「通常」カテゴリのみ表示
             Object.entries(serviceTypesByCategory).forEach(([category, services]) => {
                 if (category === '通常') {
                     filtered[category] = services;
                 }
             });
-            setFilteredServiceTypes(filtered);
         } else {
-            // それ以外のタイプ（B、AB）はすべて表示
+            // それ以外のタイプ（B、AB）は「高収入」カテゴリを除外して表示
             setFilteredServiceTypes(serviceTypesByCategory);
+            return; // 全て表示するのでここで終了
         }
+        
+        setFilteredServiceTypes(filtered);
     }, [serviceTypesByCategory, castType]);
 
     const handleOpenPopover = (event: React.MouseEvent<HTMLElement>, description: string | null) => {

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, Container } from '@mui/material';
 import MaleIcon from '@mui/icons-material/Male';
 import FemaleIcon from '@mui/icons-material/Female';
 import { useSetupStorage } from '@/app/p/setup/hooks/storage/useSetupStorage';
 import { handleSelectGender } from '@/app/p/setup/hooks/logic/step/handleSelectGender';
+import { getCookie, setCookie } from '@/app/p/setup/utils/cookieUtils';
 
 interface Props {
     onNextStep: (gender: 'male' | 'female') => void;
@@ -16,11 +17,43 @@ export default function SexSelectionStep({ onNextStep }: Props) {
     const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [tempGender, setTempGender] = useState<'male' | 'female' | null>(null);
+    const isFirstMount = useRef(true);
 
     useEffect(() => {
-        const storedUserType = getStorage('user_type');
-        if (storedUserType === 'customer') setSelectedGender('male');
-        if (storedUserType === 'cast') setSelectedGender('female');
+        // 初回マウント時のみ自動選択を実行
+        if (isFirstMount.current) {
+            // StartPageクッキーの値を取得
+            const startPageCookie = getCookie('StartPage');
+            
+            if (startPageCookie) {
+                // クッキーの値に基づいて性別を自動選択
+                const [type, genre] = startPageCookie.split(':');
+                
+                if (type === 'cast') {
+                    // キャスト向けフロー（女性）
+                    setSelectedGender('female');
+                    handleSelectGender('female', () => {});
+                    // 自動的に次のステップへ進む
+                    onNextStep('female');
+                    isFirstMount.current = false;
+                    return;
+                } else if (type === 'customer') {
+                    // カスタマー向けフロー（男性）
+                    setSelectedGender('male');
+                    handleSelectGender('male', () => {});
+                    // 自動的に次のステップへ進む
+                    onNextStep('male');
+                    isFirstMount.current = false;
+                    return;
+                }
+            }
+            
+            // クッキーがない場合は通常の処理
+            const storedUserType = getStorage('user_type');
+            if (storedUserType === 'customer') setSelectedGender('male');
+            if (storedUserType === 'cast') setSelectedGender('female');
+            isFirstMount.current = false;
+        }
     }, []);
 
     const handleGenderSelection = (gender: 'male' | 'female') => {
@@ -31,6 +64,16 @@ export default function SexSelectionStep({ onNextStep }: Props) {
     const confirmSelection = () => {
         if (tempGender) {
             setSelectedGender(tempGender);
+            
+            // 性別に基づいてクッキーを設定
+            if (tempGender === 'female') {
+                // デフォルトは通常キャスト
+                setCookie('StartPage', 'cast:cas');
+            } else {
+                // 男性の場合はカスタマー
+                setCookie('StartPage', 'customer:cas');
+            }
+            
             handleSelectGender(tempGender, () => {});
             onNextStep(tempGender);
         }

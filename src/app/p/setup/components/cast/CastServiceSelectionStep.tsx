@@ -5,9 +5,23 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import BasicServiceType from "@/app/p/cast/components/servicetype/components/BasicServiceType";
 import { useServiceType } from "@/app/p/cast/components/servicetype/hooks/useServiceType";
+import Cookies from "js-cookie";
 
 interface Props {
     onNextStep: () => void;
+}
+
+/**
+ * StartPageクッキーからキャストタイプを取得
+ */
+function getCastTypeFromCookie(): string {
+    const startPage = Cookies.get('StartPage');
+    if (startPage === 'cast:cas') {
+        return 'A';
+    } else if (startPage === 'cast:delicas') {
+        return 'B';
+    }
+    return 'A'; // デフォルト
 }
 
 const CastServiceSelectionStep: React.FC<Props> = ({ onNextStep }) => {
@@ -16,6 +30,14 @@ const CastServiceSelectionStep: React.FC<Props> = ({ onNextStep }) => {
     const [selectedServiceNames, setSelectedServiceNames] = useState<string[]>([]);
     const [isNextEnabled, setIsNextEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [castType, setCastType] = useState<string>('A'); // デフォルト値
+
+    // ✅ 初回ロード時にキャストタイプを取得
+    useEffect(() => {
+        const type = getCastTypeFromCookie();
+        setCastType(type);
+        console.log("✅ キャストタイプを設定:", type);
+    }, []);
 
     // ✅ 初回データ取得
     useEffect(() => {
@@ -71,7 +93,7 @@ const CastServiceSelectionStep: React.FC<Props> = ({ onNextStep }) => {
             {isLoading ? (
                 <CircularProgress />
             ) : (
-                <BasicServiceType onServiceChange={handleServiceChange} />
+                <BasicServiceType onServiceChange={handleServiceChange} castType={castType} />
             )}
 
             {/* 「次へ」ボタン */}

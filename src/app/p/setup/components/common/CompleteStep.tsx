@@ -122,7 +122,7 @@ export default function CompleteStep() {
               variant="contained"
               color="secondary"
               fullWidth
-              onClick={() => router.push("/p/customer")}
+              onClick={() => router.push("/p/cast/cont/dashboard")}
             >
               メインページへ
             </Button>
