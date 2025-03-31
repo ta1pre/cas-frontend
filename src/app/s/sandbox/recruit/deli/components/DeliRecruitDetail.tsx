@@ -13,11 +13,9 @@ export default function DeliRecruitDetail({ buttonAreaHeight }: { buttonAreaHeig
       buttonAreaHeight={buttonAreaHeight}
     >
       <Typography sx={{ fontSize: '1.1rem', opacity: 0.8, mb: 2, textAlign: 'left' }}>
-        初めての風俗バイト。ノルマも無し、でとっても高収入。
-        配達経験がなくても安心のサポート体制あり。
-        空いた時間を使って、フレキシブルに働けます。
-        シフトの縛りがなく、簡単に稼げます。<br />
-        プライベートも大切にしながら、自分のペースでOK！
+        初めての風俗バイト。ノルマも無しなのにとっても高収入が可能。
+        空いた時間を使って、効率よく働けます。
+        空間も大切にしながら、自分のペースでOK！
       </Typography>
 
       {/* スワイプアイコン追加（横スライドアニメーション） */}
