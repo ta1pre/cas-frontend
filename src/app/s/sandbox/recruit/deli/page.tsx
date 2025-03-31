@@ -24,11 +24,11 @@ function DeliRecruitPageContent() {
   }, []);
 
   return (
-    <Box sx={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <Box sx={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}> 
       {/* ロゴとタイトル */}
       <Box sx={{ position: 'absolute', top: 16, left: 16, display: 'flex', alignItems: 'center', gap: 1, zIndex: 60 }}>
         <Image src="/images/common/logo.png" alt="Logo" width={40} height={40} />
-        <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333' }}>Cas(キャス)</Typography>
+        <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333' }}>Deli Cas(デリキャス)</Typography>
       </Box>
 
       <Swiper spaceBetween={0} slidesPerView={1} style={{ width: '100%', height: '100%' }}>
