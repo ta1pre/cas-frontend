@@ -6,6 +6,7 @@ import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import CreateIcon from '@mui/icons-material/Create';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -18,7 +19,8 @@ export default function CastBottomNav() {
     // ルートに合わせてBottomNavの選択状態を変更
     if (pathname.includes('/dashboard')) setValue(0);
     else if (pathname.includes('cont/reserve')) setValue(1);
-    else if (pathname.includes('/identity_verification')) setValue(2);
+    else if (pathname.includes('cont/posts')) setValue(2);
+    else if (pathname.includes('/identity_verification')) setValue(3);
   }, [pathname]);
 
   return (
@@ -31,6 +33,7 @@ export default function CastBottomNav() {
       >
         <BottomNavigationAction label="ホーム" icon={<HomeIcon />} component={Link} href="/p/cast/cont/dashboard" />
         <BottomNavigationAction label="予約管理" icon={<AssignmentIcon />} component={Link} href="/p/cast/cont/reserve" />
+        <BottomNavigationAction label="投稿" icon={<CreateIcon />} component={Link} href="/p/cast/cont/posts" />
         <BottomNavigationAction label="本人確認" icon={<VerifiedUserIcon />} component={Link} href="/p/cast/cont/identity_verification" />
       </BottomNavigation>
     </Paper>
