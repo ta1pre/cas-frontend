@@ -31,8 +31,12 @@ export default function ServiceTypeForm({ onClose }: Props): React.JSX.Element {
     const loadData = async () => {
       try {
         // プロフィール情報を取得してcast_typeを設定
-        const profileData = await fetchProfile();
-        setCastType(profileData.cast_type);
+        // キャストIDを0（自分自身）として渡す
+        const profileData = await fetchProfile(0);
+        // profileDataがnullの場合にエラーを吐く
+        if (profileData) {
+          setCastType(profileData.cast_type);
+        }
       } catch (error) {
         console.error('プロフィール取得エラー:', error);
       } finally {
