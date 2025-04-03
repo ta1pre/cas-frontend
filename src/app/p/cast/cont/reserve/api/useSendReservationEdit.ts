@@ -23,6 +23,7 @@ export interface ReservationEditRequest {
   option_ids: number[];
   custom_options: CustomOption[];
   transportation_fee?: number; // 交通費を追加
+  option_points?: number; // ★ 追加：オプション合計金額
 }
 
 /**

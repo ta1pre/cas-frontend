@@ -59,6 +59,9 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
       const userId = castId || user.user_id;
       const data = await fetchReservationDetail(reservationId, userId);
       console.log("受信した予約詳細データ:", data);
+      console.log("予約詳細データの構造:", JSON.stringify(data, null, 2));
+      console.log("cast_reward_points存在確認:", data?.cast_reward_points);
+      console.log("total_points存在確認:", data?.total_points);
       if (data) {
         console.log("ステータス情報:", {
           status: data.status,
@@ -92,7 +95,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
 
   // ステータスの色を取得（MUIのChipコンポーネント用）
   const getStatusColor = () => {
-    const status = detail?.status;
+    const status = detail?.status_key || detail?.status;
     const colorCode = detail?.color_code;
 
     if (colorCode) {
@@ -104,6 +107,8 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
         return 'success'; // 緑
       case 'canceled':
       case 'cancelled':
+      case 'cancelled_user':
+      case 'cancelled_cast':
         return 'error';   // 赤
       case 'requested':
       case 'adjusting':
@@ -112,6 +117,12 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
       default:
         return 'default'; // グレー
     }
+  };
+
+  // 「最速案内」かどうかを判定する関数
+  const isFastestRequest = (dateTime: string | null): boolean => {
+    if (!dateTime) return false;
+    return dateTime.startsWith('7777-07-07');
   };
 
   // モーダルスタイル
@@ -173,7 +184,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
               }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="h6" fontWeight="bold">
-                    {detail.status}
+                    {detail.cast_label || detail.status}
                   </Typography>
                   <Typography variant="body2">
                     #{detail.reservation_id}
@@ -197,16 +208,34 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                     </Typography>
                   </Box>
                   <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
-                    <Typography variant="body1">
-                      {new Date(detail.start_time).toLocaleString('ja-JP', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        weekday: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </Typography>
+                    {isFastestRequest(detail.start_time) ? (
+                      <Typography variant="body1" fontWeight="bold" sx={{ color: 'red' }}>
+                        最短の日時を指定してください
+                      </Typography>
+                    ) : (
+                      <Typography variant="body1">
+                        {(() => {
+                          // UTCからJSTへの変換処理
+                          const utcDate = new Date(detail.start_time);
+                          // UTCの日時を表示
+                          console.log("UTCの日時:", utcDate.toISOString());
+                          
+                          // 日時を日本時間に変換
+                          const options = {
+                            year: 'numeric' as const,
+                            month: 'long' as const,
+                            day: 'numeric' as const,
+                            weekday: 'short' as const,
+                            hour: '2-digit' as const,
+                            minute: '2-digit' as const,
+                            timeZone: 'Asia/Tokyo' // 日本時間を指定
+                          };
+                          
+                          // 日本時間で表示
+                          return utcDate.toLocaleString('ja-JP', options);
+                        })()} 
+                      </Typography>
+                    )}
                   </Paper>
                 </Box>
 
@@ -284,7 +313,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                               {option.name}
                             </Typography>
                             <Typography variant="body2" fontWeight="medium">
-                              {option.price.toLocaleString()}円
+                              {option.price.toLocaleString()}P
                             </Typography>
                           </Box>
                         ))}
@@ -304,22 +333,11 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                   <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
                     <Grid container spacing={1}>
                       <Grid item xs={8}>
-                        <Typography variant="body2">コース料金</Typography>
+                        <Typography variant="body2">予約料金</Typography>
                       </Grid>
                       <Grid item xs={4} sx={{ textAlign: 'right' }}>
-                        <Typography variant="body2">{detail.reservation_fee.toLocaleString()}円</Typography>
+                        <Typography variant="body2">{detail.reservation_fee.toLocaleString()}P</Typography>
                       </Grid>
-
-                      {detail.designation_fee > 0 && (
-                        <>
-                          <Grid item xs={8}>
-                            <Typography variant="body2">指定料</Typography>
-                          </Grid>
-                          <Grid item xs={4} sx={{ textAlign: 'right' }}>
-                            <Typography variant="body2">{detail.designation_fee.toLocaleString()}円</Typography>
-                          </Grid>
-                        </>
-                      )}
 
                       {detail.options_fee > 0 && (
                         <>
@@ -327,21 +345,19 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                             <Typography variant="body2">オプション料金</Typography>
                           </Grid>
                           <Grid item xs={4} sx={{ textAlign: 'right' }}>
-                            <Typography variant="body2">{detail.options_fee.toLocaleString()}円</Typography>
+                            <Typography variant="body2">{detail.options_fee.toLocaleString()}P</Typography>
                           </Grid>
                         </>
                       )}
 
-                      {detail.traffic_fee > 0 && (
-                        <>
-                          <Grid item xs={8}>
-                            <Typography variant="body2">交通費</Typography>
-                          </Grid>
-                          <Grid item xs={4} sx={{ textAlign: 'right' }}>
-                            <Typography variant="body2">{detail.traffic_fee.toLocaleString()}円</Typography>
-                          </Grid>
-                        </>
-                      )}
+                      <>
+                        <Grid item xs={8}>
+                          <Typography variant="body2">交通費</Typography>
+                        </Grid>
+                        <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                          <Typography variant="body2">{detail.traffic_fee.toLocaleString()}P</Typography>
+                        </Grid>
+                      </>
 
                       <Grid item xs={12}><Divider sx={{ my: 1 }} /></Grid>
 
@@ -350,7 +366,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                       </Grid>
                       <Grid item xs={4} sx={{ textAlign: 'right' }}>
                         <Typography variant="subtitle2" fontWeight="bold" color="#f06292">
-                          {detail.total_points.toLocaleString()}円
+                          {((detail.reservation_fee || 0) + (detail.options_fee || 0) + (detail.traffic_fee || 0)).toLocaleString()}P
                         </Typography>
                       </Grid>
                     </Grid>

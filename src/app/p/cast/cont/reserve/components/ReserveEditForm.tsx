@@ -27,6 +27,8 @@ import {
   InputLabel,
   FormHelperText,
   ListSubheader,
+  Chip, 
+  InputAdornment, // InputAdornmentを追加
 } from "@mui/material";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -36,6 +38,21 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EventIcon from '@mui/icons-material/Event'; 
+import toast from 'react-hot-toast';
+
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'; // 通常のAdapterDateFnsを使用
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import ja from 'date-fns/locale/ja'; // 日本語ロケール (default import)
+// date-fnsの関数をデフォルトインポートとして個別にインポート
+import addMonths from 'date-fns/addMonths';
+import startOfDay from 'date-fns/startOfDay';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import isValid from 'date-fns/isValid';
+import setHours from 'date-fns/setHours';
+import setMinutes from 'date-fns/setMinutes';
+import setSeconds from 'date-fns/setSeconds';
 
 interface ReserveEditFormProps {
   reservationId?: number; // 予約IDまたは予約オブジェクト全体のどちらかが必要
@@ -102,6 +119,8 @@ import { fetchReservationDetail } from "../api/useFetchReservationDetail";
 import { fetchCastOptions } from "../api/useFetchCastOptions";
 import { fetchFilteredCourses, CourseResponse, courseTypeNames, groupCoursesByType } from "../api/useFetchCastCourses"; 
 import { fetchStationSuggest } from "../api/useFetchStation";
+import { sendReservationEdit } from "../api/useSendReservationEdit";
+import { ReservationStatus } from "../types/reserveTypes";
 
 export default function ReserveEditForm({ reservationId, reservation, onCancel, onSuccess }: ReserveEditFormProps) {
   const router = useRouter();
@@ -111,7 +130,11 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
   const [errorMessage, setErrorMessage] = useState("");
   
   const [detail, setDetail] = useState<ReservationDetail | null>(null);
-  const [startTime, setStartTime] = useState("");
+  // startTime は Date オブジェクトまたは null を保持するように変更
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  // 新しいUI用のState
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [transportationFee, setTransportationFee] = useState(String(detail?.traffic_fee || 0)); 
   
@@ -182,7 +205,31 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
         }
         
         // 
-        setStartTime(formatDateTimeForInput(detailData?.start_time));
+        // detailData.start_time (YYYY-MM-DD HH:MM:SS形式の文字列) から Date オブジェクトを生成
+        if (detailData?.start_time) {
+          const initialDate = parse(detailData.start_time, 'yyyy-MM-dd HH:mm:ss', new Date());
+          if (isValid(initialDate)) {
+            setStartTime(initialDate); // Date オブジェクトをセット
+            setSelectedDate(startOfDay(initialDate)); // DatePicker 用に日付部分のみをセット
+            setSelectedTimeSlot(format(initialDate, 'HH:mm')); // 時間チップ用に HH:mm 形式をセット
+            console.log("初期時刻設定:", initialDate, format(initialDate, 'HH:mm'));
+          } else {
+            console.warn("予約詳細の start_time のパースに失敗しました:", detailData.start_time);
+            // パース失敗時のフォールバック（例：現在時刻を設定）
+            const now = new Date();
+            setStartTime(now);
+            setSelectedDate(startOfDay(now));
+            setSelectedTimeSlot(null); // または最も近い30分刻みの時間
+          }
+        } else {
+          // detailData.start_time がない場合（新規作成など）の初期値
+          const now = new Date();
+          setStartTime(now);
+          setSelectedDate(startOfDay(now));
+          setSelectedTimeSlot(null);
+        }
+        
+        // 
         setNote(detailData?.reservation_note || "");
         setTransportationFee(String(detailData?.traffic_fee || 0)); 
         
@@ -290,11 +337,53 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
     fetchData();
   }, [reservationId, reservation, user?.user_id]);
 
-  const formatDateTimeForInput = (isoString: string | undefined) => {
-    if (!isoString) return "";
-    return isoString.substring(0, 16);
+  // selectedDate または selectedTimeSlot が変更されたら startTime を更新する useEffect
+  useEffect(() => {
+    if (selectedDate && selectedTimeSlot) {
+      const [hours, minutes] = selectedTimeSlot.split(':').map(Number);
+      let combinedDate = setHours(selectedDate, hours);
+      combinedDate = setMinutes(combinedDate, minutes);
+      combinedDate = setSeconds(combinedDate, 0); // 秒は0に設定
+      if (isValid(combinedDate)) {
+        setStartTime(combinedDate);
+        console.log("日付/時間変更により startTime 更新:", combinedDate);
+
+        // コースが選択されていれば、終了時間も再計算
+        if (selectedCourse?.duration_minutes) {
+          const endDate = new Date(combinedDate.getTime() + selectedCourse.duration_minutes * 60000);
+          console.log(`⏱️ 終了時間再計算: 開始=${combinedDate.toLocaleString()}, 終了=${endDate.toLocaleString()}`);
+          // formData も更新（必要であれば）
+          // setFormData(prev => ({ ...prev, startTime: combinedDate.toISOString(), endTime: endDate.toISOString() }));
+          console.log(`⏱️ 終了時間再計算: 開始=${combinedDate.toLocaleString()}, 終了=${endDate.toLocaleString()}`);
+        }
+
+      } else {
+        console.error("日付と時間の組み合わせが無効です:", selectedDate, selectedTimeSlot);
+      }
+    } else {
+      // どちらかが未選択の場合、startTimeをnullにするか、あるいは何もしないか（要件による）
+      // setStartTime(null);
+    }
+  }, [selectedDate, selectedTimeSlot, selectedCourse?.duration_minutes]);
+
+  // 時間チップ生成用のヘルパー
+  const generateTimeSlots = () => {
+    const slots = [];
+    // 8:00~22:00の30分刻みの時間スロットを生成
+    for (let hour = 8; hour <= 22; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        slots.push({
+          value: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
+          label: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        });
+      }
+    }
+    return slots;
   };
 
+  const timeSlots = generateTimeSlots();
+
+  // オプション選択のトグル
   const toggleOption = (optionId: number) => {
     setSelectedOptionIds(prev => 
       prev.includes(optionId)
@@ -303,6 +392,7 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
     );
   };
 
+  // カスタムオプション追加
   const addCustomOption = () => {
     if (newCustomName && newCustomPrice) {
       const price = parseInt(newCustomPrice);
@@ -314,69 +404,40 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
     }
   };
 
+  // カスタムオプション削除
   const removeCustomOption = (index: number) => {
     setCustomOptions(customOptions.filter((_, i) => i !== index));
   };
-
-  const customOptionsRef = React.useRef<CustomOption[]>([]);
-  
-  useEffect(() => {
-    customOptionsRef.current = customOptions;
-  }, [customOptions]);
 
   // コース選択のハンドラー
   const handleCourseChange = (event: SelectChangeEvent<number | string>) => {
     const courseId = Number(event.target.value);
     setSelectedCourseId(courseId);
     
-    // 
     console.log(`🔄 コース選択変更: courseId=${courseId}`);
 
     // 選択されたコースの詳細情報を取得
-    const selectedCourse = courses.find((course) => course.id === courseId);
+    const selected = courses.find((course) => course.id === courseId);
     
-    if (selectedCourse) {
-      console.log(`✅ 選択コース情報: ID=${selectedCourse.id}, 名前=${selectedCourse.course_name}, ポイント=${selectedCourse.cast_reward_points}`);
-      
-      // ポイント値の検証
-      if (selectedCourse.cast_reward_points === undefined || selectedCourse.cast_reward_points === null) {
-        console.warn(`⚠️ 警告: 選択コースID=${selectedCourse.id}のポイント値が未定義でせん`);
-      } else if (selectedCourse.cast_reward_points === 0) {
-        console.warn(`⚠️ 警告: 選択コースID=${selectedCourse.id}のポイント値が0です`);
-      }
+    if (selected) {
+      console.log(`✅ 選択コース情報: ID=${selected.id}, 名前=${selected.course_name}, ポイント=${selected.cast_reward_points}`);
+      setSelectedCourse(selected);
 
-      setSelectedCourse(selectedCourse);
-      
-      // 予約データの更新
-      const updatedFormData = {
-        ...formData,
-        courseId: courseId,
-      };
-      
-      // 終了時間の計算
-      if (startTime && selectedCourse.duration_minutes) {
-        const startDate = new Date(startTime);
-        const endDate = new Date(startDate.getTime() + (selectedCourse.duration_minutes * 60000));
-        updatedFormData.endTime = endDate.toISOString();
-        console.log(`⏱️ 終了時間計算: 開始=${startDate.toLocaleString()}, 終了=${endDate.toLocaleString()}`);
+      // 終了時間の計算 (startTimeがDateオブジェクトであることを考慮)
+      if (startTime && selected.duration_minutes) {
+        const endDate = new Date(startTime.getTime() + selected.duration_minutes * 60000);
+        console.log(`⏱️ 終了時間計算 (コース変更時): 開始=${startTime.toLocaleString()}, 終了=${endDate.toLocaleString()}`);
+        // formData も更新（必要であれば）
+        // setFormData(prev => ({ ...prev, startTime: combinedDate.toISOString(), endTime: endDate.toISOString() }));
+      } else {
+        console.log("⏱️ 開始時間が未設定のため、終了時間は計算できません。");
+        // setFormData(prev => ({ ...prev, courseId: courseId }));
       }
       
-      // 予約データを更新
-      setFormData(updatedFormData);
-      
-      // オプションポイントの計算
-      const optionPointsTotal = customOptions.reduce((sum, option) => sum + option.price, 0);
-      
-      // 合計ポイントの再計算
-      const newTotalPoints = (
-        (selectedCourse.cast_reward_points || 0) +
-        (optionPointsTotal || 0) +
-        (Number(formData.transportationFee) || 0)
-      );
-      
-      console.log(`💰 ポイント計算: コース=${selectedCourse.cast_reward_points || 0}, オプション=${optionPointsTotal || 0}, 交通費=${Number(formData.transportationFee) || 0}, 合計=${newTotalPoints}`);
     } else {
       console.error(`❌ エラー: コースID=${courseId}の情報が見つかりません`);
+      setSelectedCourse(null);
+      // setFormData(prev => ({ ...prev, courseId: courseId }));
     }
   };
 
@@ -386,28 +447,102 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
     setErrorMessage("");
 
     try {
-      const currentCustomOptions = customOptionsRef.current;
+      // カスタムオプションを確実に数値型に変換
+      const currentCustomOptions = customOptions.map(option => ({
+        name: option.name,
+        price: Number(option.price) // 確実に数値型に変換
+      }));
       
-      // 
-      const startDate = new Date(startTime);
+      // 送信前にカスタムオプションを確認
+      console.log("送信前のカスタムオプション:", currentCustomOptions);
+      currentCustomOptions.forEach((opt, index) => {
+        console.log(`カスタムオプション #${index + 1} - 名前: ${opt.name}, 価格: ${opt.price}, 型: ${typeof opt.price}`);
+      });
+      
+      // startTime が Date オブジェクトであることを確認
+      if (!startTime || !isValid(startTime)) {
+        setErrorMessage("有効な開始日時を選択してください。");
+        setSubmitting(false);
+        toast.error("有効な開始日時を選択してください。");
+        return;
+      }
+
+      // Date オブジェクトから直接フォーマット
+      const startDate = startTime;
+      console.log("送信する開始時間（Date オブジェクト）:", startDate);
+
+      // 終了時間も Date オブジェクトから計算
       const endDate = new Date(startDate.getTime() + (selectedCourse?.duration_minutes || 0) * 60000);
+      console.log("計算された終了時間（Date オブジェクト）:", endDate);
+
+      // 日本時間を YYYY-MM-DD HH:MM:SS 形式の文字列にフォーマットする関数
+      const formatDateTimeLocal = (date: Date): string => {
+        const pad = (num: number) => num.toString().padStart(2, '0');
+        const yyyy = date.getFullYear();
+        const MM = pad(date.getMonth() + 1);
+        const dd = pad(date.getDate());
+        const HH = pad(date.getHours());
+        const mm = pad(date.getMinutes());
+        const ss = pad(date.getSeconds());
+        return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+      };
+
+      // 日本時間をフォーマットして送信
+      const formattedStartTime = formatDateTimeLocal(startDate);
+      const formattedEndTime = formatDateTimeLocal(endDate);
+      
+      console.log("送信する開始時間（YYYY-MM-DD HH:MM:SS 形式）:", formattedStartTime);
+      console.log("送信する終了時間（YYYY-MM-DD HH:MM:SS 形式）:", formattedEndTime);
+      
+      // オプションの合計金額を計算
+      let totalOptionPoints = 0;
+      
+      // 選択されたオプションの金額を合計
+      if (selectedOptionIds.length > 0 && availableOptions.length > 0) {
+        selectedOptionIds.forEach(optionId => {
+          const option = availableOptions.find(opt => opt.option_id === optionId);
+          if (option) {
+            totalOptionPoints += option.option_price;
+          }
+        });
+      }
+      
+      // カスタムオプションの金額を合計
+      currentCustomOptions.forEach(option => {
+        totalOptionPoints += option.price;
+      });
+      
+      console.log("オプションの合計金額:", totalOptionPoints);
       
       const requestData = {
         reservation_id: reservationId || (reservation?.reservation_id || 0),
         cast_id: user.user_id,
-        course_id: selectedCourseId || (detail?.course_id || 0), // 
-        start_time: startDate.toISOString(),
-        end_time: endDate.toISOString(),
+        course_id: selectedCourseId || (detail?.course_id || 0),
+        start_time: formattedStartTime, // フォーマットした時間を使用
+        end_time: formattedEndTime,     // フォーマットした時間を使用
         location: selectedStation ? String(selectedStation.id) : detail?.location || "",
         reservation_note: note || "",
-        status: "waiting_user_confirm",
+        status: "waiting_user_confirm" as ReservationStatus,
         option_ids: selectedOptionIds,
         custom_options: currentCustomOptions,
-        transportation_fee: Number(transportationFee) || 0, 
+        transportation_fee: Number(transportationFee) || 0,
+        option_points: totalOptionPoints, // オプションの合計金額を追加
       };
 
-      const response = await fetchReservationDetail(reservationId || (reservation?.reservation_id || 0), user.user_id);
-      console.log("送信結果:", response);
+      // リクエストデータ全体を確認
+      console.log("予約編集リクエストデータ:", JSON.stringify(requestData, null, 2));
+
+      // 予約更新APIを呼び出す
+      const response = await sendReservationEdit(requestData);
+      console.log("予約編集送信結果:", response);
+      
+      // レスポンスがnullの場合はエラーとして処理
+      if (!response) {
+        throw new Error("サーバーからの応答がありませんでした。通信環境をご確認ください。");
+      }
+      
+      // 成功時の処理
+      toast.success("予約情報が更新されました。ユーザーの確認待ちです。");
       router.refresh();
       if (onSuccess) {
         onSuccess();
@@ -415,7 +550,10 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
       onCancel();
     } catch (error) {
       console.error("送信エラー:", error);
-      setErrorMessage("送信エラー。");
+      // エラーメッセージを改善
+      const errorMsg = error instanceof Error ? error.message : "予約編集に失敗しました。再度お試しください。";
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -461,154 +599,182 @@ export default function ReserveEditForm({ reservationId, reservation, onCancel, 
             mb: 3
           }}
         >
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AccessTimeIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="subtitle1" fontWeight="medium">
-                  開始時間
-                </Typography>
-              </Box>
-              <TextField
-                fullWidth
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-                InputLabelProps={{ shrink: true }}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              日付と時間を選択してください
+            </Typography>
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
+              <DatePicker
+                label="日付を選択"
+                value={selectedDate}
+                onChange={(newDate) => setSelectedDate(newDate)}
+                minDate={startOfDay(new Date())}
+                maxDate={addMonths(new Date(), 3)}
+                slots={{
+                  toolbar: () => null, // toolbarをfalseに設定
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    variant: 'outlined',
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EventIcon />
+                        </InputAdornment>
+                      ),
+                    },
+                  },
+                }}
               />
-              {selectedCourse && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  コース時間: {selectedCourse.duration_minutes}分
-                </Typography>
-              )}
-            </Grid>
+            </LocalizationProvider>
+          </Box>
 
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <LocationOnIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="subtitle1" fontWeight="medium">
-                  駅名
-                </Typography>
-                {/* 現在の駅名を表示 */}
-                {detail && detail.station_name && (
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
-                    sx={{ 
-                      ml: 2, 
-                      bgcolor: 'rgba(0,0,0,0.04)', 
-                      px: 1.5, 
-                      py: 0.5, 
-                      borderRadius: 1,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                  >
-                    現在の駅: <Typography component="span" fontWeight="bold" sx={{ ml: 0.5 }}>{detail.station_name}</Typography>
-                  </Typography>
-                )}
-              </Box>
-              <Autocomplete
-                value={selectedStation}
-                onChange={(_, newValue) => {
-                  setSelectedStation(newValue);
-                }}
-                inputValue={stationInput}
-                onInputChange={(_, newInputValue) => {
-                  setStationInput(newInputValue);
-                  searchStations(newInputValue);
-                }}
-                options={stations}
-                getOptionLabel={(option) => {
-                  if (option.line_name === "JR") {
-                    return `${option.name} (JR)`;
-                  }
-                  return option.line_name ? `${option.name} (${option.line_name})` : option.name;
-                }}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="駅名を入力"
-                    fullWidth
-                  />
-                )}
-                renderOption={(props, option) => {
-                  const { key, ...otherProps } = props;
-                  return (
-                    <Box component="li" key={key} {...otherProps}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1, py: 1, px: 2 }}>
-                        <Typography sx={{ flex: 1, fontWeight: option.line_name === "JR" ? 'bold' : 'normal' }}>
-                          {option.name}
-                        </Typography>
-                        {option.line_name && (
-                          <Typography 
-                            variant="caption" 
-                            color="text.secondary"
-                            sx={{ 
-                              bgcolor: 'rgba(0,0,0,0.04)',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1
-                            }}
-                          >
-                            {option.line_name}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  );
-                }}
-                noOptionsText="駅名が見つかりませんでした。"
-                loading={stationInput.length > 0 && stations.length === 0}
-              />
-            </Grid>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              時間
+            </Typography>
+            <FormControl fullWidth variant="outlined">
+              <InputLabel id="time-select-label">時間を選択</InputLabel>
+              <Select
+                labelId="time-select-label"
+                value={selectedTimeSlot || ''}
+                onChange={(e) => setSelectedTimeSlot(e.target.value)}
+                label="時間を選択"
+              >
+                {timeSlots.map((slot) => (
+                  <MenuItem key={slot.value} value={slot.value}>
+                    {slot.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <EventNoteIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="subtitle1" fontWeight="medium">
-                  メモ
-                </Typography>
-              </Box>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="メモを入力"
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle1" fontWeight="medium">
-                  交通費
-                </Typography>
-              </Box>
-              {/* 交通費入力をテキストフィールドからセレクトボックスに変更 */}
-              <FormControl fullWidth>
-                <Select
-                  value={transportationFee}
-                  onChange={(e) => setTransportationFee(e.target.value)}
-                  displayEmpty
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <LocationOnIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              <Typography variant="subtitle1" fontWeight="medium">
+                駅名
+              </Typography>
+              {/* 現在の駅名を表示 */}
+              {detail && detail.station_name && (
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
                   sx={{ 
+                    ml: 2, 
+                    bgcolor: 'rgba(0,0,0,0.04)', 
+                    px: 1.5, 
+                    py: 0.5, 
                     borderRadius: 1,
-                    '& .MuiSelect-select': { py: 1.5 }
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
-                  <MenuItem value="0">0円</MenuItem>
-                  <MenuItem value="1000">1,000円</MenuItem>
-                  <MenuItem value="2000">2,000円</MenuItem>
-                  <MenuItem value="3000">3,000円</MenuItem>
-                  <MenuItem value="4000">4,000円</MenuItem>
-                  <MenuItem value="5000">5,000円</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+                  現在の駅: <Typography component="span" fontWeight="bold" sx={{ ml: 0.5 }}>{detail.station_name}</Typography>
+                </Typography>
+              )}
+            </Box>
+            <Autocomplete
+              value={selectedStation}
+              onChange={(_, newValue) => {
+                setSelectedStation(newValue);
+              }}
+              inputValue={stationInput}
+              onInputChange={(_, newInputValue) => {
+                setStationInput(newInputValue);
+                searchStations(newInputValue);
+              }}
+              options={stations}
+              getOptionLabel={(option) => {
+                if (option.line_name === "JR") {
+                  return `${option.name} (JR)`;
+                }
+                return option.line_name ? `${option.name} (${option.line_name})` : option.name;
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="駅名を入力"
+                  fullWidth
+                />
+              )}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props;
+                return (
+                  <Box component="li" key={key} {...otherProps}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1, py: 1, px: 2 }}>
+                      <Typography sx={{ flex: 1, fontWeight: option.line_name === "JR" ? 'bold' : 'normal' }}>
+                        {option.name}
+                      </Typography>
+                      {option.line_name && (
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary"
+                          sx={{ 
+                            bgcolor: 'rgba(0,0,0,0.04)',
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1
+                          }}
+                        >
+                          {option.line_name}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              }}
+              noOptionsText="駅名が見つかりませんでした。"
+              loading={stationInput.length > 0 && stations.length === 0}
+            />
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <EventNoteIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              <Typography variant="subtitle1" fontWeight="medium">
+                メモ
+              </Typography>
+            </Box>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="メモを入力"
+            />
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1" fontWeight="medium">
+                交通費
+              </Typography>
+            </Box>
+            {/* 交通費入力をテキストフィールドからセレクトボックスに変更 */}
+            <FormControl fullWidth>
+              <Select
+                value={transportationFee}
+                onChange={(e) => setTransportationFee(e.target.value)}
+                displayEmpty
+                sx={{ 
+                  borderRadius: 1,
+                  '& .MuiSelect-select': { py: 1.5 }
+                }}
+              >
+                <MenuItem value="0">0円</MenuItem>
+                <MenuItem value="1000">1,000円</MenuItem>
+                <MenuItem value="2000">2,000円</MenuItem>
+                <MenuItem value="3000">3,000円</MenuItem>
+                <MenuItem value="4000">4,000円</MenuItem>
+                <MenuItem value="5000">5,000円</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </Paper>
 
         <Paper 

@@ -125,13 +125,28 @@ export default function CastReserveList() {
   // 要対応タブの内容をステータスの優先度と日時でソートする関数
   const sortActionReservations = (reservations: CastReserveItem[]): CastReserveItem[] => {
     return [...reservations].sort((a, b) => {
+      // 「最速案内」を最優先で上に表示
+      const aIsFastest = isFastestRequest(a.start_time);
+      const bIsFastest = isFastestRequest(b.start_time);
+      
+      if (aIsFastest && !bIsFastest) return -1; // aが最速案内なら上に
+      if (!aIsFastest && bIsFastest) return 1;  // bが最速案内なら上に
+      
+      // 両方とも「最速案内」または両方とも通常予約の場合は次の条件で判定
+      
       // ステータスの優先度でソート
       const priorityDiff = getStatusPriority(a.status_key) - getStatusPriority(b.status_key);
       if (priorityDiff !== 0) return priorityDiff;
       
-      // 日時でソート
+      // 日時でソート（昇順：近い日時が上）
       return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
     });
+  };
+
+  // 「最速案内」かどうかを判定する関数
+  const isFastestRequest = (dateTime: string | null): boolean => {
+    if (!dateTime) return false;
+    return dateTime.startsWith('7777-07-07');
   };
 
   // 初回ロード時
@@ -287,9 +302,23 @@ export default function CastReserveList() {
 
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
             <AccessTimeIcon sx={{ mr: 1, fontSize: 20, color: '#9e9e9e' }} />
-            <Typography variant="body1" fontWeight="500" sx={{ color: '#424242' }}>
-              {formatDate(reserve.start_time)}
-            </Typography>
+            {reserve.start_time ? (
+              <>
+                {isFastestRequest(reserve.start_time) ? (
+                  <Typography variant="body1" fontWeight="bold" sx={{ color: 'red' }}>
+                    最短の日時を指定して下さい
+                  </Typography>
+                ) : (
+                  <Typography variant="body1" fontWeight="bold">
+                    {formatDate(reserve.start_time)}
+                  </Typography>
+                )}
+              </>
+            ) : (
+              <Typography variant="body1" fontWeight="bold" sx={{ color: 'red' }}>
+                最短の日時を指定して下さい
+              </Typography>
+            )}
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
