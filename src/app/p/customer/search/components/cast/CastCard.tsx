@@ -31,7 +31,7 @@ const CastCard: React.FC<CastCardProps> = ({ cast }) => {
         <>
             <Card 
                 className="w-full sm:w-full md:w-5/6 lg:w-3/4 mx-auto shadow-md border border-gray-200 cursor-pointer"
-                onClick={() => setIsModalOpen(true)} // ✅ カード全体をクリック可能に
+                onClick={() => setIsModalOpen(true)} // カード全体をクリック可能に
             >
                 <div className="relative w-full aspect-[3/4] overflow-hidden rounded-t-lg">
                     <img 
@@ -40,7 +40,7 @@ const CastCard: React.FC<CastCardProps> = ({ cast }) => {
                         className="w-full h-full object-cover"
                         onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
                     />
-                    {/* ✅ 赤丸マークを画像の上に表示 */}
+                    {/* 赤丸マークを画像の上に表示 */}
                     {cast.available_at && (
                         <div className="absolute top-2 right-2 w-4 h-4 bg-red-500 rounded-full shadow-md border border-white"></div>
                     )}
@@ -48,6 +48,16 @@ const CastCard: React.FC<CastCardProps> = ({ cast }) => {
 
                 <CardContent className="p-2 sm:p-4 text-left">
                     <Typography variant="h6" className="font-bold">{cast.name || "名前未設定"}</Typography>
+                    
+                    {/* 料金表示を追加 */}
+                    {cast.reservation_fee !== undefined && (
+                        <Typography 
+                            variant="body2" 
+                            className="text-pink-600 font-bold mb-1"
+                        >
+                            {(cast.reservation_fee * 2).toLocaleString()}P~/60分
+                        </Typography>
+                    )}
                     
                     {/* 年齢 / 身長 / 職業（フェードアウト適用） */}
                     <div
@@ -92,7 +102,7 @@ const CastCard: React.FC<CastCardProps> = ({ cast }) => {
                 </CardContent>
             </Card>
 
-            {/* ✅ モーダル */}
+            {/* モーダル */}
             <CastProfileModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
