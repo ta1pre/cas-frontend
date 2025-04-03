@@ -113,11 +113,23 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
     loadProfile();
   }, []); // 空の依存配列で初回のみ実行
 
-  // 入力フィールドの変更ハンドラ
+  // フォームの変更ハンドラ
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
-    if (name) {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name as string]: value }));
+    // エラーメッセージをクリア
+    if (formErrors[name as string]) {
+      setFormErrors((prev) => ({ ...prev, [name as string]: '' }));
+    }
+  };
+
+  // Select用の変更ハンドラ
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // エラーメッセージをクリア
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -145,6 +157,22 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
     const prefectureId = event.target.value ? event.target.value : '';
     setFormData((prev) => ({ ...prev, support_area: prefectureId }));
   };
+
+  // 数値選択肢の生成関数
+  const generateNumericOptions = (start: number, end: number, step: number = 1, unit: string = '') => {
+    const options = [];
+    for (let i = start; i <= end; i += step) {
+      options.push({ value: String(i), label: `${i}${unit}` });
+    }
+    return options;
+  };
+
+  const AGE_OPTIONS = generateNumericOptions(18, 60, 1, '歳');
+  const HEIGHT_OPTIONS = generateNumericOptions(140, 180, 1, 'cm'); // 1cm刻みに変更
+  const BUST_OPTIONS = generateNumericOptions(75, 110, 1, 'cm'); // 範囲を調整
+  const WAIST_OPTIONS = generateNumericOptions(50, 90, 1, 'cm'); // 範囲を調整
+  const HIP_OPTIONS = generateNumericOptions(75, 115, 1, 'cm'); // 範囲を調整
+  const CUP_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']; // A～Kまでの選択肢
 
   // フォームのバリデーション
   const validateForm = (): boolean => {
@@ -258,101 +286,122 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
           
           {/* 年齢 */}
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              required
-              label="年齢"
-              name="age"
-              type="number"
-              value={formData.age || ''}
-              onChange={handleChange}
-              error={!!formErrors.age}
-              helperText={formErrors.age}
-              InputProps={{ inputProps: { min: 18 } }}
-              variant="outlined"
-              sx={{ backgroundColor: 'white' }}
-            />
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel id="age-label">年齢</InputLabel>
+              <Select
+                labelId="age-label"
+                id="age"
+                name="age"
+                value={formData.age?.toString() || ''}
+                onChange={handleSelectChange}
+                label="年齢"
+              >
+                <MenuItem value=""><em>選択してください</em></MenuItem>
+                {AGE_OPTIONS.map(age => (
+                  <MenuItem key={age.value} value={age.value}>{age.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           
           {/* 身長 */}
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="身長 (cm)"
-              name="height"
-              type="number"
-              value={formData.height || ''}
-              onChange={handleChange}
-              error={!!formErrors.height}
-              helperText={formErrors.height}
-              InputProps={{ inputProps: { min: 0 } }}
-              variant="outlined"
-              sx={{ backgroundColor: 'white' }}
-            />
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel id="height-label">身長</InputLabel>
+              <Select
+                labelId="height-label"
+                id="height"
+                name="height"
+                value={formData.height?.toString() || ''}
+                onChange={handleSelectChange}
+                label="身長"
+              >
+                <MenuItem value=""><em>選択してください</em></MenuItem>
+                {HEIGHT_OPTIONS.map(height => (
+                  <MenuItem key={height.value} value={height.value}>{height.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           
           {/* バスト */}
           <Grid item xs={6} sm={3}>
-            <TextField
-              fullWidth
-              label="バスト (cm)"
-              name="bust"
-              type="number"
-              value={formData.bust || ''}
-              onChange={handleChange}
-              error={!!formErrors.bust}
-              helperText={formErrors.bust}
-              InputProps={{ inputProps: { min: 0 } }}
-              variant="outlined"
-              sx={{ backgroundColor: 'white' }}
-            />
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel id="bust-label">バスト</InputLabel>
+              <Select
+                labelId="bust-label"
+                id="bust"
+                name="bust"
+                value={formData.bust?.toString() || ''}
+                onChange={handleSelectChange}
+                label="バスト"
+              >
+                <MenuItem value=""><em>選択してください</em></MenuItem>
+                {BUST_OPTIONS.map(bust => (
+                  <MenuItem key={bust.value} value={bust.value}>{bust.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           
           {/* カップ */}
           <Grid item xs={6} sm={3}>
-            <TextField
-              fullWidth
-              label="カップ"
-              name="cup"
-              value={formData.cup || ''}
-              onChange={handleChange}
-              variant="outlined"
-              sx={{ backgroundColor: 'white' }}
-            />
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel id="cup-label">カップ</InputLabel>
+              <Select
+                labelId="cup-label"
+                id="cup"
+                name="cup"
+                value={formData.cup || ''}
+                onChange={handleSelectChange}
+                label="カップ"
+              >
+                <MenuItem value=""><em>選択してください</em></MenuItem>
+                {CUP_OPTIONS.map(cup => (
+                  <MenuItem key={cup} value={cup}>{cup}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           
           {/* ウエスト */}
           <Grid item xs={6} sm={3}>
-            <TextField
-              fullWidth
-              label="ウエスト (cm)"
-              name="waist"
-              type="number"
-              value={formData.waist || ''}
-              onChange={handleChange}
-              error={!!formErrors.waist}
-              helperText={formErrors.waist}
-              InputProps={{ inputProps: { min: 0 } }}
-              variant="outlined"
-              sx={{ backgroundColor: 'white' }}
-            />
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel id="waist-label">ウエスト</InputLabel>
+              <Select
+                labelId="waist-label"
+                id="waist"
+                name="waist"
+                value={formData.waist?.toString() || ''}
+                onChange={handleSelectChange}
+                label="ウエスト"
+              >
+                <MenuItem value=""><em>選択してください</em></MenuItem>
+                {WAIST_OPTIONS.map(waist => (
+                  <MenuItem key={waist.value} value={waist.value}>{waist.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           
           {/* ヒップ */}
           <Grid item xs={6} sm={3}>
-            <TextField
-              fullWidth
-              label="ヒップ (cm)"
-              name="hip"
-              type="number"
-              value={formData.hip || ''}
-              onChange={handleChange}
-              error={!!formErrors.hip}
-              helperText={formErrors.hip}
-              InputProps={{ inputProps: { min: 0 } }}
-              variant="outlined"
-              sx={{ backgroundColor: 'white' }}
-            />
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel id="hip-label">ヒップ</InputLabel>
+              <Select
+                labelId="hip-label"
+                id="hip"
+                name="hip"
+                value={formData.hip?.toString() || ''}
+                onChange={handleSelectChange}
+                label="ヒップ"
+              >
+                <MenuItem value=""><em>選択してください</em></MenuItem>
+                {HIP_OPTIONS.map(hip => (
+                  <MenuItem key={hip.value} value={hip.value}>{hip.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           
           {/* 出身地 */}
@@ -377,10 +426,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
                 id="blood_type"
                 name="blood_type"
                 value={formData.blood_type || ''}
-                onChange={(event) => {
-                  const { name, value } = event.target as { name: string; value: string };
-                  setFormData((prev) => ({ ...prev, [name]: value }));
-                }}
+                onChange={handleSelectChange}
                 label="血液型"
               >
                 <MenuItem value=""><em>選択してください</em></MenuItem>
@@ -433,6 +479,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
               stationId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
               onChange={handleStationChange}
               label="活動拠点の駅"
+              helperText="駅を検索して、選択してください"
             />
           </Grid>
           
