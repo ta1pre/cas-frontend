@@ -426,17 +426,15 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
             />
           </Grid>
           
-          {/* 駅検索（都道府県が選択されている場合のみ表示） */}
-          {formData.dispatch_prefecture && (
-            <Grid item xs={12}>
-              <StationAutocomplete
-                value={formData.station_name || ''}
-                stationId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
-                onChange={handleStationChange}
-                label="最寄り駅"
-              />
-            </Grid>
-          )}
+          {/* 駅検索 */}
+          <Grid item xs={12}>
+            <StationAutocomplete
+              value={formData.station_name || ''}
+              stationId={formData.dispatch_prefecture && !isNaN(Number(formData.dispatch_prefecture)) ? Number(formData.dispatch_prefecture) : undefined}
+              onChange={handleStationChange}
+              label="活動拠点の駅"
+            />
+          </Grid>
           
           {/* 自己紹介 */}
           <Grid item xs={12}>
