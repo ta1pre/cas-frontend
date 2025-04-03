@@ -9,11 +9,13 @@ import BasicProfileForm from './components/BasicProfileForm';
 import PhotoUploadForm from './components/PhotoUploadForm';
 import TraitsForm from './components/TraitsForm';
 import ServiceTypeForm from './components/ServiceTypeForm';
+import FeeSettingForm from './components/FeeSettingForm';
 import PhotoIcon from '@mui/icons-material/Photo';
 import PersonIcon from '@mui/icons-material/Person';
 import CategoryIcon from '@mui/icons-material/Category';
 import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
 // プロフィール編集ページコンポーネント
 const プロフィール編集ページ = () => {
@@ -27,6 +29,7 @@ const プロフィール編集ページ = () => {
     { title: '写真登録', path: '/p/cast/cont/prof/photos', key: 'photos', icon: <PhotoIcon sx={{ color: '#ff69b4', mr: 1 }} /> },
     { title: '特徴', path: '/p/cast/cont/prof/features', key: 'features', icon: <CategoryIcon sx={{ color: '#ff69b4', mr: 1 }} /> },
     { title: 'サービスタイプ', path: '/p/cast/cont/prof/service-type', key: 'service-type', icon: <MiscellaneousServicesIcon sx={{ color: '#ff69b4', mr: 1 }} /> },
+    { title: 'ギャラ設定', path: '/p/cast/cont/prof/fee-setting', key: 'fee-setting', icon: <MonetizationOnIcon sx={{ color: '#ff69b4', mr: 1 }} /> },
     { title: '本人確認', path: '/p/cast/cont/identity_verification', key: 'identity', icon: <VerifiedUserIcon sx={{ color: '#ff69b4', mr: 1 }} /> },
   ];
 
@@ -53,6 +56,12 @@ const プロフィール編集ページ = () => {
     // サービスタイプの場合もスライドインを表示
     if (key === 'service-type') {
       setActiveForm('service-type');
+      setSlideInOpen(true);
+      return;
+    }
+    // ギャラ設定の場合もスライドインを表示
+    if (key === 'fee-setting') {
+      setActiveForm('fee-setting');
       setSlideInOpen(true);
       return;
     }
@@ -102,12 +111,14 @@ const プロフィール編集ページ = () => {
         title={activeForm === 'basic' ? '基本プロフィール編集' : 
               activeForm === 'photos' ? '写真登録' :
               activeForm === 'features' ? '特徴編集' : 
-              activeForm === 'service-type' ? 'サービスタイプ編集' : ''}
+              activeForm === 'service-type' ? 'サービスタイプ編集' :
+              activeForm === 'fee-setting' ? 'ギャラ設定' : ''}
       >
         {activeForm === 'basic' && <BasicProfileForm onClose={handleClose} />}
         {activeForm === 'photos' && <PhotoUploadForm onClose={handleClose} />}
         {activeForm === 'features' && <TraitsForm onClose={handleClose} />}
         {activeForm === 'service-type' && <ServiceTypeForm onClose={handleClose} />}
+        {activeForm === 'fee-setting' && <FeeSettingForm onClose={handleClose} />}
       </SlideInEditor>
     </Container>
   );

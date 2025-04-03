@@ -21,6 +21,7 @@ export interface ProfileData {
   blood_type?: string;
   hobby?: string;
   reservation_fee?: number | string;
+  reservation_fee_deli?: number | string;
   self_introduction?: string;
   job?: string;
   dispatch_prefecture?: string | number;
@@ -45,16 +46,13 @@ export const useProfileApi = () => {
   /**
    * プロフィール情報を取得する
    */
-  const fetchProfile = async (): Promise<ProfileData> => {
+  const fetchProfile = async (castId: number): Promise<ProfileData | null> => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetchAPI('/api/v1/cast/prof/get', {}, 'POST');
-      
-      // レスポンスデータをログ出力
-      console.log('プロフィールAPI応答:', response);
-      console.log('サポートエリア名:', response.support_area_names);
+      const response = await fetchAPI('/api/v1/cast/prof/get', { cast_id: castId });
+      console.log('プロフィール取得成功:', response);
       
       // 駅名の処理（"駅ID:"が含まれる場合は取り除く）
       if (response.station_name && response.station_name.includes('駅ID:')) {

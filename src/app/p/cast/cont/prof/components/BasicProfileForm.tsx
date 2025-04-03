@@ -41,7 +41,6 @@ const initialFormState: ProfileData = {
   blood_type: '',
   hobby: '',
   job: '',
-  reservation_fee: '',
   self_introduction: '',
   dispatch_prefecture: '',
   support_area: '',
@@ -87,10 +86,22 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
     
     const loadProfile = async () => {
       try {
-        const profileData = await fetchProfile();
+        // ユーザーIDを取得
+        const userId = globalThis.user?.userId;
+        
+        if (!userId) {
+          console.error('ユーザーIDの取得に失敗しました');
+          setDataLoaded(true);
+          return;
+        }
+        
+        const profileData = await fetchProfile(userId);
         console.log('取得したプロフィールデータ:', profileData);
-        console.log('サポートエリア名:', profileData.support_area_names);
-        setFormData(profileData);
+        console.log('サポートエリア名:', profileData?.support_area_names);
+        
+        if (profileData) {
+          setFormData(profileData);
+        }
         setDataLoaded(true);
       } catch (error) {
         console.error('プロフィールデータの取得に失敗しました', error);
@@ -169,11 +180,6 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
     // ヒップのチェック（任意だが入力されている場合は数値）
     if (formData.hip && isNaN(Number(formData.hip))) {
       errors.hip = 'ヒップは数値で入力してください';
-    }
-    
-    // 予約料金のチェック（任意だが入力されている場合は数値）
-    if (formData.reservation_fee && isNaN(Number(formData.reservation_fee))) {
-      errors.reservation_fee = '予約料金は数値で入力してください';
     }
     
     // 都道府県は必須
@@ -399,7 +405,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
           </Grid>
           
           {/* 職業 */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               label="職業"
@@ -408,20 +414,6 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onClose }) => {
               onChange={handleChange}
               variant="outlined"
               sx={{ backgroundColor: 'white' }}
-            />
-          </Grid>
-          
-          {/* 予約料金 */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="予約料金"
-              name="reservation_fee"
-              type="number"
-              value={formData.reservation_fee || ''}
-              onChange={handleChange}
-              InputProps={{ inputProps: { min: 0 } }}
-              variant="outlined"
             />
           </Grid>
           

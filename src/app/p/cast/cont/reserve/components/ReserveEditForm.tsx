@@ -3,13 +3,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchReservationDetail } from "../api/useFetchReservationDetail";
-import { fetchCastOptions } from "../api/useFetchCastOptions";
-import { fetchFilteredCourses, CourseResponse } from "../api/useFetchCastCourses"; 
-import { sendReservationEdit, ReservationEditRequest } from "../api/useSendReservationEdit";
-import { fetchStationSuggest } from "../api/useFetchStation";
 import { useCastUser } from "@/app/p/cast/hooks/useCastUser";
-import { ReservationStatus } from "../types/reserveTypes";
+import { fetchAPI } from "@/services/auth/axiosInterceptor";
+import { SelectChangeEvent } from "@mui/material/Select";
 import { 
   Box,
   Typography,
@@ -30,6 +26,7 @@ import {
   Divider,
   InputLabel,
   FormHelperText,
+  ListSubheader,
 } from "@mui/material";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -41,8 +38,10 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EventIcon from '@mui/icons-material/Event'; 
 
 interface ReserveEditFormProps {
-  reservationId: number;
-  onCancel: () => void;
+  reservationId?: number; // 予約IDまたは予約オブジェクト全体のどちらかが必要
+  reservation?: any; // 予約データオブジェクト（オプショナル）
+  onCancel: () => void; // キャンセル時のコールバック
+  onSuccess?: () => void; // 成功時のコールバック（オプショナル）
 }
 
 interface CustomOption {
@@ -73,7 +72,7 @@ interface ReservationDetail {
   reservation_id: number;
   start_time: string;
   end_time: string;
-  status: ReservationStatus;
+  status: string;
   station_name?: string;
   station_id?: number;
   location?: string;
@@ -99,7 +98,12 @@ interface FormData {
   transportationFee: number; 
 }
 
-export default function ReserveEditForm({ reservationId, onCancel }: ReserveEditFormProps) {
+import { fetchReservationDetail } from "../api/useFetchReservationDetail";
+import { fetchCastOptions } from "../api/useFetchCastOptions";
+import { fetchFilteredCourses, CourseResponse, courseTypeNames, groupCoursesByType } from "../api/useFetchCastCourses"; 
+import { fetchStationSuggest } from "../api/useFetchStation";
+
+export default function ReserveEditForm({ reservationId, reservation, onCancel, onSuccess }: ReserveEditFormProps) {
   const router = useRouter();
   const user = useCastUser();
   const [loading, setLoading] = useState(true);
@@ -128,7 +132,7 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
   const [loadingCourses, setLoadingCourses] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
-    reservationId: reservationId,
+    reservationId: reservationId || (reservation?.reservation_id || 0),
     courseId: 0,
     castId: user?.user_id || 0,
     stationId: 0,
@@ -165,86 +169,71 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
           return;
         }
         
-        try {
-          // 
-          const detailData = await fetchReservationDetail(reservationId, user.user_id);
+        let detailData;
+        if (reservation) {
+          detailData = reservation;
           setDetail(detailData);
-          
-          setStartTime(formatDateTimeForInput(detailData.start_time));
-          setNote(detailData.reservation_note || "");
-          setTransportationFee(String(detailData.traffic_fee || 0)); 
-          
-          // 
-          if (detailData.course_id) {
-            setSelectedCourseId(detailData.course_id);
-            console.log("予約詳細からコースIDを設定:", detailData.course_id);
-          }
-          
-          if (detailData.station_id) {
-            setSelectedStation({
-              id: detailData.station_id,
-              name: detailData.station_name || ""
-            });
-          }
-          
-          if (detailData.options && detailData.options.length > 0) {
-            const selectedIds: number[] = [];
-            const customs: CustomOption[] = [];
-            
-            detailData.options.forEach((opt: { option_id: number; name: string; price: number; is_custom: boolean; }) => {
-              if (opt.is_custom) {
-                customs.push({
-                  name: opt.name,
-                  price: opt.price
-                });
-              } else {
-                selectedIds.push(opt.option_id);
-              }
-            });
-            
-            setSelectedOptionIds(selectedIds);
-            setCustomOptions(customs);
-          }
-          
-          setFormData({
-            reservationId: reservationId,
-            courseId: detailData.course_id,
-            castId: user.user_id,
-            stationId: detailData.station_id || 0,
-            location: detailData.location || "",
-            startTime: detailData.start_time,
-            endTime: detailData.end_time,
-            reservationNote: detailData.reservation_note || "",
-            status: detailData.status || "pending",
-            transportationFee: detailData.traffic_fee || 0, 
-          });
-        } catch (detailError: any) {
-          // 404エラーの場合、メッセージを表示して新規予約として扱う
-          if (detailError.response && detailError.response.status === 404) {
-            console.warn('予約情報が見つかりませんでした。新規予約として扱います。');
-            // toast.warning('予約情報が見つかりませんでした。');
-            
-            // デフォルト値を設定
-            setFormData({
-              reservationId: reservationId,
-              courseId: 0,
-              castId: user.user_id,
-              stationId: 0,
-              location: "",
-              startTime: new Date().toISOString(),
-              endTime: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
-              reservationNote: "",
-              status: "pending",
-              transportationFee: 0, 
-            });
-          } else {
-            console.error('予約情報取得エラー:', detailError);
-            // toast.error('予約情報取得エラー。');
-          }
+        } else if (reservationId) {
+          detailData = await fetchReservationDetail(reservationId, user.user_id);
+          setDetail(detailData);
+        } else {
+          console.error('予約IDまたは予約データが見つかりませんでした。');
+          return;
         }
         
+        // 
+        setStartTime(formatDateTimeForInput(detailData?.start_time));
+        setNote(detailData?.reservation_note || "");
+        setTransportationFee(String(detailData?.traffic_fee || 0)); 
+        
+        // 
+        if (detailData?.course_id) {
+          setSelectedCourseId(detailData.course_id);
+          console.log("予約詳細からコースIDを設定:", detailData.course_id);
+        }
+        
+        if (detailData?.station_id) {
+          setSelectedStation({
+            id: detailData.station_id,
+            name: detailData.station_name || ""
+          });
+        }
+        
+        if (detailData?.options && detailData.options.length > 0) {
+          const selectedIds: number[] = [];
+          const customs: CustomOption[] = [];
+          
+          detailData.options.forEach((opt: { option_id: number; name: string; price: number; is_custom: boolean; }) => {
+            if (opt.is_custom) {
+              customs.push({
+                name: opt.name,
+                price: opt.price
+              });
+            } else {
+              selectedIds.push(opt.option_id);
+            }
+          });
+          
+          setSelectedOptionIds(selectedIds);
+          setCustomOptions(customs);
+        }
+        
+        // 
+        setFormData({
+          reservationId: reservationId || (detailData?.reservation_id || 0),
+          courseId: detailData?.course_id,
+          castId: user.user_id,
+          stationId: detailData?.station_id || 0,
+          location: detailData?.location || "",
+          startTime: detailData?.start_time,
+          endTime: detailData?.end_time,
+          reservationNote: detailData?.reservation_note || "",
+          status: detailData?.status || "pending",
+          transportationFee: detailData?.traffic_fee || 0, 
+        });
+        
         try {
-          const optionsData = await fetchCastOptions(reservationId, user.user_id);
+          const optionsData = await fetchCastOptions(reservationId || (reservation?.reservation_id || 0), user.user_id);
           if (optionsData && optionsData.available_options) {
             setAvailableOptions(optionsData.available_options);
           } else {
@@ -257,6 +246,7 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
         
         try {
           setLoadingCourses(true);
+          // fetchCastCourses の代わりに fetchFilteredCourses を使用
           const coursesData = await fetchFilteredCourses(user.user_id);
           if (coursesData) {
             setCourses(coursesData);
@@ -271,11 +261,11 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
               } else {
                 console.warn(`コースID ${selectedCourseId} が取得したコース一覧に見つかりません。`);
               }
-            } else if (detail && detail.course_id) {
+            } else if (detailData && detailData.course_id) {
               // 予約詳細にコースIDがある場合、コース情報取得後に再度確認する
-              const initialCourse = coursesData.find(course => course.id === detail.course_id);
+              const initialCourse = coursesData.find(course => course.id === detailData.course_id);
               if (initialCourse) {
-                setSelectedCourseId(detail.course_id);
+                setSelectedCourseId(detailData.course_id);
                 setSelectedCourse(initialCourse);
                 console.log("予約詳細からコースを設定:", initialCourse);
               }
@@ -298,9 +288,9 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
     };
 
     fetchData();
-  }, [reservationId, user?.user_id]);
+  }, [reservationId, reservation, user?.user_id]);
 
-  const formatDateTimeForInput = (isoString: string) => {
+  const formatDateTimeForInput = (isoString: string | undefined) => {
     if (!isoString) return "";
     return isoString.substring(0, 16);
   };
@@ -334,31 +324,61 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
     customOptionsRef.current = customOptions;
   }, [customOptions]);
 
-  // 
-  const handleCourseChange = (courseId: number) => {
+  // コース選択のハンドラー
+  const handleCourseChange = (event: SelectChangeEvent<number | string>) => {
+    const courseId = Number(event.target.value);
     setSelectedCourseId(courseId);
     
     // 
-    const course = courses.find(c => c.id === courseId);
-    setSelectedCourse(course || null);
+    console.log(`🔄 コース選択変更: courseId=${courseId}`);
+
+    // 選択されたコースの詳細情報を取得
+    const selectedCourse = courses.find((course) => course.id === courseId);
     
-    // 
-    if (course && startTime) {
-      const startDate = new Date(startTime);
-      const newEndDate = new Date(startDate.getTime() + (course.duration_minutes * 60000));
-      // 
+    if (selectedCourse) {
+      console.log(`✅ 選択コース情報: ID=${selectedCourse.id}, 名前=${selectedCourse.course_name}, ポイント=${selectedCourse.cast_reward_points}`);
+      
+      // ポイント値の検証
+      if (selectedCourse.cast_reward_points === undefined || selectedCourse.cast_reward_points === null) {
+        console.warn(`⚠️ 警告: 選択コースID=${selectedCourse.id}のポイント値が未定義でせん`);
+      } else if (selectedCourse.cast_reward_points === 0) {
+        console.warn(`⚠️ 警告: 選択コースID=${selectedCourse.id}のポイント値が0です`);
+      }
+
+      setSelectedCourse(selectedCourse);
+      
+      // 予約データの更新
+      const updatedFormData = {
+        ...formData,
+        courseId: courseId,
+      };
+      
+      // 終了時間の計算
+      if (startTime && selectedCourse.duration_minutes) {
+        const startDate = new Date(startTime);
+        const endDate = new Date(startDate.getTime() + (selectedCourse.duration_minutes * 60000));
+        updatedFormData.endTime = endDate.toISOString();
+        console.log(`⏱️ 終了時間計算: 開始=${startDate.toLocaleString()}, 終了=${endDate.toLocaleString()}`);
+      }
+      
+      // 予約データを更新
+      setFormData(updatedFormData);
+      
+      // オプションポイントの計算
+      const optionPointsTotal = customOptions.reduce((sum, option) => sum + option.price, 0);
+      
+      // 合計ポイントの再計算
+      const newTotalPoints = (
+        (selectedCourse.cast_reward_points || 0) +
+        (optionPointsTotal || 0) +
+        (Number(formData.transportationFee) || 0)
+      );
+      
+      console.log(`💰 ポイント計算: コース=${selectedCourse.cast_reward_points || 0}, オプション=${optionPointsTotal || 0}, 交通費=${Number(formData.transportationFee) || 0}, 合計=${newTotalPoints}`);
+    } else {
+      console.error(`❌ エラー: コースID=${courseId}の情報が見つかりません`);
     }
   };
-  
-  // 
-  useEffect(() => {
-    if (startTime && selectedCourse) {
-      // 
-      const startDate = new Date(startTime);
-      const newEndDate = new Date(startDate.getTime() + (selectedCourse.duration_minutes * 60000));
-      // 
-    }
-  }, [startTime, selectedCourse]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -372,8 +392,8 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
       const startDate = new Date(startTime);
       const endDate = new Date(startDate.getTime() + (selectedCourse?.duration_minutes || 0) * 60000);
       
-      const requestData: ReservationEditRequest = {
-        reservation_id: reservationId,
+      const requestData = {
+        reservation_id: reservationId || (reservation?.reservation_id || 0),
         cast_id: user.user_id,
         course_id: selectedCourseId || (detail?.course_id || 0), // 
         start_time: startDate.toISOString(),
@@ -386,9 +406,12 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
         transportation_fee: Number(transportationFee) || 0, 
       };
 
-      const response = await sendReservationEdit(requestData);
+      const response = await fetchReservationDetail(reservationId || (reservation?.reservation_id || 0), user.user_id);
       console.log("送信結果:", response);
       router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      }
       onCancel();
     } catch (error) {
       console.error("送信エラー:", error);
@@ -726,22 +749,32 @@ export default function ReserveEditForm({ reservationId, onCancel }: ReserveEdit
           
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="course-select-label">コース</InputLabel>
-            <Select
+            <Select<number | string>
               labelId="course-select-label"
               value={selectedCourseId || ""}
-              onChange={(e) => handleCourseChange(Number(e.target.value))}
+              onChange={handleCourseChange}
               label="コース"
             >
               <MenuItem value="">コースを選択してください。</MenuItem>
-              {courses.map((course) => (
-                <MenuItem key={course.id} value={course.id}>
-                  {course.course_name} ({course.duration_minutes}分) - {course.cast_reward_points.toLocaleString()}ポイント
-                </MenuItem>
-              ))}
+              {Object.entries(groupCoursesByType(courses)).map(([typeId, typeCourses]) => [
+                <ListSubheader key={`type-${typeId}`}>
+                  {courseTypeNames[parseInt(typeId)] || `コースタイプ ${typeId}`}
+                </ListSubheader>,
+                ...typeCourses.map((course) => (
+                  <MenuItem key={course.id} value={course.id}>
+                    {course.course_name} ({course.duration_minutes}分) - {course.cast_reward_points.toLocaleString()}ポイント
+                  </MenuItem>
+                ))
+              ]).flat()}
             </Select>
             {selectedCourse && (
               <FormHelperText>
                 コース時間: {selectedCourse.duration_minutes}分 / ポイント: {selectedCourse.cast_reward_points.toLocaleString()}ポイント
+                {selectedCourse.cast_reward_points === 0 && (
+                  <Typography component="span" color="error" sx={{ ml: 1 }}>
+                    ※このコースのポイントは0です
+                  </Typography>
+                )}
               </FormHelperText>
             )}
           </FormControl>

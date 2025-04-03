@@ -22,7 +22,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Modal,
+  Backdrop
 } from "@mui/material";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
@@ -32,8 +34,17 @@ import TrainIcon from '@mui/icons-material/Train';
 import EditIcon from '@mui/icons-material/Edit';
 import InfoIcon from '@mui/icons-material/Info';
 import ChatIcon from '@mui/icons-material/Chat';
+import CloseIcon from '@mui/icons-material/Close';
 
-export default function ReservationDetail({ reservationId }: { reservationId: number }) {
+// コンポーネントのプロパティを更新
+// castIdとonCloseを追加
+interface ReservationDetailProps {
+  reservationId: number;
+  castId?: number; // キャストID
+  onClose?: () => void; // モーダルを閉じる関数
+}
+
+export default function ReservationDetail({ reservationId, castId, onClose }: ReservationDetailProps) {
   const [detail, setDetail] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -44,7 +55,9 @@ export default function ReservationDetail({ reservationId }: { reservationId: nu
   const fetchDetail = async () => {
     setLoading(true);
     try {
-      const data = await fetchReservationDetail(reservationId, user.user_id);
+      // castIdが指定されていたらそれを使用し、なければuser.user_idを使用
+      const userId = castId || user.user_id;
+      const data = await fetchReservationDetail(reservationId, userId);
       console.log("受信した予約詳細データ:", data);
       if (data) {
         console.log("ステータス情報:", {
@@ -101,321 +114,305 @@ export default function ReservationDetail({ reservationId }: { reservationId: nu
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 8 }}>
-        <CircularProgress color="secondary" />
-      </Box>
-    );
-  }
+  // モーダルスタイル
+  const modalStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    zIndex: 1200,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backdropFilter: 'blur(3px)'
+  };
 
-  if (!detail) {
-    return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="body1" color="error">
-          予約情報を取得できませんでした
-        </Typography>
-      </Box>
-    );
-  }
+  const modalContentStyle = {
+    width: '92%',
+    maxWidth: 500,
+    maxHeight: '90vh',
+    backgroundColor: 'white',
+    borderRadius: 4,
+    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column'
+  };
 
-  // 編集モード表示
-  if (isEditing) {
-    return <ReserveEditForm reservationId={reservationId} onCancel={handleCancelEdit} />;
-  }
-
-  // 詳細表示モード
-  return (
-    <Box sx={{ p: 3, pb: 8 }}>
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: 3, 
-          borderRadius: 3, 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-          position: 'relative',
-          mb: 3,
-          overflow: 'hidden'
-        }}
-      >
-        <Box sx={{ 
-          position: 'absolute', 
-          top: 0, 
-          left: 0, 
-          right: 0, 
-          height: '4px', 
-          bgcolor: detail.color_code || '#e0e0e0'
-        }} />
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Chip 
-            label={detail.cast_label || "ステータス"}
-            sx={{ 
-              fontWeight: 'medium',
-              borderRadius: '12px',
-              px: 1,
-              backgroundColor: detail.color_code || '#e0e0e0',
-              color: '#ffffff'
-            }}
-          />
-          <Typography variant="caption" color="text.secondary" fontWeight="medium">
-            #{detail.reservation_id}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <PersonIcon sx={{ mr: 1.5, color: '#9e9e9e' }} />
-          <Typography variant="h6" fontWeight="medium">
-            {detail.user_name}
-          </Typography>
-        </Box>
-
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <AccessTimeIcon sx={{ mr: 1.5, color: '#9e9e9e' }} />
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  開始時間
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {new Date(detail.start_time).toLocaleString('ja-JP', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <AccessTimeIcon sx={{ mr: 1.5, color: '#9e9e9e' }} />
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  終了時間
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {(() => {
-                    const startDate = new Date(detail.start_time);
-                    const endDate = new Date(startDate.getTime() + (detail.duration_minutes || 0) * 60000);
-                    return endDate.toLocaleString('ja-JP', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      weekday: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    });
-                  })()}
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
-
-        {detail.station_name && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <TrainIcon sx={{ mr: 1.5, color: '#9e9e9e' }} />
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                最寄り駅
-              </Typography>
-              <Typography variant="body1" fontWeight="medium">
-                {detail.station_name}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-
-        {detail.reservation_note && (
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
-            <EventNoteIcon sx={{ mr: 1.5, color: '#9e9e9e', mt: 0.5 }} />
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                メモ
-              </Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                {detail.reservation_note}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </Paper>
-
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: 3, 
-          borderRadius: 3, 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-          mb: 3
-        }}
-      >
-        <Typography variant="h6" sx={{ mb: 2, color: '#f06292', fontWeight: 'bold' }}>
-          コース情報
-        </Typography>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" fontWeight="bold">
-            {detail.course_name}
-          </Typography>
-        </Box>
-
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              基本報酬
-            </Typography>
-            <Typography variant="body1" fontWeight="medium">
-              {detail.course_fee?.toLocaleString() || 0}円
-            </Typography>
-          </Grid>
-          
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              指名料
-            </Typography>
-            <Typography variant="body1" fontWeight="medium">
-              {detail.designation_fee?.toLocaleString() || 0}円
-            </Typography>
-          </Grid>
-          
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              オプション料
-            </Typography>
-            <Typography variant="body1" fontWeight="medium">
-              {(() => {
-                const directFee = typeof detail.options_fee === 'number' ? detail.options_fee : 0;
-                let calculatedFee = 0;
-                if (Array.isArray(detail.options)) {
-                  calculatedFee = detail.options.reduce((sum: number, opt: any) => {
-                    const price = typeof opt.price === 'number' ? opt.price : 
-                                typeof opt.price === 'string' ? parseInt(opt.price, 10) : 0;
-                    return sum + (isNaN(price) ? 0 : price);
-                  }, 0);
-                }
-                const finalFee = directFee > 0 ? directFee : calculatedFee;
-                return finalFee.toLocaleString();
-              })()}円
-            </Typography>
-          </Grid>
-          
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary">
-              交通費
-            </Typography>
-            <Typography variant="body1" fontWeight="medium">
-              {detail.traffic_fee?.toLocaleString() || 0}円
-            </Typography>
-          </Grid>
-          
-          <Grid item xs={12}>
-            <Divider sx={{ my: 1.5 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1" fontWeight="bold">
-                合計
-              </Typography>
-              <Typography variant="h6" color="#f06292" fontWeight="bold">
-                {(() => {
-                  // 各項目を数値として取得
-                  const courseFee = typeof detail.course_fee === 'number' ? detail.course_fee : 0;
-                  const designationFee = typeof detail.designation_fee === 'number' ? detail.designation_fee : 0;
-                  const optionsFee = typeof detail.options_fee === 'number' ? detail.options_fee : 0;
-                  const trafficFee = typeof detail.traffic_fee === 'number' ? detail.traffic_fee : 0;
-                  
-                  // 合計金額を計算
-                  const total = courseFee + designationFee + optionsFee + trafficFee;
-                  return total.toLocaleString();
-                })()}円
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {Array.isArray(detail.options) && detail.options.length > 0 && (
-        <Paper 
-          elevation={0}
-          sx={{ 
-            p: 3, 
-            borderRadius: 3, 
-            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-            mb: 3
+  // コンテンツをレンダリング
+  const renderContent = () => (
+    <Box sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* 編集モードの場合は編集フォームを表示 */}
+      {isEditing ? (
+        <ReserveEditForm 
+          reservationId={reservationId}
+          reservation={detail} 
+          onCancel={() => setIsEditing(false)} 
+          onSuccess={() => {
+            setIsEditing(false);
+            fetchDetail(); // 編集後にデータを再取得
           }}
-        >
-          <Typography variant="h6" sx={{ mb: 2, color: '#f06292', fontWeight: 'bold' }}>
-            オプション
-          </Typography>
-          
-          <Stack spacing={1.5}>
-            {detail.options.map((option: any, index: number) => (
-              <Box 
-                key={index} 
-                sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  p: 1.5,
-                  borderRadius: 2,
-                  bgcolor: 'rgba(0,0,0,0.02)'
-                }}
-              >
-                <Typography variant="body1">
-                  {option?.name || 'オプション名なし'} {option?.is_custom && '(カスタム)'}
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {(option?.price || 0).toLocaleString()}円
-                </Typography>
+        />
+      ) : (
+        // 詳細表示モード
+        <>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', py: 8 }}>
+              <CircularProgress color="secondary" />
+            </Box>
+          ) : detail ? (
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              {/* ステータスバー */}
+              <Box sx={{ 
+                p: 2, 
+                borderBottom: '1px solid #f0f0f0',
+                backgroundColor: detail.color_code || '#f06292',
+                color: 'white'
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    {detail.status}
+                  </Typography>
+                  <Typography variant="body2">
+                    #{detail.reservation_id}
+                  </Typography>
+                </Box>
+                {detail.description && (
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
+                    {detail.description}
+                  </Typography>
+                )}
               </Box>
-            ))}
-          </Stack>
-        </Paper>
+
+              {/* コンテンツエリア */}
+              <Box sx={{ p: 3, flexGrow: 1, overflowY: 'auto' }}>
+                {/* 日時情報 */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <AccessTimeIcon sx={{ mr: 1, color: '#9e9e9e' }} />
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      予約日時
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
+                    <Typography variant="body1">
+                      {new Date(detail.start_time).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                {/* 予約者情報 */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <PersonIcon sx={{ mr: 1, color: '#9e9e9e' }} />
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      予約者情報
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
+                    <Typography variant="body1">
+                      {detail.user_name}
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                {/* コース情報 */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <EventNoteIcon sx={{ mr: 1, color: '#9e9e9e' }} />
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      コース
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ 
+                    p: 2, 
+                    backgroundColor: '#f9f9f9', 
+                    borderRadius: 2,
+                    borderLeft: `4px solid ${detail.color_code || '#f06292'}`
+                  }}>
+                    <Typography variant="h6" fontWeight="bold" color="#f06292">
+                      {detail.course_name}
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                {/* 駅情報 */}
+                {detail.station_name && (
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <TrainIcon sx={{ mr: 1, color: '#9e9e9e' }} />
+                      <Typography variant="subtitle1" fontWeight="medium">
+                        駅
+                      </Typography>
+                    </Box>
+                    <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
+                      <Typography variant="body1">
+                        {detail.station_name}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                )}
+
+                {/* オプション情報 */}
+                {detail.options && detail.options.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <InfoIcon sx={{ mr: 1, color: '#9e9e9e' }} />
+                      <Typography variant="subtitle1" fontWeight="medium">
+                        オプション
+                      </Typography>
+                    </Box>
+                    <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
+                      <Stack spacing={1}>
+                        {detail.options.map((option: any) => (
+                          <Box key={option.id || option.name} sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between',
+                            borderBottom: '1px dashed #e0e0e0',
+                            pb: 1
+                          }}>
+                            <Typography variant="body2">
+                              {option.name}
+                            </Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              {option.price.toLocaleString()}円
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Paper>
+                  </Box>
+                )}
+
+                {/* 料金情報 */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <MonetizationOnIcon sx={{ mr: 1, color: '#9e9e9e' }} />
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      料金
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, backgroundColor: '#f9f9f9', borderRadius: 2 }}>
+                    <Grid container spacing={1}>
+                      <Grid item xs={8}>
+                        <Typography variant="body2">コース料金</Typography>
+                      </Grid>
+                      <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                        <Typography variant="body2">{detail.reservation_fee.toLocaleString()}円</Typography>
+                      </Grid>
+
+                      {detail.designation_fee > 0 && (
+                        <>
+                          <Grid item xs={8}>
+                            <Typography variant="body2">指定料</Typography>
+                          </Grid>
+                          <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                            <Typography variant="body2">{detail.designation_fee.toLocaleString()}円</Typography>
+                          </Grid>
+                        </>
+                      )}
+
+                      {detail.options_fee > 0 && (
+                        <>
+                          <Grid item xs={8}>
+                            <Typography variant="body2">オプション料金</Typography>
+                          </Grid>
+                          <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                            <Typography variant="body2">{detail.options_fee.toLocaleString()}円</Typography>
+                          </Grid>
+                        </>
+                      )}
+
+                      {detail.traffic_fee > 0 && (
+                        <>
+                          <Grid item xs={8}>
+                            <Typography variant="body2">交通費</Typography>
+                          </Grid>
+                          <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                            <Typography variant="body2">{detail.traffic_fee.toLocaleString()}円</Typography>
+                          </Grid>
+                        </>
+                      )}
+
+                      <Grid item xs={12}><Divider sx={{ my: 1 }} /></Grid>
+
+                      <Grid item xs={8}>
+                        <Typography variant="subtitle2" fontWeight="bold">合計金額</Typography>
+                      </Grid>
+                      <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                        <Typography variant="subtitle2" fontWeight="bold" color="#f06292">
+                          {detail.total_points.toLocaleString()}円
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Box>
+              </Box>
+
+              {/* アクションバー */}
+              <Box sx={{ 
+                p: 2, 
+                borderTop: '1px solid #f0f0f0',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<EditIcon />}
+                  onClick={() => setIsEditing(true)}
+                  sx={{ 
+                    borderRadius: 6,
+                    borderColor: '#f48fb1',
+                    color: '#f06292',
+                    '&:hover': {
+                      borderColor: '#f06292',
+                      backgroundColor: 'rgba(240, 98, 146, 0.04)'
+                    }
+                  }}
+                >
+                  編集する
+                </Button>
+
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<ChatIcon />}
+                  onClick={() => setShowMessage(true)}
+                  sx={{ 
+                    borderRadius: 6,
+                    backgroundColor: '#f06292',
+                    '&:hover': {
+                      backgroundColor: '#e91e63'
+                    },
+                    '&:active': {
+                      backgroundColor: 'rgba(240, 98, 146, 0.05)',
+                      boxShadow: '0 3px 8px rgba(240, 98, 146, 0.1)'
+                    }
+                  }}
+                >
+                  メッセージを表示
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body1" color="text.secondary">
+                予約情報を取得できませんでした
+              </Typography>
+            </Box>
+          )}
+        </>
       )}
-
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Button 
-          variant="contained"
-          startIcon={<EditIcon />}
-          onClick={handleEditClick}
-          sx={{ 
-            borderRadius: 6,
-            px: 4,
-            py: 1,
-            backgroundColor: '#f06292',
-            '&:hover': {
-              backgroundColor: '#ec407a',
-              boxShadow: '0 3px 8px rgba(240, 98, 146, 0.3)'
-            },
-            mr: 2
-          }}
-        >
-          予約を編集する
-        </Button>
-        <Button 
-          variant="outlined"
-          startIcon={<ChatIcon />}
-          onClick={() => setShowMessage(true)}
-          sx={{ 
-            borderRadius: 6,
-            px: 4,
-            py: 1,
-            borderColor: '#f06292',
-            color: '#f06292',
-            '&:hover': {
-              borderColor: '#ec407a',
-              backgroundColor: 'rgba(240, 98, 146, 0.05)',
-              boxShadow: '0 3px 8px rgba(240, 98, 146, 0.1)'
-            }
-          }}
-        >
-          メッセージを表示
-        </Button>
-      </Box>
 
       {/* メッセージパネル */}
       <MessagePanel 
@@ -425,4 +422,39 @@ export default function ReservationDetail({ reservationId }: { reservationId: nu
       />
     </Box>
   );
+
+  // onCloseが指定されていたらモーダル表示
+  return onClose ? (
+    <Box sx={modalStyle as any}>
+      <Box sx={modalContentStyle as any}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: 2,
+          borderBottom: '1px solid #f5f5f5'
+        }}>
+          <Typography variant="h6" fontWeight="bold">
+            予約詳細
+          </Typography>
+          <IconButton 
+            onClick={onClose}
+            size="small"
+            sx={{ color: '#9e9e9e' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <Box sx={{ 
+          flexGrow: 1, 
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          p: 0
+        }}>
+          {renderContent()}
+        </Box>
+      </Box>
+    </Box>
+  ) : renderContent();
 }
