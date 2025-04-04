@@ -14,6 +14,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import InfoIcon from "@mui/icons-material/Info";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle"; // 追加: アカウント情報アイコン
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -104,6 +105,8 @@ export default function Header() {
                   {/* 追加: アプリインフォ */}
                   <NavLink href="/p/customer/appinfo" icon={InfoIcon} pathname={pathname} setIsOpen={setIsOpen}>アプリインフォ</NavLink>
 
+                  {/* アカウント情報へのリンクをヘルプの上に移動 */}
+                  <NavLink href="/p/customer/account" icon={AccountCircleIcon} pathname={pathname} setIsOpen={setIsOpen}>アカウント情報</NavLink>
                   <NavLink href="/p/customer/help" icon={HelpOutlineIcon} pathname={pathname} setIsOpen={setIsOpen}>ヘルプ</NavLink>
 
                   {/* ログアウトの前にスペースを入れる */}
