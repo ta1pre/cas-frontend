@@ -1,19 +1,50 @@
 // src/app/p/customer/appinfo/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import InfoIcon from "@mui/icons-material/Info";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import { Button, Card, CardContent, Typography, Snackbar, IconButton } from "@mui/material";
+import { Button, Card, CardContent, Typography, Snackbar, IconButton, CircularProgress } from "@mui/material";
+import { fetchAPI } from "@/services/auth/axiosInterceptor";
 
 export default function AppInfoPage() {
-  const referralLink = "https://cas.id/?td=XV1r";
+  const [invitationId, setInvitationId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // ユーザープロフィールを取得してinvitation_idを設定
+  useEffect(() => {
+    const fetchInvitationId = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetchAPI('/api/v1/user/profile', {}, 'POST');
+        
+        if (response && response.invitation_id) {
+          setInvitationId(response.invitation_id);
+        } else {
+          setError("招待コードが見つかりませんでした");
+        }
+      } catch (err) {
+        console.error("招待コードの取得に失敗しました", err);
+        setError("招待コードの取得に失敗しました");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInvitationId();
+  }, []);
+
+  // 紹介リンクを生成
+  const referralLink = invitationId ? `https://cas.tokyo/invitation?td=${invitationId}` : "";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopySuccess(true);
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      setCopySuccess(true);
+    }
   };
 
   return (
@@ -33,14 +64,24 @@ export default function AppInfoPage() {
             <CampaignIcon className="text-green-500" />
             <span>あなたの紹介コード</span>
           </Typography>
-          <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
-            <Typography variant="body1" className="font-mono">
-              {referralLink}
-            </Typography>
-            <IconButton onClick={handleCopy}>
-              <ContentCopyIcon className="text-gray-500 hover:text-gray-700" />
-            </IconButton>
-          </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <CircularProgress size={24} />
+            </div>
+          ) : error ? (
+            <Typography color="error">{error}</Typography>
+          ) : (
+            <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
+              <Typography variant="body1" className="font-mono overflow-hidden text-ellipsis">
+                {referralLink}
+              </Typography>
+              <IconButton onClick={handleCopy} disabled={!referralLink}>
+                <ContentCopyIcon className="text-gray-500 hover:text-gray-700" />
+              </IconButton>
+            </div>
+          )}
+          
           <Typography variant="body2" className="text-gray-500">
             友達にこのリンクを共有すると特典がもらえます！
           </Typography>
