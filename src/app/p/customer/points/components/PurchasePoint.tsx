@@ -51,7 +51,7 @@ export default function PurchasePoint() {
                 onClick={handlePurchase}
                 disabled={loading}
             >
-                {loading ? "⏳ 購入処理中..." : `💰 ${formatNumber(Number(amount))} ポイント購入`}
+                {loading ? "⏳ 購入処理中..." : `💰 ${formatNumber(Number(amount))} ポイント購入(100p = 125円)`}
             </button>
             {message && (
                 <p
