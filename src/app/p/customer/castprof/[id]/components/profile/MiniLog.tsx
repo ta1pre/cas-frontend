@@ -132,7 +132,7 @@ export default function MiniLog() {
     return (
       <EmptyState>
         <Typography variant="body1">
-          ブログの読み込み中にエラーが発生しました。
+        まだブログ投稿がありません。
         </Typography>
       </EmptyState>
     );
