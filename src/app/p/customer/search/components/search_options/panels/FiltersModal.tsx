@@ -48,14 +48,14 @@ export default function FiltersModal({ setOffset }: FiltersModalProps) {
             <Box mt={4} className="px-4 pb-4 flex flex-col gap-6"> {/* ✅ `gap-6` でしっかり間隔を開ける */}
                 <Button 
                     variant="contained"
-                    className="w-full bg-green-500 hover:bg-green-600 text-white"
+                    className="w-full bg-pink-500 hover:bg-pink-600 text-white"
                     onClick={() => {
                         applyFilters();
                         setOffset(0);
                         closeFilters();
                     }}
                 >
-                    この条件で検索
+                    決定
                 </Button>
                 <Button 
                     variant="outlined"
