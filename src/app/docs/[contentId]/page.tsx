@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Box, Typography, Container } from "@mui/material";
+import { JSX } from 'react'; // JSX 型をインポート
 
 const API_URL = "https://23t441tj5w.microcms.io/api/v1/static";
 const API_KEY = "znTrSMC5Y4KxNITfqJnRjmRWB85KTjJtPg5b";
@@ -14,7 +15,7 @@ async function fetchArticle(contentId: string) {
   return res.json();
 }
 
-export default async function DocPage({ params }: { params: { contentId: string } }) {
+export default async function DocPage({ params }: { params: { contentId: string } }): Promise<JSX.Element> {
   const article = await fetchArticle(params.contentId);
   if (!article) return notFound();
 
