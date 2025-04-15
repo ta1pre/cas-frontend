@@ -61,7 +61,22 @@ export default function HomePage() {
                     </Typography>
                 </Box>
                 <Box mt={3} mb={1} textAlign="center">
-                    <Button variant="contained" color="secondary" sx={{ bgcolor: '#E91E63', borderRadius: 8, px: 5, py: 1.5, fontWeight: 'bold', fontSize: 16, boxShadow: 2 }} href="mailto:info@cas.tokyo">
+                    <Button
+                        component="a"
+                        href="mailto:info@cas.tokyo"
+                        variant="contained"
+                        color="secondary"
+                        sx={{
+                            bgcolor: '#E91E63',
+                            borderRadius: 8,
+                            px: 5,
+                            py: 1.5,
+                            fontWeight: 'bold',
+                            fontSize: 16,
+                            boxShadow: 2,
+                            '&:hover': { bgcolor: '#ad1457' }
+                        }}
+                    >
                         お問い合わせはこちら
                     </Button>
                 </Box>
