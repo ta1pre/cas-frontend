@@ -1,3 +1,5 @@
+// src/app/page.tsx
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -63,8 +65,8 @@ export default function HomePage() {
                 <Typography fontSize={14} color="text.secondary">
                     Cas（キャス）は、キャストとゲストをつなぐ<br />
                     マッチング支援型の会員制サービスです。<br />
-                    食事・会話・お出かけ・リラクゼーションなど、<br />
-                    多彩な役務サービスを気軽にご予約いただけます。
+                    食事・会話・お出かけ・外出同行など、<br />
+                    多彩な接客型サービスを気軽にご予約いただけます。
                 </Typography>
 
                 <Typography mt={4} fontSize={16} fontWeight="bold" mb={1}>
@@ -82,6 +84,10 @@ export default function HomePage() {
 
                 <Typography mt={4} fontSize={14} color="text.secondary">
                     詳細はページ下部の「利用規約」「特定商取引法に基づく表記」をご確認ください。
+                </Typography>
+
+                <Typography fontSize={12} color="text.secondary" mt={4}>
+                    運営責任者：梅木太一（東京都品川区西五反田2-14-10）
                 </Typography>
             </Box>
             {/* ▲ Stripe審査向け 追加説明セクション ▲ */}
