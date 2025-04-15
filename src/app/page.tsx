@@ -87,9 +87,9 @@ export default function HomePage() {
                 </Typography>
                 <Box sx={{ bgcolor: '#FFF0F6', borderRadius: 3, p: 2, mb: 3 }}>
                     <Typography fontSize={14} color="text.secondary" align="center">
-                        <a href="/terms" style={{ color: '#E91E63', textDecoration: 'underline', fontWeight: 'bold' }}>利用規約</a> ／
-                        <a href="/law" style={{ color: '#E91E63', textDecoration: 'underline', fontWeight: 'bold', marginLeft: 8 }}>特定商取引法に基づく表記</a> ／
-                        <a href="/privacy" style={{ color: '#E91E63', textDecoration: 'underline', fontWeight: 'bold', marginLeft: 8 }}>プライバシーポリシー</a>
+                        <a href="https://cas.tokyo/docs/2p5du7plkq8" target="_blank" rel="noopener noreferrer" style={{ color: '#E91E63', textDecoration: 'underline', fontWeight: 'bold' }}>特定商取引法に基づく表記</a> ／
+                        <a href="https://cas.tokyo/docs/1jd--tbx1d" target="_blank" rel="noopener noreferrer" style={{ color: '#E91E63', textDecoration: 'underline', fontWeight: 'bold', marginLeft: 8 }}>利用規約</a> ／
+                        <a href="https://cas.tokyo/docs/38etdezud" target="_blank" rel="noopener noreferrer" style={{ color: '#E91E63', textDecoration: 'underline', fontWeight: 'bold', marginLeft: 8 }}>プライバシーポリシー</a>
                     </Typography>
                 </Box>
             </Paper>
