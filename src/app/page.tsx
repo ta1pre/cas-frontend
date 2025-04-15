@@ -3,8 +3,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Box } from '@mui/material';
+import { Container, Box, Typography } from '@mui/material';
 import Image from 'next/image';
+import MicrocmsFooter from "./components/microcms/MicrocmsFooter";
 
 // シンプルなページコンポーネント
 export default function HomePage() {
@@ -43,6 +44,17 @@ export default function HomePage() {
                     height={120} 
                     priority
                 />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', ml: 2 }}>
+                    <Typography variant="h5" color="#E91E63" fontWeight="bold" sx={{ letterSpacing: 2 }}>
+                        cas
+                    </Typography>
+                </Box>
+            </Box>
+            <Typography mt={4} color="#E91E63" fontWeight="medium" fontSize={20} textAlign="center">
+                近日、オープン
+            </Typography>
+            <Box mt={8}>
+                <MicrocmsFooter />
             </Box>
         </Container>
     );

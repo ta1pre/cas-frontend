@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import purchasePoint from "@/app/p/customer/points/api/purchasePoint";
+// ✅ 直接購入機能を削除
+// import purchasePoint from "@/app/p/customer/points/api/purchasePoint";
 // ✅ 統一された関数をインポート
 import fetchChangeStatus from "./api/fetchChangeStatus"; 
 // ↑ importパスは実際のフォルダ構造に合わせて修正して下さい
@@ -24,42 +25,11 @@ export default function PointShortageModal({
     const [error, setError] = useState<string | null>(null);
 
     if (shortfall === null) return null;
+    
+    // ✅ 直接購入機能を一時的に削除（Stripe決済導入まで）
     const handlePurchase = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            console.log("🛒 ポイント購入開始: ", { userId, amount: shortfall });
-
-            // ✅ 1) ポイント購入APIを実行
-            const purchaseResponse = await purchasePoint(shortfall);
-            if (!purchaseResponse || purchaseResponse.new_balance === undefined) {
-                throw new Error("ポイント購入に失敗しました");
-            }
-            console.log("✅ ポイント購入成功: ", purchaseResponse.new_balance);
-
-            // ✅ 2) 予約確定APIを “fetchChangeStatus” に統一して呼び出す
-            console.log("📢 予約確定を実行: ", { reservationId, userId });
-            const confirmResponse = await fetchChangeStatus("confirmed", reservationId, userId);
-
-            console.log("✅ 予約確定レスポンス: ", confirmResponse);
-
-            // ✅ 3) ここで "OK" チェックを削除（バックエンドがエラーを返せば catch で処理される）
-            if (!confirmResponse) {
-                throw new Error("予約確定APIのレスポンスが不正です");
-            }
-
-            console.log("✅ 予約確定成功");
-
-            // ✅ 4) モーダルを閉じる
-            onClose();
-
-        } catch (err: any) {
-            console.error("🚨 エラー発生: ", err);
-            setError(err.message || "処理に失敗しました");
-        } finally {
-            setLoading(false);
-        }
+        setError("この機能は現在準備中です。Stripe決済を導入予定です。");
+        // TODO: Stripe決済を導入する
     };
 
     return (

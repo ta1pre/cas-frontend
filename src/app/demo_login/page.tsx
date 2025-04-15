@@ -114,7 +114,7 @@ export default function DemoLoginPage() {
                 {/* ログイン成功時にリンクを表示 */}
                 {isLoginSuccess && (
                     <Box sx={{ mt: 2 }}>
-                        <Link href="/p/customer/points" passHref>
+                        <Link href="/p/customer/search" passHref>
                             <Button variant="outlined" fullWidth>
                                 ユーザーページへ
                             </Button>
