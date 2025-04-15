@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Typography, Button, Link as MuiLink, Paper } from '@mui/material';
+import { Container, Box, Typography, Link as MuiLink, Paper } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
 import MicrocmsFooter from "./components/microcms/MicrocmsFooter";
@@ -60,26 +60,7 @@ export default function HomePage() {
                         メール：<MuiLink href="mailto:info@cas.tokyo" color="#E91E63" underline="hover">info@cas.tokyo</MuiLink>
                     </Typography>
                 </Box>
-                <Box mt={3} mb={1} textAlign="center">
-                    <Button
-                        component="a"
-                        href="mailto:info@cas.tokyo"
-                        variant="contained"
-                        color="secondary"
-                        sx={{
-                            bgcolor: '#E91E63',
-                            borderRadius: 8,
-                            px: 5,
-                            py: 1.5,
-                            fontWeight: 'bold',
-                            fontSize: 16,
-                            boxShadow: 2,
-                            '&:hover': { bgcolor: '#ad1457' }
-                        }}
-                    >
-                        お問い合わせはこちら
-                    </Button>
-                </Box>
+                {/* お問い合わせボタン削除済み */}
                 <Box mt={4} mb={1} textAlign="center">
                     <MuiLink component={Link} href="https://cas.tokyo/docs/2p5du7plkq8" target="_blank" color="#E91E63" fontWeight="bold" underline="hover" sx={{ mx: 1 }}>
                         利用規約
