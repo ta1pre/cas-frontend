@@ -3,17 +3,58 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Typography, Link as MuiLink, Paper } from '@mui/material';
+import { Container, Box, Typography, Link as MuiLink, Paper, Button } from '@mui/material';
 import Image from 'next/image';
-import Link from 'next/link';
 import MicrocmsFooter from "./components/microcms/MicrocmsFooter";
+import axios from 'axios';
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+
+type TestResultType = { message: string } | { error: string } | null;
 
 export default function HomePage() {
     const [isVisible, setIsVisible] = useState(false);
+    const [testResult, setTestResult] = useState<TestResultType>(null);
+    const router = useRouter();
 
     useEffect(() => {
         setTimeout(() => setIsVisible(true), 100);
     }, []);
+
+    // テストログイン処理（demo_login/page.tsxと同等のもの）
+    const handleDemoLogin = async () => {
+        try {
+            // クッキーとローカルストレージをクリア
+            Object.keys(Cookies.get()).forEach(cookieName => {
+                Cookies.remove(cookieName, { path: '' });
+                Cookies.remove(cookieName, { path: '/' });
+            });
+            localStorage.clear();
+            setTestResult(null);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            if (!apiUrl) {
+                setTestResult({ error: "API URLが設定されていません。" });
+                return;
+            }
+            // user_id: 41 でログイン
+            const response = await axios.post(
+                `${apiUrl}/api/v1/admin/test-login/login_nopw`,
+                { user_id: 41 }
+            );
+            if (response.data && response.data.refresh_token && response.data.access_token) {
+                Cookies.set("refresh_token", response.data.refresh_token, { expires: 7, secure: true, sameSite: "Strict" });
+                Cookies.set("token", response.data.access_token, { expires: 1, secure: true, sameSite: "Strict" });
+                setTestResult({ message: "成功" });
+                router.push("/p/customer/search");
+            } else {
+                setTestResult({ error: "APIから予期しない形式のレスポンスが返されました。" });
+            }
+        } catch (e) {
+            const error = e as any;
+            const errorMessage = error?.response?.data?.detail || error?.message || "API接続中にエラーが発生しました。";
+            setTestResult({ error: errorMessage });
+        }
+    };
 
     return (
         <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -93,6 +134,34 @@ export default function HomePage() {
                     </Typography>
                 </Box>
             </Paper>
+            {/* ▼ サービスエリア（デモログインボタン）実装：ここから ▼ */}
+            <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Button
+                    variant="contained"
+                    onClick={handleDemoLogin}
+                    sx={{
+                        background: "linear-gradient(90deg, #FF80AB 0%, #FFB6C1 100%)",
+                        color: "#fff",
+                        fontWeight: "bold",
+                        fontSize: "1.1rem",
+                        py: 1.5,
+                        px: 5,
+                        borderRadius: "30px",
+                        boxShadow: 2,
+                        '&:hover': {
+                            background: "linear-gradient(90deg, #FFB6C1 0%, #FF80AB 100%)",
+                        },
+                    }}
+                >
+                    予約エリアを見る
+                </Button>
+                {testResult && (
+                    <Typography variant="body2" sx={{ mt: 2, color: '#FF80AB' }}>
+                        {'message' in testResult ? testResult.message : testResult.error}
+                    </Typography>
+                )}
+            </Box>
+            {/* ▲ サービスエリア（デモログインボタン）実装：ここまで ▲ */}
             <Box mt={6}>
                 <MicrocmsFooter />
             </Box>
