@@ -1,125 +1,162 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Container, Typography, Card, CardContent, CardActions, Button, Grid, CircularProgress, Alert, Box } from '@mui/material';
+import { Container, Typography, Card, CardContent, CardActions, Button, Grid, CircularProgress, Alert, Box, Dialog, DialogTitle } from '@mui/material';
 import useUser from '@/hooks/useUser'; // ユーザーフックのパスを確認・調整
 import { createCheckoutSession } from './api/payment';
+import ElementsPaymentForm from "./components/ElementsPaymentForm";
+import { useRouter } from "next/navigation";
+
+// 1Pあたりの販売価格
+const PRICE_PER_POINT = 1.2615;
 
 // Stripeダッシュボードで作成した実際のPrice IDに置き換えてください
 const POINT_PLANS = [
   {
-    id: 'plan_1',
-    name: 'お手軽プラン✨',
-    price: 1000,
-    points: 1100,
-    description: 'ちょっと試してみたい方に。',
-    stripe_price_id: 'price_xxxxxxxxxxxxxx1', // TODO: Stripe Price IDに置換
+    id: 'plan_11000',
+    name: 'スタートプラン',
+    points: 11000,
+    description: 'まずはお試しでたっぷりチャージ！',
+    stripe_price_id: 'price_xxxxxxxxxx11000',
   },
   {
-    id: 'plan_2',
-    name: '人気No.1プラン💖',
-    price: 3000,
-    points: 3500,
-    description: 'お得にポイントをゲット！',
-    stripe_price_id: 'price_xxxxxxxxxxxxxx2', // TODO: Stripe Price IDに置換
+    id: 'plan_33000',
+    name: 'おすすめプラン',
+    points: 33000,
+    description: '人気No.1！お得にポイント大量GET',
+    stripe_price_id: 'price_xxxxxxxxxx33000',
   },
   {
-    id: 'plan_3',
-    name: 'たっぷりプラン💎',
-    price: 5000,
-    points: 6000,
-    description: 'たくさん使いたい方におすすめ。',
-    stripe_price_id: 'price_xxxxxxxxxxxxxx3', // TODO: Stripe Price IDに置換
+    id: 'plan_55000',
+    name: '満足プラン',
+    points: 55000,
+    description: 'たっぷり使いたい方に最適',
+    stripe_price_id: 'price_xxxxxxxxxx55000',
+  },
+  {
+    id: 'plan_77000',
+    name: 'プレミアムプラン',
+    points: 77000,
+    description: '大容量で安心！',
+    stripe_price_id: 'price_xxxxxxxxxx77000',
+  },
+  {
+    id: 'plan_110000',
+    name: 'スペシャルプラン',
+    points: 110000,
+    description: '最上級のボリュームで超お得',
+    stripe_price_id: 'price_xxxxxxxxxx110000',
   },
 ];
 
+const formatYen = (num: number) => num.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 });
+
 export default function PointPurchasePage() {
+  const router = useRouter();
   const user = useUser();
-  const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<typeof POINT_PLANS[0] | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handlePurchase = async (priceId: string) => {
+  const handlePurchase = (plan: typeof POINT_PLANS[0]) => {
     if (!user || !user.token) {
       setError('ログインが必要です。');
       return;
     }
-    if (loadingPriceId) return; // 他の処理が進行中なら何もしない
-
-    setLoadingPriceId(priceId);
+    setSelectedPlan(plan);
+    setShowPayment(true);
     setError(null);
+  };
 
-    try {
-      const response = await createCheckoutSession(priceId);
-      if (response && response.checkout_url) {
-        // Stripe Checkoutページへリダイレクト
-        window.location.href = response.checkout_url;
-        // リダイレクトされるので、ここではローディング解除は不要な場合が多い
-        // setLoadingPriceId(null); // 必要であれば
-      } else {
-        setError('決済セッションの作成に失敗しました。もう一度お試しください。');
-        setLoadingPriceId(null);
-      }
-    } catch (err) {
-      console.error('購入処理中にエラー:', err);
-      setError('購入処理中にエラーが発生しました。時間をおいて再度お試しください。');
-      setLoadingPriceId(null);
-    }
+  const handlePaymentSuccess = () => {
+    console.log("Payment success! Navigating via window.location.href");
+    window.location.href = "/p/customer/points/success"; // ★ ブラウザ標準の機能で強制遷移
+  };
+
+  const handleClosePayment = () => {
+    setShowPayment(false);
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4, color: 'primary.main', fontWeight: 'bold' }}>
+    <Container maxWidth="sm" sx={{ py: 5 }}>
+      <Typography variant="h4" align="center" fontWeight="bold" color="#C2185B" mb={2}>
         ポイント購入
       </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
       <Grid container spacing={3}>
-        {POINT_PLANS.map((plan) => (
-          <Grid item xs={12} sm={6} md={4} key={plan.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, boxShadow: 3 }}>
-              <CardContent sx={{ flexGrow: 1, backgroundColor: 'rgba(255, 182, 193, 0.1)' /* 例: 薄いピンク */ }}>
-                <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: 'secondary.main' /* 例: アクセントカラー */ }}>
-                  {plan.name}
-                </Typography>
-                <Typography color="text.secondary" gutterBottom>
-                  {plan.description}
-                </Typography>
-                <Typography variant="h6" sx={{ my: 1 }}>
-                  {plan.price.toLocaleString()}円 → {plan.points.toLocaleString()}ポイント
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', p: 2 }}>
-                <Button
-                  variant="contained"
-                  color="primary" // テーマのプライマリカラー（例: ピンク系）
-                  size="large"
-                  onClick={() => handlePurchase(plan.stripe_price_id)}
-                  disabled={!!loadingPriceId || !user}
-                  sx={{ borderRadius: '20px', px: 4, fontWeight: 'bold' }}
-                >
-                  {loadingPriceId === plan.stripe_price_id ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'このプランを購入'
-                  )}
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
+        {POINT_PLANS.map(plan => {
+          const price = Math.ceil(plan.points * PRICE_PER_POINT);
+          return (
+            <Grid item xs={12} sm={6} key={plan.id}>
+              <Card sx={{ borderRadius: 3, boxShadow: 4, position: 'relative', border: '2px solid #F8BBD0' }}>
+                <CardContent>
+                  <Typography variant="h6" color="#C2185B" fontWeight="bold" mb={1}>{plan.name}</Typography>
+                  <Typography variant="body2" color="text.secondary" mb={2}>{plan.description}</Typography>
+                  <Box textAlign="center" mb={1}>
+                    <Typography variant="h3" fontWeight="bold" color="#EC407A" sx={{ letterSpacing: 1, display: 'inline-flex', alignItems: 'flex-end', lineHeight: 1 }}>
+                      {plan.points.toLocaleString()}
+                      <span style={{ fontSize: '1.3rem', marginLeft: 2, lineHeight: 1, display: 'inline-block', verticalAlign: 'bottom' }}>P</span>
+                    </Typography>
+                    <Typography sx={{ color: '#888', fontSize: '0.95rem', mt: 1, mb: 1, fontWeight: 'bold', lineHeight: 1 }}>
+                      {Math.ceil(plan.points * PRICE_PER_POINT).toLocaleString()}円<span style={{ fontSize: '0.85em' }}>(税込)</span>
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ color: '#bbb', fontSize: '0.85rem', textAlign: 'right', mt: 0, mb: 0, pr: 0.5 }}>
+                    1P = {PRICE_PER_POINT}円
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                  <Button variant="contained" color="secondary" size="large" sx={{ borderRadius: 5, px: 5, fontWeight: 'bold', letterSpacing: 1 }} onClick={() => handlePurchase(plan)}>
+                    このプランを選ぶ
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
-
+      {/* 決済モーダル */}
+      <Dialog
+        open={showPayment}
+        onClose={handleClosePayment}
+        maxWidth={false}
+        fullWidth
+        PaperProps={{
+          sx: { width: 'calc(100vw - 48px)', maxWidth: 'calc(100vw - 48px)', m: 0, borderRadius: 0 }
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', borderBottom: '1px solid #eee' }}>
+          ポイント購入
+        </DialogTitle>
+        {selectedPlan && (
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full relative">
+            <button
+              className="absolute top-3 right-4 text-gray-400 hover:text-pink-400 text-2xl font-bold"
+              onClick={handleClosePayment}
+            >
+              ×
+            </button>
+            <div className="mb-6 text-center">
+              <Typography variant="h3" fontWeight="bold" color="#EC407A" sx={{ letterSpacing: 1, display: 'inline-flex', alignItems: 'flex-end', lineHeight: 1 }}>
+                {selectedPlan.points.toLocaleString()}
+                <span style={{ fontSize: '1.3rem', marginLeft: 2, lineHeight: 1, display: 'inline-block', verticalAlign: 'bottom' }}>P</span>
+              </Typography>
+              <Typography sx={{ color: '#888', fontSize: '0.95rem', mt: 1, mb: 1, fontWeight: 'bold', lineHeight: 1 }}>
+                {Math.ceil(selectedPlan.points * PRICE_PER_POINT).toLocaleString()}円<span style={{ fontSize: '0.85em' }}>(税込)</span>
+              </Typography>
+            </div>
+            <ElementsPaymentForm
+              amount={Math.ceil(selectedPlan.points * PRICE_PER_POINT)}
+              points={selectedPlan.points}
+              onSuccess={handlePaymentSuccess}
+            />
+          </div>
+        )}
+      </Dialog>
       {!user && (
-         <Alert severity="warning" sx={{ mt: 3 }}>
+        <div className="mt-6 bg-yellow-50 text-yellow-700 py-2 px-4 rounded text-center">
           ポイントを購入するにはログインが必要です。
-        </Alert>
+        </div>
       )}
-
     </Container>
   );
 }

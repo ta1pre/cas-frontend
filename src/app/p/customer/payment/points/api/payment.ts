@@ -1,4 +1,4 @@
-import { fetchAPI } from '@/services/auth/axiosInterceptor'; // fetchAPIのパスを修正
+import { fetchAPI } from '@/services/auth/axiosInterceptor';
 
 /**
  * Stripe Checkout セッションを作成するためのAPIリクエスト
@@ -13,14 +13,12 @@ export const createCheckoutSession = async (
 
   try {
     const response = await fetchAPI(endpoint, data);
-    // fetchAPIはエラー時にnullを返す想定
     if (!response || typeof response.checkout_url !== 'string') { 
       console.error('Checkoutセッションの作成に失敗しました。(APIエラーまたは無効なレスポンス)');
       return null;
     }
-    return response; // 成功時は { checkout_url: "..." } を返す
+    return response; 
   } catch (error) {
-    // fetchAPI内でcatchされなかった予期せぬエラー
     console.error('Checkoutセッション作成中に予期せぬエラー:', error);
     return null;
   }
