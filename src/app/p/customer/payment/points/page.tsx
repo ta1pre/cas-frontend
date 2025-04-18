@@ -69,8 +69,11 @@ export default function PointPurchasePage() {
   };
 
   const handlePaymentSuccess = () => {
-    console.log("Payment success! Navigating via window.location.href");
-    window.location.href = "/p/customer/points/success"; // ★ ブラウザ標準の機能で強制遷移
+    if (selectedPlan) {
+      window.location.href = `/p/customer/payment/points/success?added=${selectedPlan.points}`;
+    } else {
+      window.location.href = `/p/customer/payment/points/success`;
+    }
   };
 
   const handleClosePayment = () => {
