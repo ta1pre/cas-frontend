@@ -85,7 +85,7 @@ export default function PointPurchasePage() {
   // 任意ポイント入力時の金額自動計算
   const handleCustomPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
-    let points: number | '' = value === '' ? '' : Math.min(999999, Number(value));
+    const points: number | '' = value === '' ? '' : Math.min(999999, Number(value));
     setCustomPoints(points);
   };
 

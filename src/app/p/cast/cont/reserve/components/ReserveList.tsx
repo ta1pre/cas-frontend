@@ -481,7 +481,7 @@ export default function CastReserveList() {
 
   // タブを一時的に切り替えて戻す関数（UI上も強制的に切替を見せる）
   const forceTabReload = () => {
-    let nextTab: TabType = currentTab === 'schedule' ? 'action' : 'schedule';
+    const nextTab: TabType = currentTab === 'schedule' ? 'action' : 'schedule';
     setCurrentTab(nextTab);
     setTimeout(() => {
       setCurrentTab(currentTab);

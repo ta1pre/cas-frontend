@@ -26,7 +26,7 @@ interface ProfileDetailsProps {
 
 export default function ProfileDetails({ traits = [], serviceTypes = [] }: ProfileDetailsProps) {
     const groupedTraits = groupByCategory(traits);
-    let groupedServiceTypes = groupByCategory(serviceTypes);
+    const groupedServiceTypes = groupByCategory(serviceTypes);
 
     // ✅ 通常を先に表示し、高収入を最後に表示
     const sortedCategories = Object.entries(groupedServiceTypes).sort(([a], [b]) =>

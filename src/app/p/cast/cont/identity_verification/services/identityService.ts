@@ -167,7 +167,7 @@ export const registerMedia = async (fileUrl: string, fileType: string, targetTyp
 };
 
 // アップロードされたメディアのIDを保管する変数
-let uploadedMediaIds: number[] = [];
+const uploadedMediaIds: number[] = [];
 
 // ファイルをアップロードする
 export const uploadFile = async (file: File, orderIndex: number) => {
