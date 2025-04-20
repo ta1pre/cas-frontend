@@ -18,6 +18,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       # デプロイのステップはプロジェクトの要件に合わせて追加してください
       # 例：Vercelへのデプロイ
       # - name: Deploy to Vercel
