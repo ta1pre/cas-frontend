@@ -2,6 +2,7 @@
 
 import BalanceDisplay from "./components/BalanceDisplay"; // ✅ ポイント残高コンポーネント
 import HistoryDisplay from "./components/HistoryDisplay"; // ✅ 履歴表示コンポーネント
+import Link from "next/link"; // ポイント購入ページへのリンク用
 // ✅ 一時的にポイント購入コンポーネントを削除
 // import PurchasePoint from "./components/PurchasePoint";
 
@@ -15,7 +16,12 @@ export default function Page() {
             {/* ✅ 一時的にポイント購入コンポーネントをプレースホルダーに置き換え */}
             <div className="mt-6 p-6 bg-white shadow-md rounded-lg border border-gray-300">
                 <h2 className="text-lg font-bold text-gray-800 mb-2">ポイント購入</h2>
-                <p className="text-gray-600">Stripe決済を導入予定です。しばらくお待ちください。</p>
+                <p className="text-gray-600">以下より購入ページへ移動して下さい。</p>
+                <Link href="/p/customer/payment/points">
+                  <button className="mt-4 w-full bg-pink-400 hover:bg-pink-500 text-white font-semibold py-2 rounded-lg">
+                    ポイント購入ページへ
+                  </button>
+                </Link>
             </div>
             
             <HistoryDisplay /> {/* ✅ 履歴表示 */}

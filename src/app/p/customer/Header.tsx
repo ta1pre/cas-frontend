@@ -99,6 +99,7 @@ export default function Header() {
                   </NavLink>
 
                   <NavLink href="/p/customer/points" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント管理</NavLink>
+                  <NavLink href="/p/customer/payment/points" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント購入</NavLink>
                   <NavLink href="/p/customer/reserve" icon={EventNoteIcon} pathname={pathname} setIsOpen={setIsOpen}>予約管理</NavLink>
                   <NavLink href="/p/customer/area" icon={LocationOnIcon} pathname={pathname} setIsOpen={setIsOpen}>エリア設定</NavLink>
 
