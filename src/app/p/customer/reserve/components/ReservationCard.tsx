@@ -91,7 +91,13 @@ export default function ReservationCard({ reservation, onClick }: Props) {
 
           {/* ✅ 日付を強調 */}
           <Typography variant="body1" className="text-gray-900 text-lg font-bold">
-            {formatDateTime(reservation.start_time)} @ {reservation.location || "未設定"}
+            {(() => {
+              // 仮日付（最短調整中）の場合は特別表示
+              if (reservation.start_time.startsWith("7777-07-07")) {
+                return `最速調整中@${reservation.location || "未設定"}`;
+              }
+              return `${formatDateTime(reservation.start_time)} @ ${reservation.location || "未設定"}`;
+            })()}
           </Typography>
 
           {/* ✅ キャスト情報 (丸い画像 + 名前) */}

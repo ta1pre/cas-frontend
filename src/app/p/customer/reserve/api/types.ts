@@ -17,6 +17,7 @@ export interface ReservationListItem {
   total_price?: number;
   last_message_time?: string | null;
   last_message_preview?: string | null;
+  course_points?: number; // ✅ 新フィールド（安全のためoptionalで追加）
 }
 
 export interface ReservationListResponse {

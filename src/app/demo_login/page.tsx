@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Container, Typography, Box } from "@mui/material";
 import axios from 'axios';
 import Cookies from "js-cookie";
@@ -12,6 +12,15 @@ type TestResultType = { message: string } | { error: string } | null;
 export default function DemoLoginPage() {
     const [testResult, setTestResult] = useState<TestResultType>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        // ページアクセス時にCookieとlocalStorageをクリア
+        Object.keys(Cookies.get()).forEach(cookieName => {
+            Cookies.remove(cookieName, { path: '' });
+            Cookies.remove(cookieName, { path: '/' });
+        });
+        localStorage.clear();
+    }, []);
 
     const handleLogin = async () => {
         try {
@@ -27,16 +36,16 @@ export default function DemoLoginPage() {
                 setTestResult({ error: "API URLが設定されていません。" });
                 return;
             }
-            // user_id: 41 でログイン
+            // user_id: 183 でログイン
             const response = await axios.post(
                 `${apiUrl}/api/v1/admin/test-login/login_nopw`,
-                { user_id: 41 }
+                { user_id: 183 }
             );
             if (response.data && response.data.refresh_token && response.data.access_token) {
-                Cookies.set("refresh_token", response.data.refresh_token, { expires: 7, secure: true, sameSite: "Strict" });
-                Cookies.set("token", response.data.access_token, { expires: 1, secure: true, sameSite: "Strict" });
+                Cookies.set("refresh_token", response.data.refresh_token, { expires: 7, secure: false, sameSite: "lax" });
+                Cookies.set("token", response.data.access_token, { expires: 1, secure: false, sameSite: "lax" });
                 setTestResult({ message: "成功" });
-                router.push("/p/customer/search");
+                router.push("/p/cast");
             } else {
                 setTestResult({ error: "APIから予期しない形式のレスポンスが返されました。" });
             }

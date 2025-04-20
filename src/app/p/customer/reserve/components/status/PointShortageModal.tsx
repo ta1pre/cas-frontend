@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 // ✅ 直接購入機能を削除
 // import purchasePoint from "@/app/p/customer/points/api/purchasePoint";
 // ✅ 統一された関数をインポート
@@ -23,13 +24,22 @@ export default function PointShortageModal({
 }: PointShortageModalProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     if (shortfall === null) return null;
     
-    // ✅ 直接購入機能を一時的に削除（Stripe決済導入まで）
+    // Stripe決済画面へ遷移（不足分と予約IDをクエリで渡す）
     const handlePurchase = async () => {
-        setError("この機能は現在準備中です。Stripe決済を導入予定です。");
-        // TODO: Stripe決済を導入する
+        setLoading(true);
+        setError(null);
+        try {
+            // ポイント購入画面へ不足分と予約IDをクエリで渡して遷移
+            router.push(`/p/customer/payment/points?shortfall=${shortfall}&reservationId=${reservationId}`);
+        } catch (e: any) {
+            setError("遷移に失敗しました");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

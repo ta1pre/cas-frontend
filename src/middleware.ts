@@ -9,53 +9,53 @@ export const config = {
 };
 
 export default async function middleware(request: NextRequest) {
-    console.log("🚀 【middleware.ts】ミドルウェア開始");
+    console.log("【middleware.ts】ミドルウェア開始");
 
     const { pathname } = request.nextUrl;
-    console.log("📌 【middleware.ts】 pathname:", pathname);
+    console.log("【middleware.ts】 pathname:", pathname);
 
     // `/p/` 以外はスキップ
     if (!pathname.startsWith("/p")) {
-        console.log("⏭️ `/p/` 以外のためスキップ");
+        console.log(" `/p/` 以外のためスキップ");
         return NextResponse.next();
     }
 
     try {
         // トークン取得
-        console.log("🛠️ 【middleware.ts】 トークン取得処理開始");
+        console.log("【middleware.ts】 トークン取得処理開始");
         const token = await tokenMiddlewareLogic(request);
 
         if (!token) {
-            console.warn("❌【middleware.ts】 トークンなし。ログインページへリダイレクト");
+            console.warn("【middleware.ts】 トークンなし。ログインページへリダイレクト");
             return NextResponse.redirect(new URL("/auth/login", request.url));
         }
-        console.log("✅【middleware.ts】 トークン取得成功");
+        console.log("【middleware.ts】 トークン取得成功");
 
         // 認証処理
-        console.log("🛠️ 【middleware.ts】 認証チェック開始");
+        console.log("【middleware.ts】 認証チェック開始");
         const authResponse = await authMiddleware(request, token);
 
         if (authResponse) return authResponse;
-        console.log("✅【middleware.ts】 認証成功");
+        console.log("【middleware.ts】 認証成功");
 
         // 認証成功時にトークンをクッキーへセット
         const response = NextResponse.next();
         response.cookies.set("token", token, {
             path: "/",
-            secure: true,
-            sameSite: "none",
+            secure: false, // 本番はtrue
+            sameSite: "lax", // ローカルはlaxでSafari対応
             httpOnly: false,
             maxAge: 3600,
         });
 
-        console.log("✅【middleware.ts】 クッキーにトークンをセット");
+        console.log("【middleware.ts】 クッキーにトークンをセット");
 
-        // 🔥【重要】 setupMiddlewareを実行し、そのレスポンスを受け取る
+        // 【重要】 setupMiddlewareを実行し、そのレスポンスを受け取る
         const setupResponse = await setupMiddleware(request);
 
         if (setupResponse) {
             // setupMiddlewareがレスポンスを返したら即座にreturnする（リダイレクト実行）
-            console.log("🚨【middleware.ts】 setupMiddlewareからレスポンスが返されたので、即座に返却します");
+            console.log("【middleware.ts】 setupMiddlewareからレスポンスが返されたので、即座に返却します");
             return setupResponse;
         }
 
@@ -63,7 +63,7 @@ export default async function middleware(request: NextRequest) {
         return response;
 
     } catch (error) {
-        console.error("❌【middleware.ts】 エラー発生:", error);
+        console.error("【middleware.ts】 エラー発生:", error);
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 }

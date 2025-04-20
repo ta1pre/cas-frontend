@@ -9,7 +9,11 @@ export default function ReservationInfo({ reservation }: Props) {
   return (
     <div className="mt-4">
       <h2 className="text-xl font-bold">{reservation.cast_name} の予約詳細</h2>
-      <p>📅 {formatDateTime(reservation.start_time)}</p>
+      <p>
+        📅 {reservation.start_time.startsWith("7777-07-07")
+          ? `最速調整中@${reservation.location || "未設定"}`
+          : formatDateTime(reservation.start_time)}
+      </p>
       <p>💆‍♀️ コース: {reservation.course_name} - {reservation.course_price.toLocaleString()}円</p>
       <p>📍 場所: {reservation.location || "未設定"}</p>
       <p>💰 予約料金: {reservation.reservation_fee.toLocaleString()}円</p>

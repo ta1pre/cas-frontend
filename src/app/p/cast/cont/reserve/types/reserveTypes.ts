@@ -1,6 +1,6 @@
 // 📂 src/app/p/cast/cont/reserve/types/reserveTypes.ts
 
-export type ReservationStatus = 'confirmed' | 'requested' | 'adjusting' | 'completed' | 'canceled' | 'cancelled' | 'waiting_user_confirm' | 'cancelled_user' | 'cancelled_cast' | 'no_show_user' | 'no_show_cast' | 'dispute';
+export type ReservationStatus = 'confirmed' | 'requested' | 'adjusting' | 'completed' | 'canceled' | 'cancelled' | 'waiting_user_confirm' | 'cancelled_user' | 'cancelled_cast' | 'no_show_user' | 'no_show_cast' | 'dispute' | 'user_arrived' | 'cast_arrived' | 'both_arrived';
 
 export interface CastReserveItem {
   reservation_id: number;

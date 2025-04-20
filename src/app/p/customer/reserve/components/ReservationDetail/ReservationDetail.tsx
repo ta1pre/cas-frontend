@@ -79,10 +79,10 @@ export default function ReservationDetail({
   if (!reservation) return null;
 
   const totalPrice =
-    reservation.course_price +
+    (reservation.course_points ?? 0) + // resv_reservationから取得
     reservation.total_option_price +
     reservation.traffic_fee +
-    reservation.reservation_fee;
+    (reservation.reservation_fee ?? 0);
 
   return (
   <motion.div
@@ -155,6 +155,14 @@ export default function ReservationDetail({
           </a>
         </div>
 
+        {/* ▼▼▼ 予約確定済みのときだけ案内を表示 ▼▼▼ */}
+        {reservation.status_key === "confirmed" && (
+          <div className="mb-4 p-3 rounded bg-blue-50 border border-blue-300 text-blue-700 font-semibold text-left">
+            待ち合わせ場所に到着したら下の「到着」ボタンを押してください。
+          </div>
+        )}
+        {/* ▲▲▲ 案内ここまで ▲▲▲ */}
+
         <div 
           className="p-4 rounded-lg mb-6 shadow-sm" 
           style={{ 
@@ -181,7 +189,11 @@ export default function ReservationDetail({
             <tbody>
               <tr>
                 <td className="py-2 font-bold text-gray-600">日時</td>
-                <td className="py-2 text-right font-semibold">{formatDateTime(reservation.start_time)}</td>
+                <td className="py-2 text-right font-semibold">
+                  {reservation.start_time.startsWith("7777-07-07")
+                    ? `最速調整中@${reservation.location || "未設定"}`
+                    : formatDateTime(reservation.start_time)}
+                </td>
               </tr>
               <tr>
                 <td className="py-2 font-bold text-gray-600">コース</td>
@@ -198,12 +210,13 @@ export default function ReservationDetail({
         <table className="w-full border-collapse mt-4">
           <tbody>
             <tr>
-              <td className="py-2 font-bold text-gray-600">指名料</td>
-              <td className="py-2 text-right font-semibold">{formatNumberWithCommas(reservation.reservation_fee)} pt</td>
-            </tr>
-            <tr>
-              <td className="py-2 font-bold">基本料金</td>
-              <td className="py-2 text-right font-semibold">{formatNumberWithCommas(reservation.course_price)} pt</td>
+              <td className="py-2 font-bold text-gray-600">コース料金</td>
+              <td className="py-2 text-right font-semibold">
+                {(() => {
+                  console.log("【DEBUG】コース料金計算: course_points=", reservation.course_points, ", reservation_fee=", reservation.reservation_fee);
+                  return formatNumberWithCommas((reservation.course_points ?? 0) + (reservation.reservation_fee ?? 0));
+                })()} P
+              </td>
             </tr>
             <tr>
               <td className="py-2 font-bold text-gray-600">交通費</td>
@@ -213,13 +226,13 @@ export default function ReservationDetail({
               <tr key={index}>
                 <td className="py-2 font-bold text-gray-600">{option} (OP)</td>
                 <td className="py-2 text-right font-semibold">
-                  {formatNumberWithCommas(reservation.option_price_list[index])} pt
+                  {formatNumberWithCommas(reservation.option_price_list[index])} P
                 </td>
               </tr>
             ))}
             <tr className="border-t border-gray-200 font-bold">
               <td className="py-2 text-lg">合計</td>
-              <td className="py-2 text-right text-lg">{formatNumberWithCommas(totalPrice)} pt</td>
+              <td className="py-2 text-right text-lg">{formatNumberWithCommas(totalPrice)} P</td>
             </tr>
           </tbody>
         </table>

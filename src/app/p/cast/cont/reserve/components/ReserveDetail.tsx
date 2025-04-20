@@ -35,6 +35,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import InfoIcon from '@mui/icons-material/Info';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
+import fetchChangeStatus from "./api/fetchChangeStatus";
 
 // コンポーネントのプロパティを更新
 // castIdとonCloseを追加
@@ -50,6 +51,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
   const [loading, setLoading] = useState(true);
   const [showMessage, setShowMessage] = useState(false);
   const user = useCastUser();
+  const [statusLoading, setStatusLoading] = useState(false);
 
   // 予約詳細データを取得
   const fetchDetail = async () => {
@@ -58,17 +60,6 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
       // castIdが指定されていたらそれを使用し、なければuser.user_idを使用
       const userId = castId || user.user_id;
       const data = await fetchReservationDetail(reservationId, userId);
-      console.log("受信した予約詳細データ:", data);
-      console.log("予約詳細データの構造:", JSON.stringify(data, null, 2));
-      console.log("cast_reward_points存在確認:", data?.cast_reward_points);
-      console.log("total_points存在確認:", data?.total_points);
-      if (data) {
-        console.log("ステータス情報:", {
-          status: data.status,
-          color_code: data.color_code,
-          cast_label: data.cast_label
-        });
-      }
       setDetail(data);
     } catch (err) {
       console.error(err);
@@ -123,6 +114,29 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
   const isFastestRequest = (dateTime: string | null): boolean => {
     if (!dateTime) return false;
     return dateTime.startsWith('7777-07-07');
+  };
+
+  // ステータス変更ハンドラ
+  const handleCastArrived = async () => {
+    if (!detail || !user?.user_id) return;
+    setStatusLoading(true);
+    try {
+      const response = await fetchChangeStatus(
+        "cast_arrived",
+        detail.reservation_id,
+        user.user_id
+      );
+      if (response?.status === "OK" || response?.status === "SUCCESS") {
+        alert("キャスト到着としてステータスを更新しました。");
+        fetchDetail();
+      } else {
+        alert(response?.message || "ステータス変更に失敗しました。");
+      }
+    } catch (e: any) {
+      alert(e?.message || "ステータス変更でエラーが発生しました");
+    } finally {
+      setStatusLoading(false);
+    }
   };
 
   // モーダルスタイル
@@ -218,7 +232,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                           // UTCからJSTへの変換処理
                           const utcDate = new Date(detail.start_time);
                           // UTCの日時を表示
-                          console.log("UTCの日時:", utcDate.toISOString());
+                          // console.log("UTCの日時:", utcDate.toISOString());
                           
                           // 日時を日本時間に変換
                           const options = {
@@ -372,6 +386,7 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                     </Grid>
                   </Paper>
                 </Box>
+
               </Box>
 
               {/* アクションバー */}
@@ -418,6 +433,29 @@ export default function ReservationDetail({ reservationId, castId, onClose }: Re
                 >
                   メッセージを表示
                 </Button>
+
+                {(detail.status_key === 'user_arrived' || detail.status === 'user_arrived') && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={handleCastArrived}
+                    disabled={statusLoading}
+                    sx={{
+                      borderRadius: 6,
+                      background: 'linear-gradient(90deg, #f8bbd0 0%, #f06292 100%)',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 8px rgba(240,98,146,0.12)',
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #f06292 0%, #f8bbd0 100%)',
+                        opacity: 0.9,
+                      },
+                      mr: 2,
+                    }}
+                  >
+                    {statusLoading ? '処理中...' : 'キャスト到着（到着報告）'}
+                  </Button>
+                )}
               </Box>
             </Box>
           ) : (

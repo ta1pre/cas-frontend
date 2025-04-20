@@ -19,7 +19,8 @@ import {
   Tabs,
   Tab,
   Divider,
-  Badge
+  Badge,
+  Snackbar
 } from "@mui/material";
 import EventIcon from '@mui/icons-material/Event';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -30,13 +31,14 @@ import TrainIcon from '@mui/icons-material/Train';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import HistoryIcon from '@mui/icons-material/History';
+import fetchChangeStatus from "./api/fetchChangeStatus";
 
 // タブの種類を定義
 type TabType = 'action' | 'schedule' | 'history';
 
 // 予約ステータスをグループ化
 const ACTION_STATUSES = ['requested', 'adjusting', 'waiting_user_confirm'];
-const SCHEDULE_STATUSES = ['confirmed'];
+const SCHEDULE_STATUSES = ['confirmed', 'user_arrived', 'cast_arrived', 'both_arrived'];
 const HISTORY_STATUSES = ['completed', 'cancelled_user', 'cancelled_cast', 'no_show_user', 'no_show_cast', 'dispute'];
 
 export default function CastReserveList() {
@@ -45,10 +47,18 @@ export default function CastReserveList() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [currentTab, setCurrentTab] = useState<TabType>('action');
+  const [currentTab, setCurrentTab] = useState<TabType>('schedule');
   const limit = 10; // 1ページあたりの表示件数
   const user = useCastUser();
   const [selectedReservationId, setSelectedReservationId] = useState<number | null>(null);
+  const [allReservations, setAllReservations] = useState<CastReserveItem[]>([]);
+  const [statusLoadingId, setStatusLoadingId] = useState<number | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  // 件数カウント関数
+  const actionCount = allReservations.filter(r => ACTION_STATUSES.includes(r.status_key as string)).length;
+  const scheduleCount = allReservations.filter(r => SCHEDULE_STATUSES.includes(r.status_key as string)).length;
 
   // タブ変更ハンドラー
   const handleTabChange = (event: React.SyntheticEvent, newValue: TabType) => {
@@ -71,6 +81,13 @@ export default function CastReserveList() {
       console.log(`✅ 予約件数: ${data?.reservations?.length || 0}件, 全${data?.total_count || 0}件中`);
       
       if (data && data.reservations) {
+        // 全予約を保持
+        if (!append && pageNum === 1) {
+          setAllReservations(data.reservations);
+        } else if (append) {
+          setAllReservations(prev => [...prev, ...data.reservations]);
+        }
+        
         // タブに応じてフィルタリング
         let filteredReservations = [];
         if (tabType === 'action') {
@@ -91,9 +108,14 @@ export default function CastReserveList() {
         
         // append=trueの場合は既存のデータに追加、falseの場合は置き換え
         if (append) {
-          setReserves(prev => [...prev, ...filteredReservations]);
+          setReserves(prev => {
+            const updated = [...prev, ...filteredReservations];
+            console.log('setReserves (append):', updated);
+            return updated;
+          });
         } else {
           setReserves(filteredReservations);
+          console.log('setReserves:', filteredReservations);
         }
         
         // 続きがあるかどうかを判定
@@ -147,6 +169,324 @@ export default function CastReserveList() {
   const isFastestRequest = (dateTime: string | null): boolean => {
     if (!dateTime) return false;
     return dateTime.startsWith('7777-07-07');
+  };
+
+  // 日付を「2025年4月19日」形式で返す関数
+  const formatYMD = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  // 日付をグループ化するための関数
+  const getDateGroup = (dateString: string): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    const reserveDate = new Date(dateString);
+    reserveDate.setHours(0, 0, 0, 0);
+    
+    if (reserveDate.getTime() === today.getTime()) {
+      return '今日';
+    } else if (reserveDate.getTime() === tomorrow.getTime()) {
+      return '明日';
+    } else if (reserveDate > today && reserveDate < nextWeek) {
+      return '今週';
+    } else {
+      return '来週以降';
+    }
+  };
+
+  // 予定タブ用に予約をグループ化する関数
+  const groupReservationsByDate = () => {
+    const groups: {[key: string]: CastReserveItem[]} = {
+      '今日': [],
+      '明日': [],
+      '今週': [],
+      '来週以降': []
+    };
+    
+    reserves.forEach(reserve => {
+      const group = getDateGroup(reserve.start_time);
+      if (groups[group]) {
+        groups[group].push(reserve);
+      }
+    });
+    
+    return groups;
+  };
+
+  // ページ全体をリロードする関数（未使用化）
+  // const forcePageReload = () => {
+  //   if (typeof window !== 'undefined') {
+  //     window.location.reload();
+  //   }
+  // };
+
+  // 予約カードの表示
+  const renderReservationCard = (reserve: CastReserveItem) => {
+    // ステータスごとにボタン表示と挙動を切り替え
+    const showCastArrivedBtn = reserve.status_key === 'user_arrived' || reserve.status === 'user_arrived';
+    const showStartServiceBtn = reserve.status_key === 'cast_arrived' || reserve.status === 'cast_arrived';
+    const showCompleteBtn = reserve.status_key === 'both_arrived' || reserve.status === 'both_arrived';
+    const handleCardClick = () => setSelectedReservationId(reserve.reservation_id);
+
+    // 到着報告ボタン
+    const handleCastArrived = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (statusLoadingId) return;
+      if (!user?.user_id) return;
+      setStatusLoadingId(reserve.reservation_id);
+      try {
+        const response = await fetchChangeStatus(
+          "cast_arrived",
+          reserve.reservation_id,
+          user.user_id
+        );
+        console.log('【fetchChangeStatus レスポンス】', response);
+        if (response?.message && response.message.includes('ステータスを cast_arrived に変更しました')) {
+          // レスポンスメッセージを明示的に判定してリスト再取得
+          fetchReservations(1, false, currentTab);
+        } else if (response?.status === "OK" || response?.status === "SUCCESS") {
+          // 1秒待ってからリスト再取得
+          setTimeout(() => {
+            fetchReservations(1, false, currentTab);
+          }, 1000);
+        } else {
+          setSnackbarMessage(response?.message || "ステータス変更に失敗しました。");
+          setSnackbarOpen(true);
+        }
+      } catch (e: any) {
+        setSnackbarMessage(e?.message || "ステータス変更でエラーが発生しました");
+        setSnackbarOpen(true);
+      } finally {
+        setStatusLoadingId(null);
+      }
+    };
+
+    // サービス開始ボタン
+    const handleStartService = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (statusLoadingId) return;
+      if (!user?.user_id) return;
+      setStatusLoadingId(reserve.reservation_id);
+      try {
+        const response = await fetchChangeStatus(
+          "both_arrived",
+          reserve.reservation_id,
+          user.user_id
+        );
+        console.log('【fetchChangeStatus レスポンス】', response);
+        if (response?.message && response.message.includes('ステータスを both_arrived に変更しました')) {
+          fetchReservations(1, false, currentTab);
+        } else if (response?.status === "OK" || response?.status === "SUCCESS") {
+          // 1秒待ってからリスト再取得
+          setTimeout(() => {
+            fetchReservations(1, false, currentTab);
+          }, 1000);
+        } else {
+          setSnackbarMessage(response?.message || "ステータス変更に失敗しました。");
+          setSnackbarOpen(true);
+        }
+      } catch (e: any) {
+        setSnackbarMessage(e?.message || "ステータス変更でエラーが発生しました");
+        setSnackbarOpen(true);
+      } finally {
+        setStatusLoadingId(null);
+      }
+    };
+
+    // サービス終了報告ボタン
+    const handleComplete = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (statusLoadingId) return;
+      if (!user?.user_id) return;
+      setStatusLoadingId(reserve.reservation_id);
+      try {
+        const response = await fetchChangeStatus(
+          "completed",
+          reserve.reservation_id,
+          user.user_id
+        );
+        console.log('【fetchChangeStatus レスポンス】', response);
+        if (response?.message && response.message.includes('ステータスを completed に変更しました')) {
+          fetchReservations(1, false, currentTab);
+        } else if (response?.status === "OK" || response?.status === "SUCCESS") {
+          // 1秒待ってからリスト再取得
+          setTimeout(() => {
+            fetchReservations(1, false, currentTab);
+          }, 1000);
+        } else {
+          setSnackbarMessage(response?.message || "ステータス変更に失敗しました。");
+          setSnackbarOpen(true);
+        }
+      } catch (e: any) {
+        setSnackbarMessage(e?.message || "ステータス変更でエラーが発生しました");
+        setSnackbarOpen(true);
+      } finally {
+        setStatusLoadingId(null);
+      }
+    };
+
+    return (
+      <Card
+        key={`${reserve.reservation_id}-${reserve.status_key}-${reserve.status}`}
+        sx={{ mb: 2, borderRadius: 4, boxShadow: 1, border: '1px solid #f8bbd0', cursor: 'pointer', position: 'relative' }}
+        onClick={handleCardClick}
+      >
+        <CardContent>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box>
+              <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                <Chip label={getStatusLabel(reserve.status)} sx={{ backgroundColor: reserve.color_code, color: '#fff', height: 22, fontSize: 13 }} />
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  予約ID: {reserve.reservation_id}
+                </Typography>
+              </Box>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: '#e91e63' }}>
+                {isFastestRequest(reserve.start_time)
+                  ? `最速調整中@${reserve.station_name || "未設定"}`
+                  : `${formatYMD(reserve.start_time)} @ ${reserve.station_name || "未設定"}`}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {reserve.user_name} / {reserve.course_name}
+              </Typography>
+            </Box>
+            <Box display="flex" alignItems="center" gap={1}>
+              {showCastArrivedBtn && (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  disabled={statusLoadingId === reserve.reservation_id}
+                  onClick={handleCastArrived}
+                  sx={{
+                    borderRadius: 6,
+                    background: 'linear-gradient(90deg, #f8bbd0 0%, #f06292 100%)',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(240,98,146,0.12)',
+                    minWidth: 110,
+                    ml: 1,
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #f06292 0%, #f8bbd0 100%)',
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {statusLoadingId === reserve.reservation_id ? '処理中...' : '到着報告'}
+                </Button>
+              )}
+              {showStartServiceBtn && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  disabled={statusLoadingId === reserve.reservation_id}
+                  onClick={handleStartService}
+                  sx={{
+                    borderRadius: 6,
+                    background: 'linear-gradient(90deg, #b2dfdb 0%, #1976d2 100%)',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(25,118,210,0.12)',
+                    minWidth: 110,
+                    ml: 1,
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #1976d2 0%, #b2dfdb 100%)',
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {statusLoadingId === reserve.reservation_id ? '処理中...' : 'サービス開始'}
+                </Button>
+              )}
+              {showCompleteBtn && (
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  disabled={statusLoadingId === reserve.reservation_id}
+                  onClick={handleComplete}
+                  sx={{
+                    borderRadius: 6,
+                    background: 'linear-gradient(90deg, #dcedc8 0%, #388e3c 100%)',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(56,142,60,0.12)',
+                    minWidth: 120,
+                    ml: 1,
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #388e3c 0%, #dcedc8 100%)',
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {statusLoadingId === reserve.reservation_id ? '処理中...' : 'サービス終了報告'}
+                </Button>
+              )}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // 予約リスト内の特定予約のステータスを即時更新
+  const updateReservationStatus = (reservationId: number, newStatus: string) => {
+    setReserves(prev => {
+      // 現在のタブごとにフィルタリング
+      if (currentTab === 'action') {
+        const updated = prev.map(r =>
+          r.reservation_id === reservationId
+            ? { ...r, status_key: newStatus, status: newStatus as ReservationStatus }
+            : r
+        );
+        return updated.filter(r => isActionTargetStatus(r.status_key));
+      } else if (currentTab === 'history') {
+        const updated = prev.map(r =>
+          r.reservation_id === reservationId
+            ? { ...r, status_key: newStatus, status: newStatus as ReservationStatus }
+            : r
+        );
+        return updated.filter(r => isHistoryTargetStatus(r.status_key));
+      }
+      // その他タブは単純に反映
+      return prev.map(r =>
+        r.reservation_id === reservationId
+          ? { ...r, status_key: newStatus, status: newStatus as ReservationStatus }
+          : r
+      );
+    });
+    setAllReservations(prev => prev.map(r =>
+      r.reservation_id === reservationId
+        ? { ...r, status_key: newStatus, status: newStatus as ReservationStatus }
+        : r
+    ));
+  };
+
+  // アクションタブの対象status_key判定（例：user_arrived, cast_arrived, both_arrived）
+  const isActionTargetStatus = (status: string) => {
+    return ["user_arrived", "cast_arrived", "both_arrived"].includes(status);
+  };
+  // 履歴タブの対象status_key判定（例：completed, canceled など）
+  const isHistoryTargetStatus = (status: string) => {
+    return ["completed", "canceled", "cancelled", "no_show", "no_show_user", "no_show_cast", "dispute", "cancelled_user", "cancelled_cast"].includes(status);
+  };
+
+  // タブを一時的に切り替えて戻す関数（UI上も強制的に切替を見せる）
+  const forceTabReload = () => {
+    let nextTab: TabType = currentTab === 'schedule' ? 'action' : 'schedule';
+    setCurrentTab(nextTab);
+    setTimeout(() => {
+      setCurrentTab(currentTab);
+      // タブ切替時のfetchReservationsはhandleTabChangeで保証されている
+    }, 400); // 0.4秒だけ違うタブを表示
   };
 
   // 初回ロード時
@@ -208,6 +548,12 @@ export default function CastReserveList() {
         return 'キャスト未到着';
       case 'dispute':
         return 'トラブル';
+      case 'user_arrived':
+        return 'ユーザー到着';
+      case 'cast_arrived':
+        return 'キャスト到着';
+      case 'both_arrived':
+        return '両者到着';
       default:
         return status;
     }
@@ -224,156 +570,7 @@ export default function CastReserveList() {
     });
   };
 
-  // 日付をグループ化するための関数
-  const getDateGroup = (dateString: string): string => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const nextWeek = new Date(today);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    
-    const reserveDate = new Date(dateString);
-    reserveDate.setHours(0, 0, 0, 0);
-    
-    if (reserveDate.getTime() === today.getTime()) {
-      return '今日';
-    } else if (reserveDate.getTime() === tomorrow.getTime()) {
-      return '明日';
-    } else if (reserveDate > today && reserveDate < nextWeek) {
-      return '今週';
-    } else {
-      return '来週以降';
-    }
-  };
-
-  // 予定タブ用に予約をグループ化する関数
-  const groupReservationsByDate = () => {
-    const groups: {[key: string]: CastReserveItem[]} = {
-      '今日': [],
-      '明日': [],
-      '今週': [],
-      '来週以降': []
-    };
-    
-    reserves.forEach(reserve => {
-      const group = getDateGroup(reserve.start_time);
-      if (groups[group]) {
-        groups[group].push(reserve);
-      }
-    });
-    
-    return groups;
-  };
-
-  // 要対応タブの件数を取得
-  const getActionCount = () => {
-    if (!user.user_id) return 0;
-    return reserves.filter(r => ACTION_STATUSES.includes(r.status_key as string)).length;
-  };
-
-  // 予約カードの表示
-  const renderReservationCard = (reserve: CastReserveItem) => {
-    return (
-      <Card key={reserve.reservation_id} sx={{ 
-        mb: 2, 
-        borderRadius: 2,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        transition: 'transform 0.2s',
-        '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
-        }
-      }}>
-        <CardContent sx={{ p: 2.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-            <Chip 
-              label={reserve.status} 
-              color={getStatusColor(reserve.status_key as ReservationStatus)}
-              size="small"
-              sx={{ fontWeight: 500 }}
-            />
-            <Typography variant="caption" color="text.secondary">
-              #{reserve.reservation_id}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-            <AccessTimeIcon sx={{ mr: 1, fontSize: 20, color: '#9e9e9e' }} />
-            {reserve.start_time ? (
-              <>
-                {isFastestRequest(reserve.start_time) ? (
-                  <Typography variant="body1" fontWeight="bold" sx={{ color: 'red' }}>
-                    最短の日時を指定して下さい
-                  </Typography>
-                ) : (
-                  <Typography variant="body1" fontWeight="bold">
-                    {formatDate(reserve.start_time)}
-                  </Typography>
-                )}
-              </>
-            ) : (
-              <Typography variant="body1" fontWeight="bold" sx={{ color: 'red' }}>
-                最短の日時を指定して下さい
-              </Typography>
-            )}
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-            <PersonIcon sx={{ mr: 1, fontSize: 20, color: '#9e9e9e' }} />
-            <Typography variant="body1" fontWeight="medium">
-              {reserve.user_name}
-            </Typography>
-          </Box>
-
-          <Box sx={{ mb: 1.5 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ color: '#f06292' }}>
-              {reserve.course_name}
-            </Typography>
-          </Box>
-
-          {reserve.station_name !== undefined && (
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-              <TrainIcon sx={{ mr: 1, fontSize: 20, color: '#9e9e9e' }} />
-              <Typography variant="body2" color="text.secondary">
-                {reserve.station_name}
-              </Typography>
-            </Box>
-          )}
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <MonetizationOnIcon sx={{ mr: 0.5, fontSize: 20, color: '#9e9e9e' }} />
-              <Typography variant="body2" fontWeight="medium" sx={{ color: '#424242' }}>
-                {`${(reserve.cast_reward_points ?? 0).toLocaleString()}P（内、交通費 ${(reserve.traffic_fee ?? 0).toLocaleString()}P）`}
-              </Typography>
-            </Box>
-
-            <Button 
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={() => setSelectedReservationId(reserve.reservation_id)}
-              sx={{ 
-                borderRadius: 6,
-                textTransform: 'none',
-                boxShadow: 'none',
-                backgroundColor: '#f06292',
-                '&:hover': {
-                  backgroundColor: '#ec407a',
-                  boxShadow: '0 3px 8px rgba(240, 98, 146, 0.3)'
-                }
-              }}
-            >
-              {ACTION_STATUSES.includes(reserve.status_key as string) ? '対応する' : '詳細を見る'}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-    );
-  };
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   return (
     <Container maxWidth="sm" sx={{ 
@@ -399,27 +596,31 @@ export default function CastReserveList() {
       <Tabs 
         value={currentTab} 
         onChange={handleTabChange}
+        indicatorColor="secondary"
+        textColor="secondary"
         variant="fullWidth"
-        sx={{ 
-          mb: 3, 
-          '& .MuiTab-root': { 
-            color: '#757575',
-            '&.Mui-selected': { color: '#f06292' } 
-          },
-          '& .MuiTabs-indicator': { backgroundColor: '#f06292' }
-        }}
+        sx={{ mb: 2, borderRadius: 2, boxShadow: '0 2px 8px rgba(240,98,146,0.06)' }}
       >
         <Tab 
-          label="要対応" 
-          value="action" 
-          icon={
-            <Badge badgeContent={getActionCount()} color="error" max={99}>
-              <NotificationsIcon />
+          label={
+            <Badge badgeContent={scheduleCount} color="secondary" invisible={false}>
+              確定予定
             </Badge>
-          } 
-          iconPosition="start" 
+          }
+          value="schedule"
+          icon={<CalendarTodayIcon />}
+          iconPosition="start"
         />
-        <Tab label="予定" value="schedule" icon={<CalendarTodayIcon />} iconPosition="start" />
+        <Tab 
+          label={
+            <Badge badgeContent={actionCount} color="error" invisible={false}>
+              要対応
+            </Badge>
+          }
+          value="action"
+          icon={<NotificationsIcon />}
+          iconPosition="start"
+        />
         <Tab label="履歴" value="history" icon={<HistoryIcon />} iconPosition="start" />
       </Tabs>
 
@@ -503,7 +704,7 @@ export default function CastReserveList() {
                     {loading ? (
                       <CircularProgress size={24} color="secondary" />
                     ) : (
-                      `続きを読む (${reserves.length}/${totalCount}件)`
+                      '続きを読む'
                     )}
                   </Button>
                 </Box>
@@ -520,6 +721,15 @@ export default function CastReserveList() {
           onClose={() => setSelectedReservationId(null)}
         />
       )}
+
+      {/* スナックバー通知 */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2500}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
     </Container>
   );
 }

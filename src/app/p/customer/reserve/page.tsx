@@ -10,9 +10,13 @@ import fetchCustomerReserve from "./api/resvlist";
 import useUser from "@/hooks/useUser";
 import { Typography, Button, Box, CircularProgress, Alert, Fade } from "@mui/material";
 import EventNoteIcon from "@mui/icons-material/EventNote"; // 
+import { useRouter, useSearchParams } from "next/navigation";
+import { fetchAPI } from '@/services/auth/axiosInterceptor';
 
 export default function CustomerReservePage() {
   const user = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [reservations, setReservations] = useState<ReservationListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false); // 
@@ -157,6 +161,21 @@ export default function CustomerReservePage() {
       }
   };
 
+  // --- 予約リスト・詳細をAPIで強制更新する関数 ---
+  const updateReservationsAndDetail = async (targetReservationId: number) => {
+    const data = await fetchCustomerReserve(1, limit);
+    if (data) {
+      setReservations(data.reservations);
+      setTotalCount(data.totalCount);
+      const latest = data.reservations.find(r => r.reservation_id === targetReservationId);
+      if (latest) {
+        setSelectedReservation(latest);
+      }
+      return latest;
+    }
+    return null;
+  };
+
   const loadReservations = async (pageNum: number, reset: boolean = false) => {
     try {
       if (reset) {
@@ -198,6 +217,43 @@ export default function CustomerReservePage() {
 
   const remainingItems = totalCount - reservations.length;
 
+  // クエリから自動確定・予約ID取得
+  const autoCompleteReserve = searchParams.get("autoCompleteReserve");
+  const reservationIdParam = searchParams.get("reservationId");
+
+  // --- 自動予約確定フラグの処理 ---
+  const [autoCompleteReserveHandled, setAutoCompleteReserveHandled] = useState(false);
+  const [autoCompleteReserveAlert, setAutoCompleteReserveAlert] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 既に処理済みなら何もしない
+    if (autoCompleteReserveHandled) return;
+    if (autoCompleteReserve !== "1" || !reservationIdParam) return;
+    const idNum = Number(reservationIdParam);
+    if (isNaN(idNum)) return;
+    const found = reservations.find(r => r.reservation_id === idNum);
+    if (!found) return;
+    setAutoCompleteReserveHandled(true);
+    setSelectedReservation(found);
+    (async () => {
+      try {
+        const res = await fetchAPI("/api/v1/reserve/common/change_status/confirmed", {
+          reservation_id: idNum,
+          user_id: user?.user_id,
+        }, "POST");
+        // 最新データ取得&反映
+        const latest = await updateReservationsAndDetail(idNum);
+        if (latest && latest.status_key === "confirmed") {
+          setAutoCompleteReserveAlert("予約が確定しました！");
+        } else if (res && res.status === "INSUFFICIENT_POINTS") {
+          // setAutoCompleteReserveAlert("ポイントがまだ不足しています");
+        }
+      } catch (e: any) {
+        setAutoCompleteReserveAlert("予約確定処理に失敗しました");
+      }
+    })();
+  }, [autoCompleteReserve, reservationIdParam, reservations, user, autoCompleteReserveHandled]);
+
   return (
     <div className="p-4 max-w-xl mx-auto">
       <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
@@ -211,6 +267,14 @@ export default function CustomerReservePage() {
         <Fade in={!!error}>
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
+          </Alert>
+        </Fade>
+      )}
+
+      {autoCompleteReserveAlert && (
+        <Fade in={!!autoCompleteReserveAlert}>
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setAutoCompleteReserveAlert(null)}>
+            {autoCompleteReserveAlert}
           </Alert>
         </Fade>
       )}
