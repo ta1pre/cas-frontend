@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Box, TextField, Button, Typography, Container } from '@mui/material';
+import { fetchAPI } from '@/services/auth/axiosInterceptor';
 
 interface SMSVerificationStepProps {
     onNextStep: () => void;
@@ -18,7 +18,6 @@ export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerif
     const [isLoading, setIsLoading] = useState(false);
 
     const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/sms`;
-    const token = localStorage.getItem('token');
 
     const formatPhoneNumber = (number: string) => {
         if (number.startsWith("0")) {
@@ -38,18 +37,17 @@ export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerif
         setMessage("");
 
         try {
-            await axios.post(
+            const res = await fetchAPI(
                 `${BASE_URL}/send/`,
                 { phone: formatPhoneNumber(phoneNumber) },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
+                'POST'
             );
-            setIsCodeSent(true);
-            setMessage("認証コードを送信しました。SMSをご確認ください。");
+            if (res) {
+                setIsCodeSent(true);
+                setMessage("認証コードを送信しました。SMSをご確認ください。");
+            } else {
+                setError("認証コードの送信に失敗しました。");
+            }
         } catch (error) {
             console.error("認証コードの送信に失敗しました:", error);
             setError("認証コードの送信に失敗しました。");
@@ -69,18 +67,17 @@ export default function SMSVerificationStep({ onNextStep, onPrevStep }: SMSVerif
         setMessage('');
 
         try {
-            await axios.post(
+            const res = await fetchAPI(
                 `${BASE_URL}/verify/`,
                 { code: verificationCode },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
+                'POST'
             );
-            setMessage('電話番号認証が完了しました！');
-            onNextStep();
+            if (res) {
+                setMessage('電話番号認証が完了しました！');
+                onNextStep();
+            } else {
+                setError('認証コードが正しくありません。');
+            }
         } catch (error) {
             setError('認証コードが正しくありません。');
         } finally {
