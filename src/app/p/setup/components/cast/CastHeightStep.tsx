@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Slider, Button } from '@mui/material';
+import { Box, Typography, Button, Container, Paper, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 import { useSetupStorage } from '@/app/p/setup/hooks/storage/useSetupStorage';
 import { handleProfileUpdate } from '@/app/p/setup/hooks/logic/handleProfileUpdate';
 
@@ -12,7 +12,7 @@ interface Props {
 
 export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element {
     const { getStorage } = useSetupStorage();
-    const [height, setHeight] = useState<number>(170); // ✅ デフォルト値
+    const [height, setHeight] = useState<number>(158); // ✅ デフォルト値を158cmに変更
 
     // ✅ LocalStorage から身長を復元
     useEffect(() => {
@@ -22,12 +22,11 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
         }
     }, []);
 
-    // ✅ スライダーの変更処理（変更時に即時 `localStorage` に保存）
-    const handleHeightChange = (_: Event, newValue: number | number[]) => {
-        if (typeof newValue === 'number') {
-            setHeight(newValue);
-            handleProfileUpdate({ height: newValue }); // ✅ 変更時に即時保存
-        }
+    // ✅ 身長選択時の処理
+    const handleHeightChange = (event: SelectChangeEvent<number>) => {
+        const newHeight = event.target.value as number;
+        setHeight(newHeight);
+        handleProfileUpdate({ height: newHeight }); // ✅ 変更時に即時保存
     };
 
     // ✅ 「次へ」ボタンの処理
@@ -35,53 +34,83 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
         onNextStep();
     };
 
+    // ✅ 身長選択肢を生成（140cm〜190cm）
+    const heightOptions = [];
+    for (let i = 140; i <= 190; i++) {
+        heightOptions.push(i);
+    }
+
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                gap: 3,
-                px: 3,
-                width: '100%', // ✅ 幅を広げる
-            }}
-        >
-            {/* タイトル */}
-            <Typography variant="h5" fontWeight="bold">
-                身長を選択
-            </Typography>
-
-            {/* スライダー */}
-            <Box sx={{ width: '100%', textAlign: 'center' }}> {/* ✅ 幅を最大に */}
-                <Slider
-                    value={height}
-                    onChange={handleHeightChange} // ✅ 変更時に即時保存
-                    valueLabelDisplay="auto"
-                    min={140} // ✅ 最小値 140cm
-                    max={190} // ✅ 最大値 190cm
-                    step={1}
-                    marks={[
-                        { value: 140, label: '140cm' },
-                        { value: 165, label: '165cm' },
-                        { value: 190, label: '190cm' },
-                    ]}
-                />
-                <Typography variant="h6">{height} cm</Typography>
-            </Box>
-
-            {/* 「次へ」ボタン */}
-            <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleNext}
-                disabled={height === 170} // ✅ 変更がない場合は無効化
-                sx={{ mt: 2 }}
+        <Container maxWidth="sm">
+            <Paper 
+                elevation={3} 
+                sx={{
+                    p: 4,
+                    mt: 4,
+                    borderRadius: 2,
+                    backgroundColor: '#fff9fa',
+                    border: '1px solid #ffe0e6'
+                }}
             >
-                次へ
-            </Button>
-        </Box>
+                <Box 
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 3,
+                        textAlign: 'center'
+                    }}
+                >
+                    {/* タイトル */}
+                    <Typography variant="h5" fontWeight="bold" color="#e91e63">
+                        身長を選択
+                    </Typography>
+
+                    {/* プルダウン */}
+                    <FormControl fullWidth sx={{ maxWidth: 200 }}>
+                        <InputLabel id="height-select-label" sx={{ 
+                            '&.Mui-focused': { color: '#ff80ab' } 
+                        }}>身長</InputLabel>
+                        <Select
+                            labelId="height-select-label"
+                            id="height-select"
+                            value={height}
+                            label="身長"
+                            onChange={handleHeightChange}
+                            sx={{
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#ffcdd2',
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#ff80ab',
+                                },
+                            }}
+                        >
+                            {heightOptions.map((height) => (
+                                <MenuItem key={height} value={height}>{height} cm</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    {/* 「次へ」ボタン */}
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={handleNext}
+                        sx={{ 
+                            mt: 2,
+                            bgcolor: '#ff80ab',
+                            '&:hover': {
+                                bgcolor: '#f06292',
+                            },
+                            minWidth: 150,
+                            borderRadius: 8
+                        }}
+                    >
+                        次へ
+                    </Button>
+                </Box>
+            </Paper>
+        </Container>
     );
 }

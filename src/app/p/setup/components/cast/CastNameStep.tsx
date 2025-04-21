@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, TextField, Button, Typography } from '@mui/material';
+import { Box, TextField, Button, Typography, Container, Paper } from '@mui/material';
 import { useSetupStorage } from '@/app/p/setup/hooks/storage/useSetupStorage';
 import { handleCastName, registerCast } from '@/app/p/setup/hooks/logic/step/handleCastName';
 import useUser from '@/hooks/useUser';
@@ -39,43 +39,70 @@ export default function CastNameStep({ onNextStep }: Props): React.JSX.Element {
     };
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                gap: 3,
-                px: 3,
-            }}
-        >
-            {/* タイトル */}
-            <Typography variant="h5" fontWeight="bold">
-                キャスト名を入力
-            </Typography>
-
-            {/* 名前入力 */}
-            <TextField
-                label="キャスト名"
-                variant="outlined"
-                required
-                fullWidth
-                value={name}
-                onChange={handleNameChange}
-            />
-
-            {/* 「次へ」ボタン */}
-            <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={onNextStep}
-                disabled={!name}
-                sx={{ mt: 2 }}
+        <Container maxWidth="sm">
+            <Paper 
+                elevation={3} 
+                sx={{
+                    p: 4,
+                    mt: 4,
+                    borderRadius: 2,
+                    backgroundColor: '#fff9fa',
+                    border: '1px solid #ffe0e6'
+                }}
             >
-                次へ
-            </Button>
-        </Box>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 3,
+                    }}
+                >
+                    {/* タイトル */}
+                    <Typography variant="h5" fontWeight="bold" color="#e91e63">
+                        キャスト名を入力
+                    </Typography>
+
+                    {/* 名前入力 */}
+                    <TextField
+                        label="キャスト名"
+                        variant="outlined"
+                        required
+                        fullWidth
+                        value={name}
+                        onChange={handleNameChange}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '&.Mui-focused fieldset': {
+                                    borderColor: '#ff80ab',
+                                },
+                            },
+                            '& .MuiInputLabel-root.Mui-focused': {
+                                color: '#ff80ab',
+                            },
+                        }}
+                    />
+
+                    {/* 「次へ」ボタン */}
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={onNextStep}
+                        disabled={!name}
+                        sx={{ 
+                            mt: 2,
+                            bgcolor: '#ff80ab',
+                            '&:hover': {
+                                bgcolor: '#f06292',
+                            },
+                            minWidth: 150,
+                            borderRadius: 8
+                        }}
+                    >
+                        次へ
+                    </Button>
+                </Box>
+            </Paper>
+        </Container>
     );
 }
