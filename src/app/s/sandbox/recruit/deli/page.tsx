@@ -20,7 +20,7 @@ function DeliRecruitPageContent() {
 
   // Cookieに'StartPage'を設定
   useEffect(() => {
-    Cookies.set('StartPage', 'cast:delicas', { expires: 30 }); // 30日有効期限のCookieを設定
+    Cookies.set('StartPage', 'cast:precas', { expires: 30 }); // 30日有効期限のCookieを設定
   }, []);
 
   return (

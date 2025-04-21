@@ -39,7 +39,7 @@ const DashboardPage = () => {
     
     // クッキーからキャストタイプを判定
     const startPage = Cookies.get('StartPage');
-    if (startPage === 'cast:delicas') {
+    if (startPage === 'cast:precas') {
       setCastType('高収入キャスト');
     } else if (startPage === 'cast:cas') {
       setCastType('通常キャスト');

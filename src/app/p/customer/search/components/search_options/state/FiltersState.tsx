@@ -11,7 +11,7 @@ interface FiltersStateType {
     directUpdateFilter: (key: string, value: any) => void; // 追加: ダイレクト更新用の関数
     resetFilters: () => void;
     hasActiveFilters: boolean;
-    prefectureName: string | null;  // ✅ 都道府県名を追加
+    prefectureName: string | null;  // 都道府県名を追加
 }
 
 export const FiltersStateContext = createContext<FiltersStateType | null>(null);
@@ -26,8 +26,8 @@ const getInitialCastType = (): string => {
         if (type === 'customer') {
             if (genre === 'cas') {
                 return 'A'; // casの場合はAを初期値に
-            } else if (genre === 'delicas') {
-                return 'B'; // delicasの場合はBを初期値に
+            } else if (genre === 'precas') {
+                return 'B'; // precasの場合はBを初期値に
             }
         }
     }
@@ -42,7 +42,7 @@ export function FiltersStateProvider({ children }: { children: React.ReactNode }
     
     const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({ cast_type: initialCastType });
     const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({ cast_type: initialCastType });
-    const [prefectureName, setPrefectureName] = useState<string | null>(null); // ✅ 都道府県名を管理
+    const [prefectureName, setPrefectureName] = useState<string | null>(null); // 都道府県名を管理
 
     // service_typeコンポーネント専用のダイレクト更新関数
     const directUpdateFilter = (key: string, value: any) => {
@@ -66,7 +66,7 @@ export function FiltersStateProvider({ children }: { children: React.ReactNode }
             if (key === "location") {
                 const matchedName = Object.entries(PREFECTURE_OPTIONS).find(([name, id]) => id === Number(value));
                 newFilters["prefectureName"] = matchedName ? matchedName[0] : "未設定";
-                setPrefectureName(matchedName ? matchedName[0] : "未設定"); // ✅ `prefectureName` を更新
+                setPrefectureName(matchedName ? matchedName[0] : "未設定"); // `prefectureName` を更新
             }
 
             return newFilters;
@@ -79,7 +79,7 @@ export function FiltersStateProvider({ children }: { children: React.ReactNode }
 
     const resetFilters = () => {
         setSelectedFilters({});
-        setPrefectureName(null); // ✅ フィルターリセット時に都道府県名もリセット
+        setPrefectureName(null); // フィルターリセット時に都道府県名もリセット
     };
 
     const hasActiveFilters = Object.keys(selectedFilters).length > 0;
@@ -95,7 +95,7 @@ export function FiltersStateProvider({ children }: { children: React.ReactNode }
                 directUpdateFilter, // 新しい関数を追加
                 resetFilters,
                 hasActiveFilters,
-                prefectureName, // ✅ 追加
+                prefectureName, // 追加
             }}
         >
             {children}

@@ -14,9 +14,9 @@ function EroPageContent() {
   const { handleLogin, loading } = useAuth(); // Hooks をコンポーネント内で呼び出す
 
   useEffect(() => {
-    // クッキーを設定 - customer:delicasを設定
-    Cookies.set('StartPage', 'customer:delicas', { path: '/' });
-    console.log('StartPage cookie set to customer:delicas');
+    // クッキーを設定 - customer:precasを設定
+    Cookies.set('StartPage', 'customer:precas', { path: '/' });
+    console.log('StartPage cookie set to customer:precas');
     
     const video = videoRef.current;
     if (video) {

@@ -17,8 +17,8 @@ function PageContent() {
     // StartPageクッキーの値を取得
     const startPage = Cookies.get('StartPage');
     
-    // StartPageの値がcast:casまたはcast:delicasならp/cast/cont/dashboardへリダイレクト
-    if (startPage && (startPage === 'cast:cas' || startPage === 'cast:delicas')) {
+    // StartPageの値がcast:casまたはcast:precasならp/cast/cont/dashboardへリダイレクト
+    if (startPage && (startPage === 'cast:cas' || startPage === 'cast:precas')) {
       router.replace("/p/cast/cont/dashboard");
       return;
     }

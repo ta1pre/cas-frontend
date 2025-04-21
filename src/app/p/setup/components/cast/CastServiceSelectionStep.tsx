@@ -18,7 +18,7 @@ function getCastTypeFromCookie(): string {
     const startPage = Cookies.get('StartPage');
     if (startPage === 'cast:cas') {
         return 'A';
-    } else if (startPage === 'cast:delicas') {
+    } else if (startPage === 'cast:precas') {
         return 'B';
     }
     return 'A'; // デフォルト
