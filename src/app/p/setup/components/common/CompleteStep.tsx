@@ -6,15 +6,6 @@ import useUser from "@/hooks/useUser";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-// getCookieValue: 標準JSでクッキー取得
-function getCookieValue(name: string): string | undefined {
-  const value = document.cookie
-    .split('; ')
-    .find(row => row.startsWith(name + '='))
-    ?.split('=')[1];
-  return value;
-}
-
 export const sendProfileData = async (
   token: string,
   userId: number,
@@ -26,14 +17,10 @@ export const sendProfileData = async (
     return "送信データが不足しています";
   }
 
-  // StartPageクッキー値からcast_typeを決定
-  const startPage = getCookieValue("StartPage");
-  const castType = startPage === "cas" ? "A" : startPage === "precas" ? "B" : undefined;
-
   try {
     const response = await axios.post(
       `${apiUrl}/api/v1/setup/status/update`,
-      { user_id: userId, user_type: userType, cast_type: castType, profile_data: profileData },
+      { user_id: userId, user_type: userType, profile_data: profileData },
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
