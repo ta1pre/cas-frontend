@@ -65,15 +65,6 @@ export default function SexSelectionStep({ onNextStep }: Props) {
         if (tempGender) {
             setSelectedGender(tempGender);
             
-            // 性別に基づいてクッキーを設定
-            if (tempGender === 'female') {
-                // デフォルトは通常キャスト
-                setCookie('StartPage', 'cast:cas');
-            } else {
-                // 男性の場合はカスタマー
-                setCookie('StartPage', 'customer:cas');
-            }
-            
             handleSelectGender(tempGender, () => {});
             onNextStep(tempGender);
         }

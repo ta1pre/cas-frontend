@@ -3,6 +3,7 @@ import axios from "axios";
 import { Button, CircularProgress, Box, Typography, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import useUser from "@/hooks/useUser";
+import { getCookie } from '../../utils/cookieUtils';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -10,17 +11,21 @@ export const sendProfileData = async (
   token: string,
   userId: number,
   userType: string,
-  profileData: any
+  profileData: any,
+  castType?: string
 ): Promise<string> => {
   if (!token || !userId || !userType || !profileData) {
-    console.error("❌ `sendProfileData` に必要なデータが不足しています", { token, userId, userType, profileData });
+    console.error("❌ `sendProfileData` に必要なデータが不足しています", { token, userId, userType, profileData, castType });
     return "送信データが不足しています";
   }
 
   try {
+    const payload = castType
+      ? { user_id: userId, user_type: userType, cast_type: castType, profile_data: profileData }
+      : { user_id: userId, user_type: userType, profile_data: profileData };
     const response = await axios.post(
       `${apiUrl}/api/v1/setup/status/update`,
-      { user_id: userId, user_type: userType, profile_data: profileData },
+      payload,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -39,6 +44,7 @@ export default function CompleteStep() {
   const [userId, setUserId] = useState<number | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
+  const [castType, setCastType] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +65,25 @@ export default function CompleteStep() {
     const profileDataString = localStorage.getItem("profile_data");
     const storedUserType = localStorage.getItem("user_type");
 
+    let castTypeValue: string | null = null;
+    const startPageRaw = getCookie('StartPage');
+    let startPage = startPageRaw;
+    if (startPageRaw) {
+      try {
+        startPage = decodeURIComponent(startPageRaw);
+      } catch (e) {
+        // デコード失敗時はそのまま
+        startPage = startPageRaw;
+      }
+    }
+    if (startPage && startPage.startsWith('cast:')) {
+      const parts = startPage.split(':');
+      if (parts.length === 2) {
+        castTypeValue = parts[1]; // 例: 'cas'や'delicas'
+      }
+    }
+    setCastType(castTypeValue);
+
     if (!profileDataString || profileDataString === "null" || !storedUserType || storedUserType === "null") {
       console.warn("⚠️ `profile_data` または `user_type` が見つかりません", { profileDataString, storedUserType });
       setProfileMessage("プロフィールデータがありません");
@@ -75,12 +100,12 @@ export default function CompleteStep() {
       return;
     }
 
-    console.log("🚀 送信データ:", { userId, userType, profileData });
+    console.log("🚀 送信データ:", { userId, userType, castType, profileData });
 
-    sendProfileData(token, userId, userType, profileData)
+    sendProfileData(token, userId, userType, profileData, castType || undefined)
       .then(setProfileMessage)
       .catch(() => setProfileMessage("プロフィールデータ送信に失敗しました"));
-  }, [token, userId, userType, profileData]);
+  }, [token, userId, userType, profileData, castType]);
 
   return (
     <Container maxWidth="md">
