@@ -31,11 +31,6 @@ export default function ProfileContent({ profile }: ProfileContentProps) {
             {formatPrefecture(profile.support_area)}
           </Box>
         )}
-        {profile.reservation_fee && (
-          <Box className="px-3 py-1 bg-gray-100 rounded-full">
-            指名料: {formatCurrency(profile.reservation_fee)}
-          </Box>
-        )}
         {profile.popularity && (
           <Box className="px-3 py-1 bg-gray-100 rounded-full">人気度: {profile.popularity}</Box>
         )}

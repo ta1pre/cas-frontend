@@ -27,7 +27,7 @@ function PageContent() {
       if (user.userType === "customer") {
         router.replace("/p/customer/search");
       } else if (user.userType === "cast") {
-        router.replace("/p/cast");
+        router.replace("/p/cast/dashboard");
       }
     }
   }, [user, isAuthenticated, loading, router]);
