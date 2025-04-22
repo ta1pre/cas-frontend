@@ -127,7 +127,7 @@ const DashboardPage = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
             <VerifiedUserIcon sx={{ color: '#ff69b4', mr: 1, fontSize: 20 }} />
             <Typography variant="subtitle1" fontWeight="medium">
-              本人確認ステータス
+              本人確認と口座登録
             </Typography>
           </Box>
           <IdentityVerificationCard 
