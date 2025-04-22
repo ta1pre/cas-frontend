@@ -13,7 +13,7 @@ import {
 import { createPaymentIntent } from "../api/payment_intent";
 import { useRouter } from "next/navigation";
 
-// 環境変数から公開キーを取得
+// 環境変数から公開キーを取得ぅ
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface PaymentFormProps {
