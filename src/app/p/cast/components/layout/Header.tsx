@@ -13,15 +13,33 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Link from 'next/link';
+import { getVerificationStatus } from '@/app/p/cast/cont/identity_verification/services/identityService';
 
 export default function CastHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState('');
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     setIsOpen(false);
+    
+    // 本人確認ステータスを取得
+    const fetchVerificationStatus = async () => {
+      try {
+        const response = await getVerificationStatus();
+        setVerificationStatus(response?.status || 'unsubmitted');
+      } catch (error) {
+        console.error('本人確認ステータス取得エラー:', error);
+        setVerificationStatus('error');
+      }
+    };
+    
+    fetchVerificationStatus();
   }, [pathname]);
+
+  // 本人確認ステータスが承認されているかどうか
+  const isVerified = verificationStatus === 'approved';
 
   const handleLogout = () => {
     console.log("🚪 【CastHeader】ログアウト処理開始");
@@ -83,7 +101,23 @@ export default function CastHeader() {
 
               <nav className="mt-4 px-4">
                 <ul className="list-none space-y-4">
-                  <NavLink href="/p/cast/cont/reserve" icon={AssignmentIcon} pathname={pathname} setIsOpen={setIsOpen}>予約管理</NavLink>
+                  {isVerified ? (
+                    <NavLink href="/p/cast/cont/reserve" icon={AssignmentIcon} pathname={pathname} setIsOpen={setIsOpen}>予約管理</NavLink>
+                  ) : (
+                    <li>
+                      <button 
+                        onClick={() => {
+                          setIsOpen(false);
+                          router.push('/p/cast/cont/identity_verification');
+                        }} 
+                        className="flex items-center py-3 px-4 rounded-lg text-gray-400 cursor-not-allowed"
+                      >
+                        <AssignmentIcon className="mr-3 text-gray-400" fontSize="large" />
+                        予約管理
+                        <span className="text-xs ml-2 text-red-400">(本人確認後)</span>
+                      </button>
+                    </li>
+                  )}
                   <NavLink href="/p/cast/cont/prof" icon={PersonIcon} pathname={pathname} setIsOpen={setIsOpen}>プロフィール編集</NavLink>
                   <NavLink href="/p/cast/cont/points" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント管理</NavLink>
                   <NavLink href="/p/cast/cont/help" icon={HelpOutlineIcon} pathname={pathname} setIsOpen={setIsOpen}>ヘルプ</NavLink>

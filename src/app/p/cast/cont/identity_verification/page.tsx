@@ -5,6 +5,7 @@ import { Container, Typography, Paper, Box, Button, Stepper, Step, StepLabel, Ci
 import IdentityVerificationForm from './components/IdentityVerificationForm';
 import VerificationStatus from './components/VerificationStatus';
 import { getVerificationStatus, getVerificationDocuments, submitVerification } from './services/identityService';
+import { getCookie } from '@/app/p/setup/utils/cookieUtils';
 
 interface VerificationDataType {
   status: string;
@@ -18,6 +19,7 @@ const IdentityVerificationPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [castType, setCastType] = useState<'cas' | 'precas' | null>(null);
   
   // 本人確認ステータスの状態
   const [verificationData, setVerificationData] = useState<VerificationDataType>({
@@ -30,9 +32,29 @@ const IdentityVerificationPage = () => {
 
   const steps = ['書類の準備', '書類のアップロード', '審査待ち'];
 
-  // 初期ロード時に本人確認ステータスを取得
+  // 初期ロード時に本人確認ステータスとクッキーを取得
   useEffect(() => {
     fetchVerificationStatus();
+    
+    // StartPageクッキーの値を取得
+    const startPageCookie = getCookie('StartPage');
+    console.log('StartPage cookie:', startPageCookie);
+    
+    // クッキーの値からキャストタイプを判定
+    if (typeof startPageCookie === 'string') {
+      // URLエンコードされている可能性があるのでデコード
+      const decodedCookie = decodeURIComponent(startPageCookie);
+      
+      if (decodedCookie === 'cast:cas') {
+        setCastType('cas');
+      } else if (decodedCookie === 'cast:precas') {
+        setCastType('precas');
+      } else if (decodedCookie === 'cast%3Acas') {
+        setCastType('cas');
+      } else if (decodedCookie === 'cast%3Aprecas') {
+        setCastType('precas');
+      }
+    }
   }, []);
 
   // 本人確認ステータスを取得
@@ -145,9 +167,11 @@ const IdentityVerificationPage = () => {
                 <Typography variant="body1" paragraph>
                   1. 顔写真付き身分証明書（運転免許証、パスポート、マイナンバーカードなど）
                 </Typography>
-                <Typography variant="body1" paragraph>
-                  2. 本籍入り住民票
-                </Typography>
+                {castType === 'precas' && (
+                  <Typography variant="body1" paragraph>
+                    2. 本籍入り住民票
+                  </Typography>
+                )}
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   ※書類は鮮明に撮影し、すべての情報が明確に読み取れるようにしてください。
                 </Typography>
@@ -155,7 +179,11 @@ const IdentityVerificationPage = () => {
             )}
 
             {activeStep === 1 && (
-              <IdentityVerificationForm onSubmitSuccess={handleNext} />
+              <IdentityVerificationForm 
+                onSubmitSuccess={handleNext} 
+                defaultServiceType={castType === 'precas' ? 'B' : 'A'}
+                hideServiceTypeSelection={true}
+              />
             )}
 
             {activeStep === 2 && (
@@ -182,7 +210,7 @@ const IdentityVerificationPage = () => {
               {activeStep === steps.length - 1 ? (
                 <Button
                   variant="contained"
-                  onClick={() => window.location.href = '/p/cast/cont'}
+                  onClick={() => window.location.href = '/p/cast/cont/dashboard'}
                 >
                   完了
                 </Button>

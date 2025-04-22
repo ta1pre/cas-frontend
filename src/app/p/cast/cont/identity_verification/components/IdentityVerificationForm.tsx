@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, FormControl, RadioGroup, FormControlLabel, Radio, Alert, CircularProgress } from '@mui/material';
 import FileUploadBox from './FileUploadBox';
 import { submitVerification } from '../services/identityService';
 
 interface IdentityVerificationFormProps {
   onSubmitSuccess: () => void;
+  defaultServiceType?: 'A' | 'B';
+  hideServiceTypeSelection?: boolean;
 }
 
-const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onSubmitSuccess }) => {
-  const [serviceType, setServiceType] = useState<string>('A');
+const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ 
+  onSubmitSuccess,
+  defaultServiceType = 'A',
+  hideServiceTypeSelection = false
+}) => {
+  const [serviceType, setServiceType] = useState<string>(defaultServiceType);
   const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null);
   const [juminhyoFile, setJuminhyoFile] = useState<File | null>(null);
   const [idPhotoUrl, setIdPhotoUrl] = useState<string | null>(null);
@@ -18,6 +24,11 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
   const [errors, setErrors] = useState<{idPhoto?: string, juminhyo?: string}>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
+
+  // defaultServiceTypeが変更されたらserviceTypeを更新
+  useEffect(() => {
+    setServiceType(defaultServiceType);
+  }, [defaultServiceType]);
 
   const handleServiceTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setServiceType(event.target.value);
@@ -236,20 +247,24 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({ onS
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        サービス種別を選択してください
-      </Typography>
-      <FormControl component="fieldset" sx={{ mb: 3 }}>
-        <RadioGroup
-          aria-label="service-type"
-          name="service-type"
-          value={serviceType}
-          onChange={handleServiceTypeChange}
-        >
-          <FormControlLabel value="A" control={<Radio />} label="通常サービス" />
-          <FormControlLabel value="B" control={<Radio />} label="風俗関連サービス" />
-        </RadioGroup>
-      </FormControl>
+      {!hideServiceTypeSelection && (
+        <>
+          <Typography variant="h6" gutterBottom>
+            サービス種別を選択してください
+          </Typography>
+          <FormControl component="fieldset" sx={{ mb: 3 }}>
+            <RadioGroup
+              aria-label="service-type"
+              name="service-type"
+              value={serviceType}
+              onChange={handleServiceTypeChange}
+            >
+              <FormControlLabel value="A" control={<Radio />} label="通常サービス" />
+              <FormControlLabel value="B" control={<Radio />} label="風俗関連サービス" />
+            </RadioGroup>
+          </FormControl>
+        </>
+      )}
 
       <Typography variant="h6" gutterBottom>
         本人確認書類をアップロードしてください

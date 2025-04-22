@@ -89,24 +89,6 @@ export default function ServiceTypeForm({ onClose }: Props): React.JSX.Element {
         提供できるサービスを選択してください。複数選択できます。
       </Typography>
 
-      {/* キャストタイプ表示 */}
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          現在のキャストタイプ:
-        </Typography>
-        <Chip 
-          label={getCastTypeDisplay(castType)}
-          color="primary"
-          variant="outlined"
-          sx={{ fontWeight: 'medium' }}
-        />
-        {castType === 'A' && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
-            ※ Aタイプでは「通常」カテゴリのサービスのみ選択できます
-          </Typography>
-        )}
-      </Box>
-
       {/* 成功メッセージ */}
       {saveSuccess && (
         <Alert severity="success" sx={{ mb: 2 }}>

@@ -26,7 +26,7 @@ const IdentityVerificationCard: React.FC<IdentityVerificationCardProps> = ({
       case 'pending':
         return {
           title: '審査中',
-          description: '書類の審査を行っています。審査には1〜3営業日ほどお時間をいただいております。',
+          description: '書類の審査を行っています。審査には1営業日ほどお時間をいただいております。',
           icon: <PendingIcon fontSize="medium" color="warning" />,
           color: 'warning',
           chipLabel: '審査中'
@@ -50,9 +50,9 @@ const IdentityVerificationCard: React.FC<IdentityVerificationCardProps> = ({
       default:
         return {
           title: '未提出',
-          description: '本人確認書類を提出してください。',
-          icon: <WarningIcon fontSize="medium" color="warning" />,
-          color: 'warning',
+          description: '本人確認書類を提出してください。本人確認終了後、予約受付が可能になります。',
+          icon: <WarningIcon fontSize="medium" color="error" />,
+          color: 'error',
           chipLabel: '未提出'
         };
     }
