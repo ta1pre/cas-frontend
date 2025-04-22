@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, FormControl, RadioGroup, FormControlLabel, Radio, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, FormControl, RadioGroup, FormControlLabel, Radio, Alert, CircularProgress, TextField, Grid, Button } from '@mui/material';
 import FileUploadBox from './FileUploadBox';
-import { submitVerification } from '../services/identityService';
+import { submitVerification, updateBankAccount } from '../services/identityService';
 
 interface IdentityVerificationFormProps {
   onSubmitSuccess: () => void;
@@ -21,9 +21,18 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({
   const [juminhyoUrl, setJuminhyoUrl] = useState<string | null>(null);
   const [idPhotoMediaId, setIdPhotoMediaId] = useState<number | null>(null);
   const [juminhyoMediaId, setJuminhyoMediaId] = useState<number | null>(null);
-  const [errors, setErrors] = useState<{idPhoto?: string, juminhyo?: string}>({});
+  const [errors, setErrors] = useState<{idPhoto?: string, juminhyo?: string, bankInfo?: string}>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
+  const [bankInfoSubmitted, setBankInfoSubmitted] = useState(false);
+  
+  // 口座情報の状態
+  const [bankName, setBankName] = useState<string>('');
+  const [branchName, setBranchName] = useState<string>('');
+  const [branchCode, setBranchCode] = useState<string>('');
+  const [accountType, setAccountType] = useState<string>('普通');
+  const [accountNumber, setAccountNumber] = useState<string>('');
+  const [accountHolder, setAccountHolder] = useState<string>('');
 
   // defaultServiceTypeが変更されたらserviceTypeを更新
   useEffect(() => {
@@ -92,23 +101,17 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({
       setTimeout(() => {
         console.log(`🔄 遅延チェック実行 - メディアID: ${newMediaId}`);
         // 直接newMediaIdを使用して判定
-        if (serviceType === 'A') {
-          console.log('✅ Aサービス: 身分証がアップロードされました。提出処理を開始します。');
-          // 遅延を長くして状態の更新が確実に反映されるようにする
-          setTimeout(() => {
-            // 直接handleSubmitに引数としてメディアIDを渡す
-            handleSubmit(newMediaId, juminhyoMediaId);
-          }, 1000);
-        } else if (serviceType === 'B' && juminhyoMediaId) {
-          console.log('✅ Bサービス: 両方の書類がアップロードされました。提出処理を開始します。');
-          setTimeout(() => {
-            handleSubmit(newMediaId, juminhyoMediaId);
-          }, 1000);
+        if (newMediaId && (serviceType === 'A' || (serviceType === 'B' && juminhyoMediaId))) {
+          console.log('✅ 条件を満たしています。提出処理を開始します。');
+          checkFilesUploaded();
+        } else {
+          console.log('⚠️ 条件を満たしていません。', {
+            newMediaId,
+            serviceType,
+            juminhyoMediaId
+          });
         }
-      }, 3000);
-    }
-    if (file) {
-      setErrors(prev => ({...prev, idPhoto: undefined}));
+      }, 1000);
     }
   };
 
@@ -118,85 +121,154 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({
       setJuminhyoUrl(fileUrl);
     }
     if (mediaId) {
-      console.log(`🗿️ メディアID設定: ${mediaId}`);
+      console.log(`🗿️ 住民票メディアID設定: ${mediaId}`);
       // 直接変数に保存してから状態を更新
       const newMediaId = mediaId;
       setJuminhyoMediaId(newMediaId);
       
       // 遅延を長くして状態の更新が確実に反映されるようにする
       setTimeout(() => {
+        console.log(`🔄 遅延チェック実行 - 住民票メディアID: ${newMediaId}`);
         // 直接newMediaIdを使用して判定
-        if (serviceType === 'B' && idPhotoMediaId) {
-          console.log('✅ Bサービス: 両方の書類がアップロードされました。提出処理を開始します。');
-          setTimeout(() => {
-            handleSubmit(idPhotoMediaId, newMediaId);
-          }, 1000);
+        if (newMediaId && idPhotoMediaId && serviceType === 'B') {
+          console.log('✅ 条件を満たしています。提出処理を開始します。');
+          checkFilesUploaded();
         }
-      }, 3000);
+      }, 1000);
     }
-    if (file) {
-      setErrors(prev => ({...prev, juminhyo: undefined}));
+  };
+
+  const validateBankInfo = () => {
+    const newErrors: {bankInfo?: string} = {};
+    let isValid = true;
+    
+    // 口座情報のバリデーション
+    if (!bankName || !branchName || !branchCode || !accountType || !accountNumber || !accountHolder) {
+      newErrors.bankInfo = '口座情報はすべて入力してください';
+      isValid = false;
+    } else if (branchCode.length !== 3 || !/^\d{3}$/.test(branchCode)) {
+      newErrors.bankInfo = '支店コードは3桁の数字で入力してください';
+      isValid = false;
     }
+    
+    setErrors(prev => ({...prev, ...newErrors}));
+    return isValid;
   };
 
   const validateForm = (idPhotoId?: number | null, juminhyoId?: number | null) => {
-    const newErrors: {idPhoto?: string, juminhyo?: string} = {};
+    const newErrors: {idPhoto?: string, juminhyo?: string, bankInfo?: string} = {};
+    let isValid = true;
     
-    // 引数で渡されたIDがある場合はそれを使用し、なければ状態変数を使用
-    const effectiveIdPhotoMediaId = idPhotoId !== undefined ? idPhotoId : idPhotoMediaId;
-    const effectiveJuminhyoMediaId = juminhyoId !== undefined ? juminhyoId : juminhyoMediaId;
-    
-    // メディアIDを使用して検証
-    if (!effectiveIdPhotoMediaId) {
-      newErrors.idPhoto = '顔写真付き身分証明書をアップロードしてください';
+    // 身分証明書のチェック
+    if (!idPhotoId) {
+      newErrors.idPhoto = '身分証明書をアップロードしてください';
+      isValid = false;
     }
     
-    if (serviceType === 'B' && !effectiveJuminhyoMediaId) {
-      newErrors.juminhyo = '本籍入り住民票をアップロードしてください';
+    // 風俗関連サービスの場合は住民票も必須
+    if (serviceType === 'B' && !juminhyoId) {
+      newErrors.juminhyo = '住民票をアップロードしてください';
+      isValid = false;
     }
     
-    // デバッグログを追加
-    console.log('🔍 バリデーション詳細:', {
-      idPhotoMediaId: effectiveIdPhotoMediaId,
-      juminhyoMediaId: effectiveJuminhyoMediaId,
-      serviceType,
-      hasErrors: Object.keys(newErrors).length > 0,
-      errors: newErrors
-    });
+    // 口座情報のバリデーション
+    if (!bankInfoSubmitted) {
+      if (!bankName || !branchName || !branchCode || !accountType || !accountNumber || !accountHolder) {
+        newErrors.bankInfo = '口座情報はすべて入力してください';
+        isValid = false;
+      } else if (branchCode.length !== 3 || !/^\d{3}$/.test(branchCode)) {
+        newErrors.bankInfo = '支店コードは3桁の数字で入力してください';
+        isValid = false;
+      }
+    }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0 ? true : false; 
+    return isValid;
   };
 
-  const handleSubmit = async (idPhotoId?: number | null, juminhyoId?: number | null) => {
-    console.log('✅ handleSubmit開始');
-    setIsSubmitting(true);
-    setSubmitError(undefined);
-
-    // フォームのバリデーション
-    const isValid = validateForm(idPhotoId, juminhyoId);
-    console.log(`✅ フォームバリデーション結果: ${isValid}`);
-    if (!isValid) {
-      setIsSubmitting(false);
+  // 口座情報のみを送信する関数
+  const handleBankInfoSubmit = async () => {
+    if (!validateBankInfo()) {
       return;
     }
-
+    
+    setIsSubmitting(true);
+    setSubmitError(undefined);
+    
     try {
-      // 引数で渡されたIDがある場合はそれを使用し、なければ状態変数を使用
-      const effectiveIdPhotoMediaId = idPhotoId !== undefined ? idPhotoId : idPhotoMediaId;
-      const effectiveJuminhyoMediaId = juminhyoId !== undefined ? juminhyoId : juminhyoMediaId;
-      
-      // APIに送信するデータ
+      // 口座情報のみのリクエストデータを構築
       const requestData = {
         service_type: serviceType,
-        id_photo_media_id: effectiveIdPhotoMediaId || 0,
-        juminhyo_media_id: serviceType === 'B' ? (effectiveJuminhyoMediaId || 0) : null
+        id_photo_media_id: idPhotoMediaId ?? 0, // nullの場合は0を使用
+        juminhyo_media_id: serviceType === 'B' ? juminhyoMediaId : undefined,
+        bank_name: bankName,
+        branch_name: branchName,
+        branch_code: branchCode,
+        account_type: accountType,
+        account_number: accountNumber,
+        account_holder: accountHolder
       };
-
-      console.log('✅ 本人確認申請を送信します:', requestData);
       
-      // デバッグ用にリクエストデータの詳細を表示
-      console.log('✅ リクエスト詳細:', {
+      console.log('📦 口座情報送信データ:', requestData);
+      
+      // APIリクエスト送信
+      const result = await updateBankAccount(requestData);
+      console.log('✅ 口座情報送信完了:', result);
+      
+      // 口座情報送信完了フラグを設定
+      setBankInfoSubmitted(true);
+      
+      // 成功メッセージを表示
+      alert('口座情報が登録されました');
+    } catch (error) {
+      console.error('口座情報送信エラー:', error);
+      setSubmitError('口座情報の送信に失敗しました。もう一度お試しください。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async (idPhotoId: number | null = idPhotoMediaId, juminhyoId: number | null = juminhyoMediaId) => {
+    console.log('🚀 提出処理開始:', {
+      idPhotoId,
+      juminhyoId,
+      serviceType,
+      bankInfo: {
+        bankName,
+        branchName,
+        branchCode,
+        accountType,
+        accountNumber,
+        accountHolder
+      },
+      bankInfoSubmitted
+    });
+    
+    // バリデーション
+    if (!validateForm(idPhotoId, juminhyoId)) {
+      console.error('❌ バリデーションエラー:', errors);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setSubmitError(undefined);
+    
+    try {
+      // リクエストデータを構築
+      const requestData = {
+        service_type: serviceType,
+        id_photo_media_id: idPhotoId ?? 0, // nullの場合は0を使用
+        juminhyo_media_id: serviceType === 'B' ? juminhyoId : undefined,
+        // 口座情報を追加
+        bank_name: bankName,
+        branch_name: branchName,
+        branch_code: branchCode,
+        account_type: accountType,
+        account_number: accountNumber,
+        account_holder: accountHolder
+      };
+      
+      console.log('📦 リクエストデータ:', {
         url: '/api/v1/cast/identity-verification/submit',
         method: 'POST',
         data: JSON.stringify(requestData)
@@ -291,6 +363,128 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({
           />
         </Box>
       )}
+      
+      {/* 口座情報入力フォーム */}
+      <Typography variant="h6" gutterBottom sx={{ mt: 4, mb: 2 }}>
+        振込先口座情報を入力してください
+      </Typography>
+      
+      <Box sx={{ mb: 4, p: 2, bgcolor: '#FFF9FB', borderRadius: 2, border: '1px solid #FFD6E7' }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="銀行名"
+              placeholder="例：みずほ銀行"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              variant="outlined"
+              size="small"
+              required
+              disabled={bankInfoSubmitted}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="支店名"
+              placeholder="例：渋谷支店"
+              value={branchName}
+              onChange={(e) => setBranchName(e.target.value)}
+              variant="outlined"
+              size="small"
+              required
+              disabled={bankInfoSubmitted}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="支店コード"
+              placeholder="例：123（3桁）"
+              value={branchCode}
+              onChange={(e) => setBranchCode(e.target.value)}
+              variant="outlined"
+              size="small"
+              inputProps={{ maxLength: 3 }}
+              required
+              disabled={bankInfoSubmitted}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl component="fieldset" fullWidth>
+              <RadioGroup
+                row
+                aria-label="account-type"
+                name="account-type"
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value)}
+              >
+                <FormControlLabel value="普通" control={<Radio disabled={bankInfoSubmitted} />} label="普通" />
+                <FormControlLabel value="当座" control={<Radio disabled={bankInfoSubmitted} />} label="当座" />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="口座番号"
+              placeholder="例：1234567"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              variant="outlined"
+              size="small"
+              required
+              disabled={bankInfoSubmitted}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="口座名義人（カタカナ）"
+              placeholder="例：ヤマダ タロウ"
+              value={accountHolder}
+              onChange={(e) => setAccountHolder(e.target.value)}
+              variant="outlined"
+              size="small"
+              required
+              disabled={bankInfoSubmitted}
+            />
+          </Grid>
+        </Grid>
+        
+        {errors.bankInfo && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {errors.bankInfo}
+          </Alert>
+        )}
+        
+        {/* 口座情報送信ボタン */}
+        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleBankInfoSubmit}
+            disabled={isSubmitting || bankInfoSubmitted}
+            sx={{
+              bgcolor: '#FF80AB',
+              '&:hover': { bgcolor: '#F06292' },
+              px: 4,
+              py: 1,
+              borderRadius: 2,
+              boxShadow: '0 3px 5px rgba(0,0,0,0.1)'
+            }}
+          >
+            {bankInfoSubmitted ? '口座情報登録済み' : '口座情報を登録する'}
+          </Button>
+        </Box>
+        
+        {bankInfoSubmitted && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            口座情報が登録されました
+          </Alert>
+        )}
+      </Box>
 
       {isSubmitting && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

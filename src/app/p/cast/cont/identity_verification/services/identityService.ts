@@ -211,8 +211,46 @@ export const uploadFile = async (file: File, orderIndex: number) => {
   }
 };
 
+// 銀行口座情報を更新する
+export const updateBankAccount = async (data: { 
+  bank_name: string,
+  branch_name: string,
+  branch_code: string,
+  account_type: string,
+  account_number: string,
+  account_holder: string
+}) => {
+  try {
+    console.log('✅ identityService: updateBankAccount開始');
+    console.log('✅ APIリクエストデータ:', data);
+    
+    // 絶対パスを使用せず、エンドポイントのみを指定
+    const response = await fetchAPI('/api/v1/cast/identity-verification/update-bank-account', data);
+
+    console.log('✅ APIレスポンスデータ:', response);
+    return response;
+  } catch (error) {
+    console.error('🚫 updateBankAccountエラー:', error);
+    throw error;
+  }
+};
+
 // 本人確認申請を提出する
-export const submitVerification = async (data: { service_type: string, id_photo_media_id: number, juminhyo_media_id?: number | null } = { service_type: 'A', id_photo_media_id: 0, juminhyo_media_id: null }) => {
+export const submitVerification = async (data: { 
+  service_type: string, 
+  id_photo_media_id: number, 
+  juminhyo_media_id?: number | null,
+  bank_name?: string,
+  branch_name?: string,
+  branch_code?: string,
+  account_type?: string,
+  account_number?: string,
+  account_holder?: string
+} = { 
+  service_type: 'A', 
+  id_photo_media_id: 0, 
+  juminhyo_media_id: null 
+}) => {
   try {
     console.log('✅ identityService: submitVerification開始');
     console.log('✅ APIリクエストデータ:', data);
