@@ -60,6 +60,7 @@ function PaymentForm({ amount, points, clientSecret, onSuccess }: PaymentFormPro
         if (onSuccess) onSuccess();
       }
     } catch (err: any) {
+      console.error("決済処理中にエラー:", err);
       setError("決済処理中にエラーが発生しました。");
     } finally {
       setLoading(false);
@@ -119,7 +120,8 @@ export default function ElementsPaymentForm({ amount, points, onSuccess }: { amo
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
+    // 毎回新しいPayment Intentを作成するために、マウント時に一度だけ実行
+    const fetchClientSecret = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -129,13 +131,18 @@ export default function ElementsPaymentForm({ amount, points, onSuccess }: { amo
           setLoading(false);
           return;
         }
+        console.log("✅ 新しいPayment Intent作成成功:", res.client_secret.substring(0, 20) + '...');
         setClientSecret(res.client_secret);
       } catch (e) {
+        console.error("❌ Payment Intent作成エラー:", e);
         setError("決済情報の作成に失敗しました。");
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchClientSecret();
+    // amount, pointsが変わった時だけ再取得
   }, [amount, points]);
 
   if (loading) {
@@ -149,7 +156,15 @@ export default function ElementsPaymentForm({ amount, points, onSuccess }: { amo
   }
 
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <Elements stripe={stripePromise} options={{ 
+      clientSecret,
+      appearance: {
+        theme: 'stripe',
+        variables: {
+          colorPrimary: '#EC407A',
+        }
+      } 
+    }}>
       <PaymentForm amount={amount} points={points} clientSecret={clientSecret} onSuccess={onSuccess} />
     </Elements>
   );

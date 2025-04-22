@@ -8,11 +8,20 @@ import { fetchAPI } from "@/services/auth/axiosInterceptor";
  */
 export async function createPaymentIntent(amount: number, points: number): Promise<{ client_secret: string } | null> {
   try {
+    // 毎回新しいPaymentIntentを作成するため、タイムスタンプを追加
+    const timestamp = new Date().getTime();
+    
     // APIリクエスト先をFastAPIの本物のエンドポイントに修正
-    const res = await fetchAPI("/api/v1/customer/payments/create-payment-intent", { amount, points }, "POST");
+    const res = await fetchAPI("/api/v1/customer/payments/create-payment-intent", { 
+      amount, 
+      points,
+      timestamp // タイムスタンプを追加してキャッシュ回避
+    }, "POST");
+    
+    console.log(`✅ PaymentIntent作成成功: 金額=${amount}円, ポイント=${points}P`);
     return res;
   } catch (e) {
-    console.error("[createPaymentIntent]", e);
+    console.error("[createPaymentIntent] エラー:", e);
     return null;
   }
 }
