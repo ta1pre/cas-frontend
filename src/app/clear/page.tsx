@@ -8,7 +8,7 @@ export default function ClearPage() {
     if (typeof document !== "undefined") {
       document.cookie.split(";").forEach((c) => {
         const eqPos = c.indexOf("=");
-        const name = eqPos > -1 ? c.substr(0, eqPos) : c;
+        const name = eqPos > -1 ? c.slice(0, eqPos) : c;
         document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
       });
     }

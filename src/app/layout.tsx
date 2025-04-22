@@ -6,7 +6,7 @@ import ThemeProviderClient from '@/components/theme/ThemeProviderClient';
 
 export const metadata: Metadata = {
   title: 'Cas(キャス)',
-  description: 'マッチングサービスの総合アプリ',
+  description: '',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
