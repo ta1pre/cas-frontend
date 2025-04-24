@@ -32,6 +32,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import HistoryIcon from '@mui/icons-material/History';
 import fetchChangeStatus from "./api/fetchChangeStatus";
+import { useRouter } from "next/navigation";
 
 // タブの種類を定義
 type TabType = 'action' | 'schedule' | 'history';
@@ -572,6 +573,36 @@ export default function CastReserveList() {
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
+  const router = useRouter();
+
+  // --- ハッシュから予約IDを取得してモーダルを自動表示 ---
+  useEffect(() => {
+    const openModalFromHash = () => {
+      if (typeof window === "undefined") return;
+      const hash = window.location.hash;
+      if (hash && /^#\d+$/.test(hash)) {
+        const id = parseInt(hash.replace('#', ''), 10);
+        if (!isNaN(id)) {
+          setSelectedReservationId(id);
+        }
+      }
+    };
+    openModalFromHash();
+    window.addEventListener("hashchange", openModalFromHash);
+    return () => {
+      window.removeEventListener("hashchange", openModalFromHash);
+    };
+  }, []);
+
+  // --- モーダルを閉じたときにハッシュを削除 ---
+  const handleCloseModal = () => {
+    setSelectedReservationId(null);
+    if (typeof window !== "undefined") {
+      // hashだけ消す（履歴を汚さない）
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  };
+
   return (
     <Container maxWidth="sm" sx={{ 
       py: 2, 
@@ -718,7 +749,7 @@ export default function CastReserveList() {
         <ReservationDetail
           reservationId={selectedReservationId}
           castId={user.user_id}
-          onClose={() => setSelectedReservationId(null)}
+          onClose={handleCloseModal}
         />
       )}
 
