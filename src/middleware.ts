@@ -5,7 +5,10 @@ import { tokenMiddlewareLogic } from "./middleware/tokenMiddleware";
 import { setupMiddleware } from "./middleware/setupMiddleware";
 
 export const config = {
-    matcher: ["/p/:path*"],
+    matcher: [
+        "/p/:path*",
+        "/tenant/:path*" // /tenant配下も追加
+    ],
 };
 
 export default async function middleware(request: NextRequest) {
@@ -14,7 +17,44 @@ export default async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     console.log("【middleware.ts】 pathname:", pathname);
 
-    // `/p/` 以外はスキップ
+    // /tenant 直下（ログインページ）は認証ガードしない
+    if (pathname === "/tenant") {
+        return NextResponse.next();
+    }
+
+    // /tenant/* サブページは認証ガード
+    if (pathname.startsWith("/tenant/")) {
+        try {
+            const token = await tokenMiddlewareLogic(request);
+            console.log("【middleware.ts】 /tenant/*: 取得したtoken:", token);
+            if (!token) {
+                console.warn("【middleware.ts】 /tenant/*: トークンなし。ログインページへリダイレクト");
+                return NextResponse.redirect(new URL("/tenant", request.url));
+            }
+            // 認証処理を追加
+            const authResponse = await authMiddleware(request, token);
+            if (authResponse) {
+                console.warn("【middleware.ts】 /tenant/*: 認証失敗。リダイレクト");
+                return authResponse; // 認証失敗時はリダイレクト
+            }
+            // 認証成功時はクッキーにトークンを再セット
+            const response = NextResponse.next();
+            response.cookies.set("token", token, {
+                path: "/",
+                secure: false, // 本番はtrue
+                sameSite: "lax",
+                httpOnly: false,
+                maxAge: 3600,
+            });
+            console.log("【middleware.ts】 /tenant/*: 認証成功、レスポンス返却");
+            return response;
+        } catch (error) {
+            console.error("【middleware.ts】 /tenant/*: エラー発生:", error);
+            return NextResponse.redirect(new URL("/tenant", request.url));
+        }
+    }
+
+    // /p/以下は既存ロジックを維持
     if (!pathname.startsWith("/p")) {
         console.log(" `/p/` 以外のためスキップ");
         return NextResponse.next();

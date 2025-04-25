@@ -24,6 +24,7 @@ export async function setupMiddleware(request: NextRequest): Promise<NextRespons
     try {
         // ✅ トークン取得
         const token = request.cookies.get("token")?.value;
+        console.log("【setupMiddleware】サーバーで見えているtoken:", token);
 
         if (!token) {
             console.error("❌ 【setupMiddleware】 トークンなし。処理をスキップ");

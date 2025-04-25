@@ -7,6 +7,9 @@ import { refreshToken } from "../hooks/cookies/extend_token";
  */
 export async function tokenMiddlewareLogic(request: NextRequest): Promise<string | null> {
     try {
+        // クッキーからtoken取得ログ
+        const cookieToken = request.cookies.get("token")?.value;
+        console.log("【tokenMiddleware】サーバーで見えているtoken:", cookieToken);
         console.log("🚀 【tokenMiddleware】Token更新 を実行して token を更新します...");
         const token = await refreshToken(request);
         if (!token) {

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import InfoIcon from "@mui/icons-material/Info";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import { Button, Card, CardContent, Typography, Snackbar, IconButton, CircularProgress } from "@mui/material";
+import { Card, CardContent, Typography, Snackbar, IconButton, CircularProgress } from "@mui/material";
 import { fetchAPI } from "@/services/auth/axiosInterceptor";
 
 export default function AppInfoPage() {
