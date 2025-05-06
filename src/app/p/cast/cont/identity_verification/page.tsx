@@ -206,7 +206,6 @@ const IdentityVerificationPage = () => {
               >
                 戻る
               </Button>
-              
               {activeStep === steps.length - 1 ? (
                 <Button
                   variant="contained"
@@ -214,17 +213,17 @@ const IdentityVerificationPage = () => {
                 >
                   完了
                 </Button>
-              ) : (
+              ) : activeStep === 0 ? (
                 <Button
                   variant="contained"
-                  onClick={activeStep === 0 ? handleNext : undefined}
-                  disabled={isSubmitting || activeStep === 1}
+                  onClick={handleNext}
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <CircularProgress size={24} color="inherit" />
-                  ) : activeStep === 0 ? '次へ' : ''}
+                  ) : '次へ'}
                 </Button>
-              )}
+              ) : null}
             </Box>
           </>
         )}

@@ -2,9 +2,10 @@
 
 import React, { ReactNode, useState, useEffect } from "react";
 import { useAuth } from "@/context/auth/useAuth"; 
-import { setGlobalUser } from "@/context/auth/globalUser"; // ✅ `globalThis.user` にセット
+import { setGlobalUser } from "@/context/auth/globalUser"; // `globalThis.user` にセット
 import LocalTokenMake from "./components/LocalTokenMake";
 import { Container, CircularProgress, Box } from "@mui/material";
+import CastBottomNav from "./cast/components/layout/CastBottomNav";
 
 interface LayoutProps {
     children: ReactNode;
@@ -15,13 +16,13 @@ export default function RootLayout({ children }: LayoutProps) {
     const auth = useAuth();
 
     useEffect(() => {
-        console.log("✅ LocalTokenMake が完了したら `useAuth()` を実行");
+        console.log(" LocalTokenMake が完了したら `useAuth()` を実行");
 
-        setGlobalUser(auth.user); // ✅ `globalThis.user` に `user` をセット
+        setGlobalUser(auth.user); // `globalThis.user` に `user` をセット
         setTokenRefreshed(true);
-    }, [auth.user]); // ✅ `auth.user` が更新されたら `globalThis.user` も更新
+    }, [auth.user]); // `auth.user` が更新されたら `globalThis.user` も更新
 
-    console.log("✅ layout.tsx で取得した user:", auth.user);
+    console.log(" layout.tsx で取得した user:", auth.user);
 
     if (!tokenRefreshed || auth.loading) {
         return (
@@ -33,18 +34,12 @@ export default function RootLayout({ children }: LayoutProps) {
 
     return (
         <LocalTokenMake>
-            <Container
-                maxWidth={false} 
-                sx={{
-                    minHeight: "100vh",
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    padding: 0,
-                }}
-            >
-                {children}
-            </Container>
+            <>
+                <Container maxWidth="sm" sx={{ minHeight: '100vh', pb: 8 }}>
+                    {children}
+                </Container>
+                <CastBottomNav />
+            </>
         </LocalTokenMake>
     );
 }

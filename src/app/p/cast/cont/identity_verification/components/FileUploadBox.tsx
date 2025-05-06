@@ -101,13 +101,13 @@ const FileUploadBox: React.FC<FileUploadBoxProps> = ({
               'ファイルを選択'
             )}
           </Button>
-          
-          {file && !isUploading && (
-            <Typography variant="body2" color="text.secondary">
-              {file.name} ({Math.round(file.size / 1024)} KB)
-            </Typography>
-          )}
         </Box>
+        
+        {file && !isUploading && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {file.name}
+          </Typography>
+        )}
         
         {error && (
           <Typography variant="body2" color="error" sx={{ mt: 1 }}>

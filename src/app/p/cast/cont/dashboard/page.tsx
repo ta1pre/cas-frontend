@@ -6,7 +6,9 @@ import {
   Card, CardContent, IconButton, Divider, Avatar, SvgIcon, Button, Link
 } from '@mui/material';
 import IdentityVerificationCard from '@/app/p/cast/cont/dashboard/components/IdentityVerificationCard';
+import AvailableButton from './components/AvailableButton';
 import { getVerificationStatus } from '../identity_verification/services/identityService';
+import { fetchProfileApi } from '../prof/api/profileApi';
 import HomeIcon from '@mui/icons-material/Home';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -31,10 +33,15 @@ const DashboardPage = () => {
     reviewed_at: null,
     rejection_reason: null
   });
+  const [profile, setProfile] = useState<{ name?: string }>({});
 
   // 初期ロード時に本人確認ステータスを取得
   useEffect(() => {
     fetchVerificationStatus();
+    // プロフィール情報取得
+    fetchProfileApi().then((data) => {
+      setProfile({ name: data?.name });
+    });
   }, []);
 
   // 本人確認ステータスを取得
@@ -87,23 +94,14 @@ const DashboardPage = () => {
           ホーム
         </Typography>
       </Box>
-
-      {/* ウェルカムカード - 最初に表示 */}
-      <Card sx={{ mb: 3, borderRadius: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-        <Box sx={{ 
-          background: 'linear-gradient(45deg, #ff69b4, #ff8fbf)', 
-          p: 2, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between'
-        }}>
-          <Typography variant="subtitle1" fontWeight="medium" color="white">
-            おはようございます！
-          </Typography>
-          <NotificationsIcon sx={{ color: 'white' }} />
-        </Box>
-      </Card>
-
+      {/* 挨拶メッセージ - ボタンの上に左寄せで */}
+      {profile.name && (
+        <Typography variant="body1" sx={{ color: '#333', mb: 2, fontSize: '1rem' }}>
+          {profile.name}さん、こんにちは
+        </Typography>
+      )}
+      {/* 利用可能ボタン - ホームの下に移動 */}
+      {verificationData.status === 'approved' && <AvailableButton />}
       {/* お知らせカード - 2番目に表示 */}
       <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', mb: 3 }}>
         <CardContent sx={{ p: 2 }}>
@@ -115,7 +113,7 @@ const DashboardPage = () => {
           </Box>
           <Box sx={{ p: 1.5, bgcolor: '#fff0f5', borderRadius: 1 }}>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              ・春の新規登録キャンペーン実施中！
+              ・新規登録キャンペーン実施中！
             </Typography>
           </Box>
         </CardContent>

@@ -64,24 +64,19 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({
       return;
     }
     
-    // Bサービスの場合は両方の書類が必要
     if (serviceType === 'B') {
-      if (idPhotoMediaId && juminhyoMediaId) {
-        console.log('✅ Bサービス: 両方の書類がアップロードされました。提出処理を開始します。');
-        setTimeout(() => handleSubmit(), 500);
+      if (idPhotoMediaId && juminhyoMediaId && bankInfoSubmitted) {
+        console.log('✅ Bサービス: 書類と口座情報が揃いました。本人確認申請を開始します。');
+        handleSubmit();
       } else {
-        console.log('⚠️ Bサービス: 必要な書類が不足しています。', {
-          idPhotoMediaId: !!idPhotoMediaId,
-          juminhyoMediaId: !!juminhyoMediaId
-        });
+        console.log('⚠️ Bサービス: 書類または口座情報が不足しています。', { idPhotoMediaId, juminhyoMediaId, bankInfoSubmitted });
       }
     } else {
-      // Aサービスの場合は身分証のみでOK
-      if (idPhotoMediaId) {
-        console.log('✅ Aサービス: 身分証がアップロードされました。提出処理を開始します。');
-        setTimeout(() => handleSubmit(), 500);
+      if (idPhotoMediaId && bankInfoSubmitted) {
+        console.log('✅ Aサービス: 身分証と口座情報が揃いました。本人確認申請を開始します。');
+        handleSubmit();
       } else {
-        console.log('⚠️ Aサービス: 身分証がアップロードされていません。');
+        console.log('⚠️ Aサービス: 身分証または口座情報が不足しています。', { idPhotoMediaId, bankInfoSubmitted });
       }
     }
   };
@@ -220,6 +215,11 @@ const IdentityVerificationForm: React.FC<IdentityVerificationFormProps> = ({
       
       // 成功メッセージを表示
       alert('口座情報が登録されました');
+      // ドキュメントがアップロード済みなら本人確認申請を実行
+      if (idPhotoMediaId && (serviceType === 'A' || (serviceType === 'B' && juminhyoMediaId))) {
+        console.log('✅ ドキュメントと口座情報が揃いました。本人確認申請を実行します。');
+        handleSubmit();
+      }
     } catch (error) {
       console.error('口座情報送信エラー:', error);
       setSubmitError('口座情報の送信に失敗しました。もう一度お試しください。');
