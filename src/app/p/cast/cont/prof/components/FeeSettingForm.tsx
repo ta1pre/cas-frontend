@@ -37,23 +37,24 @@ const FeeSettingForm: React.FC<FeeSettingFormProps> = ({ onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
   const [dataLoaded, setDataLoaded] = useState<boolean>(false);
+  const [castType, setCastType] = useState<string | undefined>();
   const theme = useTheme();
 
   // 報酬額の選択肢
-  const feeOptions = [
-    { value: '3000', label: '3,000' },
-    { value: '4000', label: '4,000' },
-    { value: '5000', label: '5,000' },
-  ];
+  const feeOptions = Array.from({ length: 19 }, (_, i) => ({
+    value: (2000 + i * 1000).toString(),
+    label: (2000 + i * 1000).toLocaleString()
+  }));
   
   const deliOptions = [
-    { value: '4000', label: '4,000' },
-    { value: '5000', label: '5,000' },
-    { value: '6000', label: '6,000' },
-    { value: '7000', label: '7,000' },
-    { value: '8000', label: '8,000' },
-    { value: '9000', label: '9,000' },
-    { value: '10000', label: '10,000' },
+    ...Array.from({ length: 17 }, (_, i) => ({
+      value: (4000 + i * 1000).toString(),
+      label: (4000 + i * 1000).toLocaleString()
+    })),
+    ...Array.from({ length: 28 }, (_, i) => ({
+      value: (30000 + i * 10000).toString(),
+      label: (30000 + i * 10000).toLocaleString()
+    }))
   ];
 
   // プロフィールデータの取得
@@ -81,6 +82,7 @@ const FeeSettingForm: React.FC<FeeSettingFormProps> = ({ onClose }) => {
             reservation_fee: profileData.reservation_fee || '',
             reservation_fee_deli: profileData.reservation_fee_deli || '', // デリバリー用予約料金を追加
           });
+          setCastType(profileData.cast_type);
         }
         setDataLoaded(true);
       } catch (error) {
@@ -202,6 +204,7 @@ const FeeSettingForm: React.FC<FeeSettingFormProps> = ({ onClose }) => {
           </Grid>
           
           {/* 報酬額 */}
+          {(castType === 'A' || castType === 'AB') && (
           <Grid item xs={12} sx={{ mb: 2 }}>
             <FormControl fullWidth required error={!!formErrors.reservation_fee}>
               <InputLabel id="reservation-fee-label">1時間あたりの報酬額</InputLabel>
@@ -224,8 +227,10 @@ const FeeSettingForm: React.FC<FeeSettingFormProps> = ({ onClose }) => {
               )}
             </FormControl>
           </Grid>
+          )}
           
           {/* デリバリー用報酬額 */}
+          {(castType === 'B' || castType === 'AB') && (
           <Grid item xs={12}>
             <FormControl fullWidth required error={!!formErrors.reservation_fee_deli}>
               <InputLabel id="reservation-fee-deli-label">デリバリー時の1時間あたり報酬額</InputLabel>
@@ -251,6 +256,7 @@ const FeeSettingForm: React.FC<FeeSettingFormProps> = ({ onClose }) => {
               ※ 報酬額は税込み表示となります
             </Typography>
           </Grid>
+          )}
           
           {/* ボタン */}
           <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ mt: 2 }}>
