@@ -12,7 +12,7 @@ interface Props {
 
 export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
     const { getStorage } = useSetupStorage();
-    const [age, setAge] = useState<number>(18); // 
+    const [age, setAge] = useState<number | "">(""); // 初期値は空文字（未選択）
 
     // LocalStorage から年齢を復元
     useEffect(() => {
@@ -23,10 +23,12 @@ export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
     }, []);
 
     // 年齢選択時処理
-    const handleAgeChange = (event: SelectChangeEvent<number>) => {
-        const newAge = event.target.value as number;
+    const handleAgeChange = (event: SelectChangeEvent<number | "">) => {
+        const newAge = event.target.value;
         setAge(newAge);
-        handleProfileUpdate({ age: newAge }); // 即座に `localStorage` に保存
+        if (newAge !== "") {
+            handleProfileUpdate({ age: newAge }); // 即座に `localStorage` に保存
+        }
     };
 
     // 年齢選択肢を作成
@@ -72,6 +74,7 @@ export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
                                 },
                             }}
                         >
+                            <MenuItem value=""><em>選択して下さい</em></MenuItem>
                             {ageOptions.map((age) => (
                                 <MenuItem key={age} value={age}>{age} 歳</MenuItem>
                             ))}

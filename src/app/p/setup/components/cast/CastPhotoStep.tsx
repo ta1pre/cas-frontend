@@ -23,12 +23,12 @@ export default function CastPhotoStep({ onNextStep }: Props): React.JSX.Element 
 
     return (
         <Container maxWidth="sm">
-            <Box textAlign="center" my={4}>
-                <Typography variant="h5" fontWeight="bold">
-                    📸 プロフィール画像をアップロード
+            <Box textAlign="left" my={4}>
+                <Typography variant="h5" fontWeight="bold" sx={{ textAlign: 'left' }}>
+                    📸 プロフィール画像
                 </Typography>
-                <Typography variant="body1" color={isMainUploaded ? "success.main" : "error.main"}>
-                    {isMainUploaded ? "✅ メイン画像がアップロードされています" : "⚠️ メイン画像をアップロードしてね"}
+                <Typography variant="body1" color={isMainUploaded ? "success.main" : "error.main"} sx={{ textAlign: 'left' }}>
+                    {isMainUploaded ? "✅ メイン画像がアップロー１ドされています" : "⚠️ メイン画像をアップロードして下さい、「予約受付の設定」を完了するまでは、プロフィールは公開されません。画像や情報を登録しても、公開設定(予約受付)をするまではユーザーには表示されません。"}
                 </Typography>
             </Box>
 

@@ -63,12 +63,6 @@ export function useSetupStorage() {
         if (typeof window !== 'undefined') {
             localStorage.setItem(key, value);
         }
-        
-        // user_typeを設定する場合、StartPageクッキーも更新
-        if (key === 'user_type') {
-            const genre = 'cas'; // デフォルトは通常タイプ
-            setCookie('StartPage', `${value}:${genre}`);
-        }
     };
 
     /**

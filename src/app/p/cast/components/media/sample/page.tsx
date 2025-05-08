@@ -18,12 +18,12 @@ const Page = () => {
 
   return (
     <Container maxWidth="sm">
-      <Box textAlign="center" my={4}>
+      <Box textAlign="left" my={4}>
         <Typography variant="h4" component="h1" gutterBottom>
           📸 プロフィール画像アップロード
         </Typography>
         <Typography variant="body1" color={isMainUploaded ? "success.main" : "error.main"}>
-          {isMainUploaded ? "✅ メイン画像がアップロードされています" : "⚠️ メイン画像をアップロードしてね"}
+          {isMainUploaded ? "✅ メイン画像がアップロードされています" : "⚠️ メイン画像をアップロードしてね(公開設定するまで公開されません。)"}
         </Typography>
       </Box>
 

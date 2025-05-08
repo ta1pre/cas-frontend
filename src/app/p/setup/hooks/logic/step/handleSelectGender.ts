@@ -36,9 +36,6 @@ export function handleSelectGender(
     // ✅ `user_type` をローカルストレージに保存
     setStorageValue('user_type', newUserType);
     
-    // ✅ StartPageクッキーも更新
-    const genre = 'cas'; // デフォルトは通常タイプ
-    setCookie('StartPage', `${newUserType}:${genre}`);
 
     // ✅ ステータス更新
     setUserType(newUserType);

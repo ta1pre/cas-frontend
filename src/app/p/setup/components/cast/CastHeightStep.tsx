@@ -12,7 +12,7 @@ interface Props {
 
 export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element {
     const { getStorage } = useSetupStorage();
-    const [height, setHeight] = useState<number>(158); // ✅ デフォルト値を158cmに変更
+    const [height, setHeight] = useState<number | "">(""); // 初期値は空文字（未選択）
 
     // ✅ LocalStorage から身長を復元
     useEffect(() => {
@@ -23,10 +23,12 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
     }, []);
 
     // ✅ 身長選択時の処理
-    const handleHeightChange = (event: SelectChangeEvent<number>) => {
-        const newHeight = event.target.value as number;
+    const handleHeightChange = (event: SelectChangeEvent<number | "">) => {
+        const newHeight = event.target.value;
         setHeight(newHeight);
-        handleProfileUpdate({ height: newHeight }); // ✅ 変更時に即時保存
+        if (newHeight !== "") {
+            handleProfileUpdate({ height: newHeight }); // ✅ 変更時に即時保存
+        }
     };
 
     // ✅ 「次へ」ボタンの処理
@@ -86,6 +88,7 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
                                 },
                             }}
                         >
+                            <MenuItem value=""><em>選択して下さい</em></MenuItem>
                             {heightOptions.map((height) => (
                                 <MenuItem key={height} value={height}>{height} cm</MenuItem>
                             ))}

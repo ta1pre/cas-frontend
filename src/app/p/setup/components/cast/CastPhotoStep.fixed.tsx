@@ -28,8 +28,8 @@ export default function CastPhotoStep({ onNextStep }: Props): React.JSX.Element 
                     📸 プロフィール画像をアップロード
                 </Typography>
                 <Typography variant="body1" color={isMainUploaded ? "success.main" : "error.main"}>
-                    {isMainUploaded ? "✅ メイン画像がアップロードされています" : "⚠️ メイン画像をアップロードしてね"}
-                </Typography>
+                    {isMainUploaded ? "✅ メイン画像がアップロードされています" : "⚠️ メイン画像をアップロードして下さい、本キャスト登録後まで公開されません。"}
+                </Typography>   
             </Box>
 
             {/* ✅ 画像アップロード用コンポーネント */}
