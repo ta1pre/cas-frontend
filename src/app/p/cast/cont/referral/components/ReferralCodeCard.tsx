@@ -15,7 +15,7 @@ interface Props {
 const ReferralCodeCard: React.FC<Props> = ({ invitationId }) => {
   const shareUrl = `https://lp.cas.tokyo/cast/lux/first?tr=${invitationId}`;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`;
-  const xUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('一緒に使おう！')}`;
+  const xUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('PreCasで一緒に稼ごう！')}`;
 
   const handleCopy = () => {
     if (invitationId) {
@@ -40,7 +40,7 @@ const ReferralCodeCard: React.FC<Props> = ({ invitationId }) => {
           </Tooltip>
         </div>
         <Typography variant="body2" className="mt-2 text-gray-500">
-          このURLからお友達が登録すると紹介特典がもらえます！
+          このURLからお友達が登録すると紹介ポイントがもらえます！
         </Typography>
 
         {/* シェアボタン（ロゴ画像リンク使用） */}
