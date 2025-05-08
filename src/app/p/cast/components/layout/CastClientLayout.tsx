@@ -20,7 +20,7 @@ export default function CastClientLayout({ children }: { children: React.ReactNo
       <Box sx={{ width: '100%', minHeight: '100vh', overflowX: 'hidden', pb: '56px' }}>
         <CssBaseline />
         <Header />
-        <Box py={4}>{children}</Box>
+        <Box py={4} pt={6}>{children}</Box>
         <CastBottomNav />
       </Box>
     </CastUserContext.Provider>

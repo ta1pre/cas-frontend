@@ -120,6 +120,7 @@ export default function CastHeader() {
                   )}
                   <NavLink href="/p/cast/cont/prof" icon={PersonIcon} pathname={pathname} setIsOpen={setIsOpen}>プロフィール編集</NavLink>
                   <NavLink href="/p/cast/cont/points" icon={AccountBalanceWalletIcon} pathname={pathname} setIsOpen={setIsOpen}>ポイント管理</NavLink>
+                  <NavLink href="/p/cast/cont/referral" icon={AssignmentIcon} pathname={pathname} setIsOpen={setIsOpen}>紹介プログラム</NavLink>
                   <NavLink href="/p/cast/cont/help" icon={HelpOutlineIcon} pathname={pathname} setIsOpen={setIsOpen}>ヘルプ</NavLink>
                   <li className="mt-6 border-t border-gray-300 pt-4">
                     <button onClick={handleLogout} className="flex items-center py-3 px-4 rounded-lg text-red-600 hover:bg-gray-100 text-lg">
