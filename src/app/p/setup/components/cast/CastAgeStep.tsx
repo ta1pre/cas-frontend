@@ -24,12 +24,14 @@ export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
 
     // 年齢選択時処理
     const handleAgeChange = (event: SelectChangeEvent<number | "">) => {
-        const newAge = event.target.value;
+        const value = event.target.value;
+        const newAge = value === "" ? "" : Number(value);
         setAge(newAge);
         if (newAge !== "") {
             handleProfileUpdate({ age: newAge }); // 即座に `localStorage` に保存
         }
     };
+
 
     // 年齢選択肢を作成
     const ageOptions = [];

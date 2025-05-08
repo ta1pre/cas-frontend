@@ -24,12 +24,14 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
 
     // ✅ 身長選択時の処理
     const handleHeightChange = (event: SelectChangeEvent<number | "">) => {
-        const newHeight = event.target.value;
+        const value = event.target.value;
+        const newHeight = value === "" ? "" : Number(value);
         setHeight(newHeight);
         if (newHeight !== "") {
             handleProfileUpdate({ height: newHeight }); // ✅ 変更時に即時保存
         }
     };
+
 
     // ✅ 「次へ」ボタンの処理
     const handleNext = () => {
