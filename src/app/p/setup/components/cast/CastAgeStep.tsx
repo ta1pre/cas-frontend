@@ -12,13 +12,15 @@ interface Props {
 
 export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
     const { getStorage } = useSetupStorage();
-    const [age, setAge] = useState<number | "">(""); // 初期値は空文字（未選択）
+    const [age, setAge] = useState<number | "">("");
+    const [isNextEnabled, setIsNextEnabled] = useState(false);
 
     // LocalStorage から年齢を復元
     useEffect(() => {
         const savedProfile = JSON.parse(getStorage('profile_data') || '{}');
         if (savedProfile.age) {
             setAge(savedProfile.age);
+            setIsNextEnabled(true);
         }
     }, []);
 
@@ -27,6 +29,7 @@ export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
         const value = event.target.value;
         const newAge = value === "" ? "" : Number(value);
         setAge(newAge);
+        setIsNextEnabled(newAge !== "");
         if (newAge !== "") {
             handleProfileUpdate({ age: newAge }); // 即座に `localStorage` に保存
         }
@@ -88,11 +91,12 @@ export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
                         variant="contained"
                         size="large"
                         onClick={onNextStep}
+                        disabled={!isNextEnabled}
                         sx={{ 
                             mt: 2,
-                            bgcolor: '#ff80ab',
+                            bgcolor: isNextEnabled ? '#ff80ab' : '#cccccc',
                             '&:hover': {
-                                bgcolor: '#f06292',
+                                bgcolor: isNextEnabled ? '#f06292' : '#cccccc',
                             },
                             minWidth: 150,
                             borderRadius: 8
@@ -100,6 +104,11 @@ export default function CastAgeStep({ onNextStep }: Props): React.JSX.Element {
                     >
                         次へ
                     </Button>
+                    {!isNextEnabled && (
+                        <Typography color="error" variant="caption" sx={{ mt: 1 }}>
+                            年齢を選択してください
+                        </Typography>
+                    )}
                 </Box>
             </Paper>
         </Container>

@@ -12,13 +12,15 @@ interface Props {
 
 export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element {
     const { getStorage } = useSetupStorage();
-    const [height, setHeight] = useState<number | "">(""); // 初期値は空文字（未選択）
+    const [height, setHeight] = useState<number | "">("");
+    const [isNextEnabled, setIsNextEnabled] = useState(false);
 
     // ✅ LocalStorage から身長を復元
     useEffect(() => {
         const savedProfile = JSON.parse(getStorage('profile_data') || '{}');
         if (savedProfile.height) {
             setHeight(savedProfile.height);
+            setIsNextEnabled(true);
         }
     }, []);
 
@@ -27,15 +29,10 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
         const value = event.target.value;
         const newHeight = value === "" ? "" : Number(value);
         setHeight(newHeight);
+        setIsNextEnabled(newHeight !== "");
         if (newHeight !== "") {
             handleProfileUpdate({ height: newHeight }); // ✅ 変更時に即時保存
         }
-    };
-
-
-    // ✅ 「次へ」ボタンの処理
-    const handleNext = () => {
-        onNextStep();
     };
 
     // ✅ 身長選択肢を生成（140cm〜190cm）
@@ -101,12 +98,13 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
                     <Button
                         variant="contained"
                         size="large"
-                        onClick={handleNext}
+                        onClick={onNextStep}
+                        disabled={!isNextEnabled}
                         sx={{ 
                             mt: 2,
-                            bgcolor: '#ff80ab',
+                            bgcolor: isNextEnabled ? '#ff80ab' : '#cccccc',
                             '&:hover': {
-                                bgcolor: '#f06292',
+                                bgcolor: isNextEnabled ? '#f06292' : '#cccccc',
                             },
                             minWidth: 150,
                             borderRadius: 8
@@ -114,6 +112,12 @@ export default function CastHeightStep({ onNextStep }: Props): React.JSX.Element
                     >
                         次へ
                     </Button>
+
+                    {!isNextEnabled && (
+                        <Typography color="error" variant="caption" sx={{ mt: 1 }}>
+                            身長を選択してください
+                        </Typography>
+                    )}
                 </Box>
             </Paper>
         </Container>
