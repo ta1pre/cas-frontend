@@ -55,7 +55,7 @@ function DeliRecruitPageContent() {
             fontSize: '1rem'
           }}
         >
-          今なら10,000円分のボーナスポイント進呈中！
+          今なら8,000円分のボーナスポイント進呈中！
         </Typography>
 
         {/* 登録ボタン */}
