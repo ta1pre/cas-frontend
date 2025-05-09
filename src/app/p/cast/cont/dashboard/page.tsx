@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Container, Typography, Grid, Paper, Box, CircularProgress, 
-  Card, CardContent, IconButton, Divider, Avatar, SvgIcon, Button, Link
+  Card, CardContent, IconButton, Divider, Avatar, Button, Link
 } from '@mui/material';
 import IdentityVerificationCard from '@/app/p/cast/cont/dashboard/components/IdentityVerificationCard';
 import AvailableButton from './components/AvailableButton';
@@ -113,7 +113,12 @@ const DashboardPage = () => {
           </Box>
           <Box sx={{ p: 1.5, bgcolor: '#fff0f5', borderRadius: 1 }}>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              ・新規登録キャンペーン実施中！
+              <b>今がもっともお得！</b><br />
+              お友達を紹介して、ポイントをゲットしよう♪
+              <br />
+              <Link href="/p/cast/cont/referral" underline="always" sx={{ color: '#ff69b4', fontWeight: 'bold' }}>
+                紹介プログラムはこちら
+              </Link>
             </Typography>
           </Box>
         </CardContent>
@@ -123,10 +128,6 @@ const DashboardPage = () => {
       <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', mb: 3 }}>
         <CardContent sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            {/* LINEアイコン（SVG） */}
-            <SvgIcon sx={{ color: '#06c755', mr: 1, fontSize: 24 }}>
-              <path d="M20.666 3.999C19.133 2.466 16.667 2 12 2S4.867 2.466 3.334 3.999C1.8 5.533 1.333 8 1.333 12c0 4 0.467 6.467 2 8.001C4.867 21.534 7.333 22 12 22s7.133-0.466 8.666-2C22.2 18.467 22.667 16 22.667 12c0-4-0.467-6.467-2.001-8.001zM12 20c-4.667 0-7.133-0.466-8.667-2C2.133 16.467 1.667 14 1.667 12c0-2 0.466-4.467 2-6.001C4.867 4.466 7.333 4 12 4s7.133 0.466 8.667 2C21.867 7.533 22.333 10 22.333 12c0 2-0.466 4.467-2 6.001C19.133 19.534 16.667 20 12 20zm-0.667-8.667h1.334v3.334h-1.334v-3.334zm-2.666 0h1.334v3.334h-1.334v-3.334zm5.334 0h1.334v3.334h-1.334v-3.334z" />
-            </SvgIcon>
             <Typography variant="subtitle1" fontWeight="medium" color="#06c755">
               公式LINEはこちら
             </Typography>
@@ -136,17 +137,13 @@ const DashboardPage = () => {
               <Button
                 variant="contained"
                 sx={{ bgcolor: '#06c755', color: 'white', borderRadius: 2, px: 3, py: 1, fontWeight: 'bold', boxShadow: 'none', '&:hover': { bgcolor: '#32d071' } }}
-                startIcon={
-                  <SvgIcon sx={{ fontSize: 22 }}>
-                    <path d="M20.666 3.999C19.133 2.466 16.667 2 12 2S4.867 2.466 3.334 3.999C1.8 5.533 1.333 8 1.333 12c0 4 0.467 6.467 2 8.001C4.867 21.534 7.333 22 12 22s7.133-0.466 8.666-2C22.2 18.467 22.667 16 22.667 12c0-4-0.467-6.467-2.001-8.001zM12 20c-4.667 0-7.133-0.466-8.667-2C2.133 16.467 1.667 14 1.667 12c0-2 0.466-4.467 2-6.001C4.867 4.466 7.333 4 12 4s7.133 0.466 8.667 2C21.867 7.533 22.333 10 22.333 12c0 2-0.466 4.467-2 6.001C19.133 19.534 16.667 20 12 20zm-0.667-8.667h1.334v3.334h-1.334v-3.334zm-2.666 0h1.334v3.334h-1.334v-3.334zm5.334 0h1.334v3.334h-1.334v-3.334z" />
-                  </SvgIcon>
-                }
               >
                 公式LINEで友だち追加
               </Button>
             </Link>
             <Typography variant="caption" sx={{ mt: 1, color: '#888' }}>
-              お知らせや最新情報は公式LINEでお届けします。
+            <b>AIが24時間質問に回答します！</b><br />
+            不安な方は<b>オペレーターにも直接相談</b>もできます。
             </Typography>
           </Box>
         </CardContent>
