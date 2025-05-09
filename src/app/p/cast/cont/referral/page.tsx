@@ -27,8 +27,10 @@ const ReferralPage: React.FC = () => {
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center bg-gradient-to-b from-pink-50 to-white">
       <h1 className="text-2xl md:text-3xl font-bold text-pink-500 mb-4 mt-8">紹介プログラム</h1>
-      <p className="text-gray-500 mb-6 text-center max-w-md">
-        お友達にURLをシェアして、ポイントゲット！！
+      <p className="text-gray-500 mb-6 text-left max-w-md">
+        お友達にURLをシェアして、ポイントゲット！！<br />
+        初日出勤で5,000P、その後は売上の10%がずっと貰えます！<br />
+        もちろん、お友達の報酬は一切引かれません。
       </p>
       {loading ? (
         <CircularProgress color="secondary" />
