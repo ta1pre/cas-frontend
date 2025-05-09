@@ -29,7 +29,7 @@ const ReferralPage: React.FC = () => {
       <h1 className="text-2xl md:text-3xl font-bold text-pink-500 mb-4 mt-8">紹介プログラム</h1>
       <p className="text-gray-500 mb-6 text-left max-w-md">
         お友達にURLをシェアして、ポイントゲット！！<br />
-        初日出勤で5,000P、その後は売上の10%がずっと貰えます！<br />
+        初回出勤で5,000P、その後は売上の10%がずっと貰えます！<br />
         もちろん、お友達の報酬は一切引かれません。
       </p>
       {loading ? (
