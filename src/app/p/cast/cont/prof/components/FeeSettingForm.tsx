@@ -116,14 +116,10 @@ const FeeSettingForm: React.FC<FeeSettingFormProps> = ({ onClose }) => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     
-    // 報酬額のチェック（必須）
-    if (!formData.reservation_fee) {
-      errors.reservation_fee = '報酬額は必須です';
-    }
-    
-    // デリバリー用報酬額のチェック（必須）
-    if (!formData.reservation_fee_deli) {
-      errors.reservation_fee_deli = 'デリバリー用報酬額は必須です';
+    // 報酬額とデリバリー用報酬額のどちらかが入力されているかチェック
+    if (!formData.reservation_fee && !formData.reservation_fee_deli) {
+      errors.reservation_fee = '通常報酬額またはデリバリー用報酬額のいずれかを入力してください';
+      errors.reservation_fee_deli = '通常報酬額またはデリバリー用報酬額のいずれかを入力してください';
     }
     
     setFormErrors(errors);
