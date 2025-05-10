@@ -23,6 +23,8 @@ export const refreshToken = async (request?: NextRequest): Promise<string | null
         .find(row => row.startsWith("refresh_token="))
         ?.split("=")[1] || null;
     } else if (request) {
+      // 追加: サーバーサイド実行時に全クッキーを詳細ログ出力
+      console.log('【extend_token.ts】全クッキー:', request.cookies.getAll());
       // ✅ サーバー側: `request.cookies.get()` から取得
       refreshToken = request.cookies.get("refresh_token")?.value || null;
     }

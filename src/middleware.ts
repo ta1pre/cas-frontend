@@ -12,6 +12,12 @@ export const config = {
 };
 
 export default async function middleware(request: NextRequest) {
+    console.log('🌐 【middleware.ts】受信ヘッダー:', {
+      method: request.method,
+      url: request.url,
+      cookies: request.cookies.getAll(),
+      headers: Object.fromEntries(request.headers.entries())
+    });
     console.log("【middleware.ts】ミドルウェア開始");
 
     const { pathname } = request.nextUrl;

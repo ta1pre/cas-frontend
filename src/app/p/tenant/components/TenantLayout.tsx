@@ -1,18 +1,10 @@
 "use client";
 import React from "react";
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Button, Typography, Divider, ListItemButton } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import StoreIcon from "@mui/icons-material/Store";
-import EventIcon from "@mui/icons-material/Event";
-import LogoutIcon from "@mui/icons-material/Logout";
+import { Box, Drawer, Button, Typography } from "@mui/material";
+import { Dashboard, Store, Event, People, Logout } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/auth/useAuth";
-
-const menuItems = [
-  { text: "ダッシュボード", icon: <DashboardIcon />, path: "/p/tenant/dashboard" },
-  { text: "店舗情報", icon: <StoreIcon />, path: "/p/tenant/store" },
-  { text: "予約管理", icon: <EventIcon />, path: "/p/tenant/reservations" },
-];
 
 export default function TenantLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -23,51 +15,49 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
     router.replace("/tenant");
   };
 
+  const menuItems = [
+    { icon: <Dashboard />, label: 'ダッシュボード', href: '/p/tenant/dashboard' },
+    { icon: <Store />, label: '店舗情報', href: '/p/tenant/store-info' },
+    { icon: <Event />, label: '予約管理', href: '/p/tenant/reservations' },
+    { icon: <People />, label: 'キャスト管理', href: '/p/tenant/cast' },
+  ];
+
   return (
-    <Box className="min-h-screen flex bg-gray-100">
+    <div className="flex h-screen w-full overflow-hidden">
       {/* サイドバー */}
-      <Drawer
-        variant="permanent"
-        anchor="left"
-        PaperProps={{
-          className: "w-64 bg-slate-900 border-r-0 shadow-md flex flex-col justify-between",
-        }}
-      >
-        <Box>
-          <Typography variant="h5" className="text-center py-6 font-bold text-blue-300 tracking-widest">
-            提携店管理
-          </Typography>
-          <Divider className="mb-2 bg-gray-700" />
-          <List>
-            {menuItems.map((item) => (
-              <ListItem key={item.text} disablePadding>
-                <ListItemButton onClick={() => router.push(item.path)} className="hover:bg-slate-800">
-                  <ListItemIcon className="text-blue-400">{item.icon}</ListItemIcon>
-                  <ListItemText 
-                    primary={item.text} 
-                    primaryTypographyProps={{ className: "text-gray-900 font-bold" }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-        <Box className="mb-6 px-4">
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={<LogoutIcon />}
+      <div className="w-64 h-full bg-slate-900 flex flex-col fixed left-0 top-0 bottom-0">
+        <div className="p-4 border-b border-slate-800">
+          <h2 className="text-white font-bold">提携店管理</h2>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-2">
+          {menuItems.map((item, index) => (
+            <Link 
+              key={index} 
+              href={item.href}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
+        </div>
+        
+        <div className="p-4 border-t border-slate-800">
+          <button 
             onClick={handleLogout}
-            className="bg-gray-700 hover:bg-blue-700 text-gray-100 font-bold py-2 rounded-lg shadow"
+            className="flex items-center gap-2 text-slate-300 hover:text-white w-full"
           >
+            <Logout />
             ログアウト
-          </Button>
-        </Box>
-      </Drawer>
-      {/* メインエリア: サイドバー幅分の左マージンを追加 */}
-      <Box className="flex-1 p-8 ml-64 bg-white min-h-screen">
+          </button>
+        </div>
+      </div>
+      
+      {/* メインコンテンツ */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-50" style={{ marginLeft: '16rem' }}>
         {children}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

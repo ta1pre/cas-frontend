@@ -4,8 +4,6 @@ import React, { ReactNode, useState, useEffect } from "react";
 import { useAuth } from "@/context/auth/useAuth"; 
 import { setGlobalUser } from "@/context/auth/globalUser"; // `globalThis.user` にセット
 import LocalTokenMake from "./components/LocalTokenMake";
-import { Container, CircularProgress, Box } from "@mui/material";
-import CastBottomNav from "./cast/components/layout/CastBottomNav";
 
 interface LayoutProps {
     children: ReactNode;
@@ -26,20 +24,19 @@ export default function RootLayout({ children }: LayoutProps) {
 
     if (!tokenRefreshed || auth.loading) {
         return (
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-                <CircularProgress />
-            </Box>
+            <div className="w-full min-h-screen" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <div className="spinner-border" role="status">
+                    <span className="sr-only">Loading...</span>
+                </div>
+            </div>
         );
     }
 
     return (
         <LocalTokenMake>
-            <>
-                <Container maxWidth="sm" sx={{ minHeight: '100vh', pb: 8 }}>
-                    {children}
-                </Container>
-                <CastBottomNav />
-            </>
+            <div className="w-full min-h-screen">
+                {children}
+            </div>
         </LocalTokenMake>
     );
 }
