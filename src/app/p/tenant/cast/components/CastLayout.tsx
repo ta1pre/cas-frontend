@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { ReactNode } from 'react';
 
 type Props = {
@@ -7,16 +7,16 @@ type Props = {
 
 export default function CastLayout({ children }: Props) {
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Box sx={{ width: 240, bgcolor: '#f5f5f5', p: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>キャスト管理</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography>キャスト一覧</Typography>
-          <Typography>新規登録</Typography>
-          <Typography>設定</Typography>
-        </Box>
+    <Box sx={{ minHeight: '100vh', p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">キャスト管理</Typography>
+        <Button variant="contained" color="primary">
+          キャスト追加
+        </Button>
       </Box>
-      <Box sx={{ flex: 1, p: 3 }}>
+      
+      <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>キャスト一覧</Typography>
         {children}
       </Box>
     </Box>
