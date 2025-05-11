@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, RadioGroup, FormControlLabel, Radio, FormLabel, Grid } from "@mui/material";
 import { Cast } from "../types/castTypes";
 import { SaveCastData } from '../api/cast';
+import PrefectureSelect from '@/app/p/cast/cont/prof/components/PrefectureSelect'; // PrefectureSelectコンポーネントのインポートパスを修正
+import StationAutocomplete from '@/app/p/cast/cont/prof/components/StationAutocomplete';
 
 interface CastEditModalProps {
   open: boolean;
@@ -26,9 +28,10 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
   const [selfIntroduction, setSelfIntroduction] = useState("");
   const [job, setJob] = useState("");
   const [dispatchPrefecture, setDispatchPrefecture] = useState("");
-  const [supportArea, setSupportArea] = useState("");
+  const [supportArea, setSupportArea] = useState<string>(cast?.support_area || ''); // supportAreaの初期値を設定
   const [reservationFeeDeli, setReservationFeeDeli] = useState<number | undefined>(undefined);
   const [isActive, setIsActive] = useState<1 | 0>(1);
+  const [stationName, setStationName] = useState(cast?.station_name || '');
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -48,11 +51,12 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
       setSelfIntroduction((cast as any).self_introduction ?? "");
       setJob((cast as any).job ?? "");
       setDispatchPrefecture((cast as any).dispatch_prefecture ?? "");
-      setSupportArea((cast as any).support_area ?? "");
+      setSupportArea((cast as any).support_area ?? ''); // supportAreaの初期値を設定
       setReservationFeeDeli((cast as any).reservation_fee_deli ?? undefined);
       setIsActive((cast as any).is_active ?? 1);
+      setStationName(cast.station_name || '');
     } else {
-      setName(""); setAge(undefined); setHeight(undefined); setBust(undefined); setWaist(undefined); setHip(undefined); setCup(""); setBirthplace(""); setBloodType(""); setHobby(""); setSelfIntroduction(""); setJob(""); setDispatchPrefecture(""); setSupportArea(""); setReservationFeeDeli(undefined); setIsActive(1);
+      setName(""); setAge(undefined); setHeight(undefined); setBust(undefined); setWaist(undefined); setHip(undefined); setCup(""); setBirthplace(""); setBloodType(""); setHobby(""); setSelfIntroduction(""); setJob(""); setDispatchPrefecture(""); setSupportArea(''); setReservationFeeDeli(undefined); setIsActive(1); setStationName('');
     }
     setError("");
   }, [cast, open]);
@@ -84,6 +88,7 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
           reservation_fee_deli: reservationFeeDeli,
           is_active: isActive,
           cast_type: 'B',
+          station_name: stationName,
         }
       });
       onClose();
@@ -92,6 +97,15 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSupportAreaChange = (event: any) => { // handleSupportAreaChange関数を追加
+    setSupportArea(event.target.value);
+  };
+
+  const handleStationChange = (name: string, id?: number) => {
+    setStationName(name);
+    setDispatchPrefecture(id?.toString() || '');
   };
 
   return (
@@ -137,10 +151,21 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
               <TextField label="職業" value={job} onChange={e => setJob(e.target.value)} fullWidth />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField label="派遣都道府県" value={dispatchPrefecture} onChange={e => setDispatchPrefecture(e.target.value)} fullWidth />
+              <StationAutocomplete
+                value={stationName}
+                stationId={dispatchPrefecture ? Number(dispatchPrefecture) : undefined}
+                onChange={handleStationChange}
+                label="最寄り駅"
+                helperText="活動拠点の最寄り駅を選択してください"
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField label="対応エリア" value={supportArea} onChange={e => setSupportArea(e.target.value)} fullWidth />
+              <PrefectureSelect // PrefectureSelectコンポーネントを追加
+                value={supportArea}
+                onChange={handleSupportAreaChange}
+                label="サポートエリア"
+                helperText="活動可能な都道府県を選択してください"
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField label="時間単価" type="number" value={reservationFeeDeli ?? ''} onChange={e => setReservationFeeDeli(Number(e.target.value)||undefined)} fullWidth />

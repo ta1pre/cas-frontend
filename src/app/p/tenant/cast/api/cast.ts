@@ -29,6 +29,7 @@ export interface CastProfile {
   reservation_fee_deli?: number;
   is_active?: number;
   cast_type?: string;
+  station_name?: string; // 最寄り駅名用プロパティを追加
 }
 
 // 新規・編集どちらもこの型でOK
