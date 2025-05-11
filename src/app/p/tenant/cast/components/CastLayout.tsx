@@ -10,9 +10,7 @@ export default function CastLayout({ children }: Props) {
     <Box sx={{ minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">キャスト管理</Typography>
-        <Button variant="contained" color="primary">
-          キャスト追加
-        </Button>
+      
       </Box>
       
       <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>

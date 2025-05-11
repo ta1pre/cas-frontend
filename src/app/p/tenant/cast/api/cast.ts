@@ -10,6 +10,11 @@ interface CreateCastData {
   nick_name: string;
 }
 
+export interface SaveCastData {
+  cast_id?: number;
+  nick_name: string;
+}
+
 export const createCast = async (nick_name: string): Promise<Cast> => {
   const response = await fetchAPI('/api/v1/tenants/cast/create', { nick_name }, 'POST');
   
@@ -20,6 +25,14 @@ export const createCast = async (nick_name: string): Promise<Cast> => {
   
   console.error('無効なAPIレスポンス形式:', response);
   throw new Error('登録に失敗しました: 無効なレスポンス形式');
+};
+
+export const saveCast = async (data: SaveCastData): Promise<Cast> => {
+  const response = await fetchAPI('/api/v1/tenants/cast/create', data, 'POST');
+  if (!response || !('id' in response)) {
+    throw new Error('登録に失敗しました');
+  }
+  return response;
 };
 
 // 所属キャスト一覧取得API（ダミー実装）
