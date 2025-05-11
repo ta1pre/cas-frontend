@@ -30,7 +30,7 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
   const [dispatchPrefecture, setDispatchPrefecture] = useState("");
   const [supportArea, setSupportArea] = useState<string>(cast?.support_area || ''); // supportAreaの初期値を設定
   const [reservationFeeDeli, setReservationFeeDeli] = useState<number | undefined>(undefined);
-  const [isActive, setIsActive] = useState<1 | 0>(1);
+  const [isActive, setIsActive] = useState<0 | 1>(1);
   const [stationName, setStationName] = useState(cast?.station_name || '');
 
   const [saving, setSaving] = useState(false);
@@ -38,25 +38,41 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
 
   useEffect(() => {
     if (cast) {
-      setName(cast.name || "");
-      setAge((cast as any).age ?? undefined);
-      setHeight((cast as any).height ?? undefined);
-      setBust((cast as any).bust ?? undefined);
-      setWaist((cast as any).waist ?? undefined);
-      setHip((cast as any).hip ?? undefined);
-      setCup((cast as any).cup ?? "");
-      setBirthplace((cast as any).birthplace ?? "");
-      setBloodType((cast as any).blood_type ?? "");
-      setHobby((cast as any).hobby ?? "");
-      setSelfIntroduction((cast as any).self_introduction ?? "");
-      setJob((cast as any).job ?? "");
-      setDispatchPrefecture((cast as any).dispatch_prefecture ?? "");
-      setSupportArea((cast as any).support_area ?? ''); // supportAreaの初期値を設定
-      setReservationFeeDeli((cast as any).reservation_fee_deli ?? undefined);
-      setIsActive((cast as any).is_active ?? 1);
-      setStationName(cast.station_name || '');
+      setName(cast.name ?? "");
+      setAge(cast.age ?? 0);
+      setHeight(cast.height ?? 0);
+      setBust(cast.bust ?? 0);
+      setWaist(cast.waist ?? 0);
+      setHip(cast.hip ?? 0);
+      setCup(cast.cup ?? "");
+      setBirthplace(cast.birthplace ?? "");
+      setBloodType(cast.blood_type ?? "");
+      setHobby(cast.hobby ?? "");
+      setSelfIntroduction(cast.self_introduction ?? "");
+      setJob(cast.job ?? "");
+      setDispatchPrefecture(cast.dispatch_prefecture ?? "");
+      setSupportArea(cast.support_area ?? "");
+      setReservationFeeDeli(cast.reservation_fee_deli ?? 0);
+      setIsActive(cast.is_active === 0 ? 0 : 1);
+      setStationName(cast.station_name ?? "");
     } else {
-      setName(""); setAge(undefined); setHeight(undefined); setBust(undefined); setWaist(undefined); setHip(undefined); setCup(""); setBirthplace(""); setBloodType(""); setHobby(""); setSelfIntroduction(""); setJob(""); setDispatchPrefecture(""); setSupportArea(''); setReservationFeeDeli(undefined); setIsActive(1); setStationName('');
+      setName(""); 
+      setAge(0); 
+      setHeight(0); 
+      setBust(0); 
+      setWaist(0); 
+      setHip(0); 
+      setCup(""); 
+      setBirthplace(""); 
+      setBloodType(""); 
+      setHobby(""); 
+      setSelfIntroduction(""); 
+      setJob(""); 
+      setDispatchPrefecture(""); 
+      setSupportArea(''); 
+      setReservationFeeDeli(0); 
+      setIsActive(1); 
+      setStationName('');
     }
     setError("");
   }, [cast, open]);
@@ -172,7 +188,7 @@ const CastEditModal: React.FC<CastEditModalProps> = ({ open, onClose, cast, onSa
             </Grid>
             <Grid item xs={12}>
               <FormLabel component="legend">掲載ステータス</FormLabel>
-              <RadioGroup row value={isActive} onChange={e => setIsActive(Number(e.target.value) as 1 | 0)}>
+              <RadioGroup row value={isActive} onChange={e => setIsActive(Number(e.target.value) as 0 | 1)}>
                 <FormControlLabel value={1} control={<Radio color="primary" />} label="掲載" />
                 <FormControlLabel value={0} control={<Radio color="secondary" />} label="非掲載" />
               </RadioGroup>

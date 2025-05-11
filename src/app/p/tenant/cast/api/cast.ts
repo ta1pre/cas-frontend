@@ -62,21 +62,21 @@ export const saveCast = async (data: SaveCastData): Promise<Cast> => {
 export const fetchCasts = async (): Promise<Cast[]> => {
   try {
     const res = await fetchAPI('/api/v1/tenants/cast/casts', {}, 'POST');
-    console.log('キャスト一覧APIレスポンス:', res);
     
-    // APIレスポンスの形式をチェック
-    if (Array.isArray(res)) {
-      // resが配列の場合
-      return res;
-    } else if (res?.data && Array.isArray(res.data)) {
-      // res.dataが配列の場合
-      return res.data;
-    } else {
-      console.warn('予u671fu3057u306au3044u30ecスポンスu5f62式:', res);
-      return [];
-    }
+    console.log('APIレスポンス詳細:', {
+      url: '/api/v1/tenants/cast/casts',
+      response: res,
+      dataStructure: res?.[0] ? Object.keys(res[0]) : []
+    });
+    
+    const data = Array.isArray(res) ? res : res?.data;
+    return Array.isArray(data) ? data.filter(isCast) : [];
   } catch (e) {
     console.error('キャスト一覧取得エラー', e);
     return [];
   }
 };
+
+function isCast(obj: any): obj is Cast {
+  return obj && typeof obj === 'object' && 'id' in obj && 'name' in obj;
+}
