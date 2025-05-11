@@ -10,9 +10,31 @@ interface CreateCastData {
   nick_name: string;
 }
 
+// プロフィール項目を共通型として定義
+export interface CastProfile {
+  name: string;
+  age?: number;
+  height?: number;
+  bust?: number;
+  cup?: string;
+  waist?: number;
+  hip?: number;
+  birthplace?: string;
+  blood_type?: string;
+  hobby?: string;
+  self_introduction?: string;
+  job?: string;
+  dispatch_prefecture?: string;
+  support_area?: string;
+  reservation_fee_deli?: number;
+  is_active?: number;
+  cast_type?: string;
+}
+
+// 新規・編集どちらもこの型でOK
 export interface SaveCastData {
-  cast_id?: number;
-  nick_name: string;
+  cast_id?: number; // 新規時はundefined、編集時はid
+  cast: CastProfile;
 }
 
 export const createCast = async (nick_name: string): Promise<Cast> => {

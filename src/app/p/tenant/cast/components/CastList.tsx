@@ -85,10 +85,10 @@ export default function CastList() {
           setEditingCast(null);
         }}
         cast={editingCast}
-        onSave={async ({ cast_id, nick_name }) => {
+        onSave={async (values) => {
           try {
-            const updated = await saveCast({ cast_id, nick_name });
-            setCasts((prev) => prev.map(c => c.id === cast_id ? { ...c, name: updated.name } : c));
+            const updated = await saveCast(values);
+            setCasts((prev) => prev.map(c => c.id === values.cast_id ? { ...c, name: updated.name } : c));
             setSnackbar({ open: true, message: '保存しました', severity: 'success' });
           } catch (e) {
             setSnackbar({ open: true, message: '保存に失敗しました', severity: 'error' });
