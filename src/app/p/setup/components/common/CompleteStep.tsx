@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Button, CircularProgress, Box, Typography, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import useUser from "@/hooks/useUser";
 import { getCookie } from '../../utils/cookieUtils';
 import { useSetupStorage } from "@/app/p/setup/hooks/storage/useSetupStorage";
+import { fetchAPI } from "@/services/auth/axiosInterceptor";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,23 +15,27 @@ export const sendProfileData = async (
   profileData: any,
   castType?: string
 ): Promise<string> => {
-  if (!token || !userId || !userType || !profileData) {
+  // データ必須チェック（token は fetchAPI で自動付与されるが念のため）
+  if (!userId || !userType || !profileData) {
     console.error("❌ `sendProfileData` に必要なデータが不足しています", { token, userId, userType, profileData, castType });
     return "送信データが不足しています";
   }
 
   try {
+    // ペイロード構築
     const payload = castType
       ? { user_id: userId, user_type: userType, cast_type: castType, profile_data: profileData }
       : { user_id: userId, user_type: userType, profile_data: profileData };
-    const response = await axios.post(
-      `${apiUrl}/api/v1/setup/status/update`,
-      payload,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
 
-    console.log("✅ プロフィールデータ送信成功:", response.data);
-    return response.data.message || "成功";
+    // ✅ fetchAPI 経由で送信（Authorization 自動）
+    const response: any = await fetchAPI("/api/v1/setup/status/update", payload);
+
+    if (!response) {
+      throw new Error("API レスポンスが null です");
+    }
+
+    console.log("✅ プロフィールデータ送信成功:", response);
+    return response.message || "成功";
   } catch (error) {
     console.error("❌ プロフィールデータ送信に失敗:", error);
     return "プロフィールデータ送信に失敗しました";
