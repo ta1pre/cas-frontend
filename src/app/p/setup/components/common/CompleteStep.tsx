@@ -4,6 +4,7 @@ import { Button, CircularProgress, Box, Typography, Container } from "@mui/mater
 import { useRouter } from "next/navigation";
 import useUser from "@/hooks/useUser";
 import { getCookie } from '../../utils/cookieUtils';
+import { useSetupStorage } from "@/app/p/setup/hooks/storage/useSetupStorage";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -46,6 +47,7 @@ export default function CompleteStep() {
   const [profileData, setProfileData] = useState<any>(null);
   const [castType, setCastType] = useState<string | null>(null);
   const router = useRouter();
+  const { getStorage } = useSetupStorage();
 
   useEffect(() => {
     if (user?.token && user?.user_id) {
@@ -62,8 +64,8 @@ export default function CompleteStep() {
 
     console.log("🔄 認証情報を取得:", { userId, token });
 
-    const profileDataString = localStorage.getItem("profile_data");
-    const storedUserType = localStorage.getItem("user_type");
+    const profileDataString = getStorage("profile_data");
+    const storedUserType = getStorage("user_type");
 
     let castTypeValue: string | null = null;
     const startPageRaw = getCookie('StartPage');
