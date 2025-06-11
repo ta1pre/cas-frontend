@@ -43,7 +43,8 @@ export function useSetupStorage() {
         
         // まずクッキーをチェック
         const cookieValue = getCookie(key);
-        if (cookieValue) return cookieValue;
+        // cookieValue が空文字の場合は無効とみなす（JSON.parse エラー回避）
+        if (cookieValue && cookieValue.trim() !== '') return cookieValue;
         
         // クッキーになければローカルストレージをチェック
         if (typeof window !== 'undefined') {
