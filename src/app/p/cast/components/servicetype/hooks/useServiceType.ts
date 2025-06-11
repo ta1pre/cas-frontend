@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSetupStorage } from "@/app/p/setup/hooks/storage/useSetupStorage";
 import { getAllServiceTypes, getSelectedServiceTypes, registerServiceTypes, deleteServiceTypes } from "../api/servicetype";
 import useUser from "@/hooks/useUser";
 
@@ -21,7 +22,9 @@ type ServiceTypesByCategory = Record<string, ServiceType[]>;
 
 export const useServiceType = () => {
   const user = useUser();
-  const castId = user?.user_id ?? null;
+  const { getStorage } = useSetupStorage();
+  const storedCastId = typeof window !== "undefined" ? getStorage("cast_id") : null;
+  const castId = storedCastId ? Number(storedCastId) : user?.user_id ?? null;
   const [serviceTypesByCategory, setServiceTypesByCategory] = useState<ServiceTypesByCategory>({});
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);

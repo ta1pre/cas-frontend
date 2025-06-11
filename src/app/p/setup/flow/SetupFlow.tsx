@@ -5,11 +5,13 @@ import React, { useEffect } from "react";
 import { Container, CircularProgress, Box } from "@mui/material";
 import { useSetupNavigation } from "../hooks/storage/useSetupNavigation";
 import { useSetupStorage } from "../hooks/storage/useSetupStorage";
+import { useCastProfile } from "../hooks/logic/useCastProfile";
 import { getCookie } from "../utils/cookieUtils";
 import BackButton from "./BackButton";
 
 // ✅ 各ステップのコンポーネント
 import AgeVerificationStep from "../components/common/AgeVerificationStep";
+import UserTypeSelectionStep from "../components/common/UserTypeSelectionStep";
 import SexSelectionStep from "../components/common/SexSelectionStep";
 import CustomerProfileStep from "../components/customer/CustomerProfileStep";
 import CastNameStep from "../components/cast/CastNameStep";
@@ -24,6 +26,8 @@ import CompleteStep from "../components/common/CompleteStep";
 export default function SetupFlow() {
     const { setupStatus, setSetupStatus, handlePrevStep } = useSetupNavigation();
     const { setStorage } = useSetupStorage();
+    // キャストの場合はプロフィール自動生成
+    useCastProfile();
 
     // ✅ クッキーに基づいて初期フローを設定
     useEffect(() => {
@@ -73,9 +77,22 @@ export default function SetupFlow() {
         console.log("現在のステップ:", setupStatus);
         switch (setupStatus) {
             case "empty":
-                return <AgeVerificationStep onNextStep={() => setSetupStatus("sex_selection")} />;
+                return <AgeVerificationStep onNextStep={() => setSetupStatus("user_type_selection")} />;
+            case "user_type_selection":
+                return (
+                    <UserTypeSelectionStep
+                        onNextStep={() => setSetupStatus("sex_selection")}
+                    />
+                );
             case "sex_selection":
-                return <SexSelectionStep onNextStep={(gender) => setSetupStatus(gender === "male" ? "customer_profile" : "cast_name")} />;
+                return (
+                    <SexSelectionStep
+                        onNextStep={() => {
+                            const userType = localStorage.getItem("user_type");
+                            setSetupStatus(userType === "cast" ? "cast_name" : "customer_profile");
+                        }}
+                    />
+                );
             case "customer_profile":
                 return <CustomerProfileStep onNextStep={() => setSetupStatus("sms_verification")} />;
             case "cast_name":
@@ -95,7 +112,7 @@ export default function SetupFlow() {
             case "completed":
                 return <CompleteStep />;
             default:
-                return<AgeVerificationStep onNextStep={() => setSetupStatus("sex_selection")} />;
+                return<AgeVerificationStep onNextStep={() => setSetupStatus("user_type_selection")} />;
         }
     };
 
