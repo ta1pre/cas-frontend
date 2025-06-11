@@ -22,7 +22,7 @@ export default function CastPhotoStep({ onNextStep }: Props): React.JSX.Element 
     const isMainUploaded = mediaStatus[0] || false; // ✅ メイン画像がアップロードされているか
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ pb: 8 }}>
             <Box textAlign="left" my={4}>
                 <Typography variant="h5" fontWeight="bold" sx={{ textAlign: 'left' }}>
                     📸 プロフィール画像

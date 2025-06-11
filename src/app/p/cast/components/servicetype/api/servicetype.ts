@@ -1,4 +1,5 @@
 import axios from "axios";
+import { fetchAPI } from "@/services/auth/axiosInterceptor";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 const BASE_URL = `${apiUrl}/api/v1/servicetype`;
@@ -24,20 +25,12 @@ export const getAllServiceTypes = async (token: string): Promise<Record<string, 
     throw new Error("認証トークンがありません");
   }
 
-  try {
-    const response = await axios.post(`${BASE_URL}/list`, {}, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  // fetchAPI はグローバル token を使うため事前にセット
+  globalThis.user = { ...(globalThis.user || {}), token };
 
-    console.info("【service type list】APIレスポンス:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("【service type list】APIリクエスト失敗", error);
-    throw error;
-  }
+  const data = await fetchAPI("/api/v1/servicetype/list", {});
+  return data as Record<string, ServiceType[]>;
 };
-
-
 
 /**
  * ✅ キャストの選択済みサービスタイプを取得
@@ -48,17 +41,10 @@ export const getSelectedServiceTypes = async (token: string, castId: number): Pr
     throw new Error("認証トークンがありません");
   }
 
-  try {
-    const response = await axios.post(`${BASE_URL}/selected`, { cast_id: castId }, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  globalThis.user = { ...(globalThis.user || {}), token };
 
-    console.info("【getSelectedServiceTypes】APIレスポンス:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("【getSelectedServiceTypes】APIリクエスト失敗", error);
-    throw error;
-  }
+  const data = await fetchAPI("/api/v1/servicetype/selected", { cast_id: castId });
+  return data as number[];
 };
 
 /**
@@ -70,9 +56,8 @@ export const registerServiceTypes = async (token: string, castId: number, servic
     throw new Error("認証トークンがありません");
   }
 
-  await axios.post(`${BASE_URL}/register`, { cast_id: castId, service_type_ids: serviceTypeIds }, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  globalThis.user = { ...(globalThis.user || {}), token };
+  await fetchAPI("/api/v1/servicetype/register", { cast_id: castId, service_type_ids: serviceTypeIds });
 };
 
 /**
@@ -84,7 +69,6 @@ export const deleteServiceTypes = async (token: string, castId: number, serviceT
     throw new Error("認証トークンがありません");
   }
 
-  await axios.post(`${BASE_URL}/delete`, { cast_id: castId, service_type_ids: serviceTypeIds }, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  globalThis.user = { ...(globalThis.user || {}), token };
+  await fetchAPI("/api/v1/servicetype/delete", { cast_id: castId, service_type_ids: serviceTypeIds });
 };

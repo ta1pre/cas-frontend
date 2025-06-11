@@ -73,6 +73,7 @@ const CastServiceSelectionStep: React.FC<Props> = ({ onNextStep }) => {
                 minHeight: "100vh",
                 gap: 3,
                 px: 3,
+                pb: 8,
             }}
         >
             {/* タイトル */}

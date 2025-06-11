@@ -27,11 +27,18 @@ export const sendProfileData = async (
       ? { user_id: userId, user_type: userType, cast_type: castType, profile_data: profileData }
       : { user_id: userId, user_type: userType, profile_data: profileData };
 
+    console.log("📦 sendProfileData payload", payload);
+
     // ✅ fetchAPI 経由で送信（Authorization 自動）
     const response: any = await fetchAPI("/api/v1/setup/status/update", payload);
 
     if (!response) {
       throw new Error("API レスポンスが null です");
+    }
+
+    // バックエンドエラーハンドリング
+    if (response.detail) {
+      throw new Error(response.detail);
     }
 
     console.log("✅ プロフィールデータ送信成功:", response);
@@ -69,7 +76,15 @@ export default function CompleteStep() {
     console.log("🔄 認証情報を取得:", { userId, token });
 
     const profileDataString = getStorage("profile_data");
-    const storedUserType = getStorage("user_type");
+    let storedUserType = getStorage("user_type");
+    if (storedUserType && storedUserType.includes("%3A")) {
+      try {
+        storedUserType = decodeURIComponent(storedUserType);
+      } catch (_) {}
+    }
+    if (storedUserType && storedUserType.includes(":")) {
+      storedUserType = storedUserType.split(":")[0]; // 'cast' または 'customer'
+    }
 
     let castTypeValue: string | null = null;
     const startPageRaw = getCookie('StartPage');
@@ -110,7 +125,10 @@ export default function CompleteStep() {
 
     sendProfileData(token, userId, userType, profileData, castType || undefined)
       .then(setProfileMessage)
-      .catch(() => setProfileMessage("プロフィールデータ送信に失敗しました"));
+      .catch((e) => {
+        console.error("❌ sendProfileData エラー:", e);
+        setProfileMessage(typeof e === 'string' ? e : (e.message || "プロフィールデータ送信に失敗しました"));
+      });
   }, [token, userId, userType, profileData, castType]);
 
   return (

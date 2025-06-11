@@ -101,7 +101,12 @@ export const fetchAPI = async (endpoint: string, data?: object, method: string =
 
         console.log(`【fetchAPI】✅ ${method} レスポンス:`, response.data);
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
+        // AxiosError の場合はレスポンス内容を返す（バリデーションエラー詳細など）
+        if (error.response) {
+            console.error(`【fetchAPI】❌ ${method} API 呼び出し失敗:`, error.response.data);
+            return error.response.data;
+        }
         console.error(`【fetchAPI】❌ ${method} API 呼び出し失敗:`, error);
         return null;
     }

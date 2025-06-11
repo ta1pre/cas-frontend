@@ -49,6 +49,7 @@ export default function SetupTraits({ onNextStep }: Props): React.JSX.Element {
                 minHeight: '100vh',
                 gap: 3,
                 px: 3,
+                pb: 8,
                 width: '100%',
             }}
         >
