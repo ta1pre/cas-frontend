@@ -23,7 +23,7 @@ export default function UserTypeSelectionStep({ onNextStep }: Props) {
     setStorage("user_type", type);
     // StartPage クッキーを仮設定 (キャストはデフォルト cas)
     const cookieVal = type === "cast" ? "cast:cas" : "customer";
-    setCookie("StartPage", cookieVal, { path: "/" });
+    setCookie("StartPage", cookieVal);
     onNextStep(type);
   };
 
