@@ -30,13 +30,21 @@ const emptyAccount: BankAccount = {
   bank_name: "",
   branch_name: "",
   branch_code: "",
-  account_type: "",
+  account_type: "普通",
   account_number: "",
   account_holder: "",
 };
 
 export default function BankAccountCard({ initialAccount = null, onSaveSuccess }: Props) {
   const [account, setAccount] = useState<BankAccount>(initialAccount || emptyAccount);
+  const [errors, setErrors] = useState<Record<keyof BankAccount, string>>({
+    bank_name: "",
+    branch_name: "",
+    branch_code: "",
+    account_type: "",
+    account_number: "",
+    account_holder: "",
+  });
   const [original, setOriginal] = useState<BankAccount | null>(initialAccount);
   const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -66,14 +74,46 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
     fetch();
   }, [initialAccount]);
 
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case "bank_name":
+      case "branch_name":
+      case "account_holder":
+        return value.trim() === "" ? "必須項目です" : "";
+      case "branch_code":
+        return /^\d{3}$/.test(value) ? "" : "3桁の数字を入力してください";
+      case "account_number":
+        return /^\d{1,8}$/.test(value) ? "" : "最大8桁の数字を入力してください";
+      case "account_type":
+        return value === "普通" ? "" : "口座種別は\"普通\"のみです";
+      default:
+        return "";
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target as { name: keyof BankAccount; value: string };
     setAccount((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+  };
+
+  const isFormValid = () => {
+    const newErrors: Record<keyof BankAccount, string> = { ...errors };
+    (Object.keys(account) as (keyof BankAccount)[]).forEach((key) => {
+      // @ts-ignore
+      newErrors[key] = validateField(key, account[key]);
+    });
+    setErrors(newErrors);
+    return Object.values(newErrors).every((v) => v === "");
   };
 
   const handleSave = async () => {
+    if (!isFormValid()) {
+      alert("入力内容に誤りがあります。修正してください。");
+      return;
+    }
     try {
       setSaving(true);
       await updateBankAccount(account);
@@ -128,6 +168,8 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
               name="bank_name"
               value={account.bank_name}
               onChange={handleChange}
+              error={!!errors.bank_name}
+              helperText={errors.bank_name}
               fullWidth
             />
           </Grid>
@@ -137,6 +179,8 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
               name="branch_name"
               value={account.branch_name}
               onChange={handleChange}
+              error={!!errors.branch_name}
+              helperText={errors.branch_name}
               fullWidth
             />
           </Grid>
@@ -146,6 +190,8 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
               name="branch_code"
               value={account.branch_code}
               onChange={handleChange}
+              error={!!errors.branch_code}
+              helperText={errors.branch_code}
               fullWidth
             />
           </Grid>
@@ -154,7 +200,7 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
               label="口座種別"
               name="account_type"
               value={account.account_type}
-              onChange={handleChange}
+              disabled
               fullWidth
             />
           </Grid>
@@ -164,6 +210,9 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
               name="account_number"
               value={account.account_number}
               onChange={handleChange}
+              error={!!errors.account_number}
+              helperText={errors.account_number}
+              inputProps={{ maxLength: 8, inputMode: 'numeric', pattern: '[0-9]*' }}
               fullWidth
             />
           </Grid>
@@ -173,6 +222,8 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
               name="account_holder"
               value={account.account_holder}
               onChange={handleChange}
+              error={!!errors.account_holder}
+              helperText={errors.account_holder}
               fullWidth
             />
           </Grid>
@@ -187,7 +238,7 @@ export default function BankAccountCard({ initialAccount = null, onSaveSuccess }
             キャンセル
           </Button>
         )}
-        <Button variant="contained" disabled={saving} onClick={handleSave}>
+        <Button variant="contained" disabled={saving || Object.values(errors).some((e) => e !== "")} onClick={handleSave}>
           {saving ? "保存中..." : "保存"}
         </Button>
       </CardActions>
