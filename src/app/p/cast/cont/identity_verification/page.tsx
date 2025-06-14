@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Paper, Box, Button, Stepper, Step, StepLabel, CircularProgress } from '@mui/material';
 import IdentityVerificationForm from './components/IdentityVerificationForm';
+import BankAccountCard from './components/BankAccountCard';
 import VerificationStatus from './components/VerificationStatus';
-import { getVerificationStatus, submitVerification } from './services/identityService';
+import { getVerificationStatus, getBankAccount, submitVerification } from './services/identityService';
 
 interface VerificationDataType {
   status: string;
@@ -14,7 +15,19 @@ interface VerificationDataType {
   rejection_reason: string | null;
 }
 
+interface BankAccount {
+  bank_name: string;
+  branch_name: string;
+  branch_code: string;
+  account_type: string;
+  account_number: string;
+  account_holder: string;
+}
+
 const IdentityVerificationPage = () => {
+  const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
+  const [bankSaved, setBankSaved] = useState(false);
+
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,12 +41,26 @@ const IdentityVerificationPage = () => {
     rejection_reason: null
   });
 
-  const steps = ['書類の準備', '書類のアップロード', '審査待ち'];
+  const steps = ['口座情報', '身分証アップロード', '審査待ち'];
 
   // 初期ロード時に本人確認ステータスを取得
   useEffect(() => {
     fetchVerificationStatus();
+    fetchBankAccount();
   }, []);
+
+  // 銀行口座取得
+  const fetchBankAccount = async () => {
+    try {
+      const data = await getBankAccount();
+      if (data) {
+        setBankAccount(data);
+        setBankSaved(true);
+      }
+    } catch (e) {
+      console.error('銀行口座取得エラー', e);
+    }
+  };
 
   // 本人確認ステータスを取得
   const fetchVerificationStatus = async () => {
@@ -138,20 +165,13 @@ const IdentityVerificationPage = () => {
         ) : (
           <>
             {activeStep === 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  必要書類
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  1. 顔写真付き身分証明書（運転免許証、パスポート、マイナンバーカードなど）
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  2. 本籍入り住民票
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  ※書類は鮮明に撮影し、すべての情報が明確に読み取れるようにしてください。
-                </Typography>
-              </Box>
+              <BankAccountCard
+                initialAccount={bankAccount}
+                onSaveSuccess={(acc) => {
+                  setBankAccount(acc);
+                  setBankSaved(true);
+                }}
+              />
             )}
 
             {activeStep === 1 && (
@@ -193,7 +213,7 @@ const IdentityVerificationPage = () => {
                 <Button
                   variant="contained"
                   onClick={handleNext}
-                  disabled={isSubmitting}
+                  disabled={!bankSaved || isSubmitting}
                 >
                   {isSubmitting ? (
                     <CircularProgress size={24} color="inherit" />

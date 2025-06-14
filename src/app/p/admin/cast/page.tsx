@@ -14,8 +14,23 @@ import {
   CircularProgress,
   Box,
   TableSortLabel,
+  Button,
 } from "@mui/material";
 import { fetchAPI } from "@/services/auth/axiosInterceptor";
+import {
+  Select,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField,
+} from "@mui/material";
+
+const STATUS_OPTIONS = ["pending", "approved", "rejected"] as const;
+
+type StatusOption = typeof STATUS_OPTIONS[number];
 
 interface CastItem {
   id: number;
@@ -43,6 +58,11 @@ export default function AdminCastListPage() {
   const [order, setOrder] = useState<"asc" | "desc">(sortDirQuery);
 
   const [data, setData] = useState<CastItem[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [dialogReason, setDialogReason] = useState("");
+  const [targetCast, setTargetCast] = useState<CastItem | null>(null);
+  const [confirmStatus, setConfirmStatus] = useState<StatusOption | null>(null);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -89,6 +109,59 @@ export default function AdminCastListPage() {
     router.push(
       `/p/admin/cast?page=0&size=${newSize}&sort_by=${orderBy}&sort_dir=${order}`
     );
+  };
+
+  const handleStatusUpdate = async (
+    castId: number,
+    newStatus: StatusOption,
+    reason?: string
+  ) => {
+    try {
+      await fetchAPI(
+        `/api/v1/admin/cast/${castId}/identity-verification/status`,
+        {
+          status: newStatus,
+          ...(reason !== undefined ? { rejection_reason: reason } : {}),
+        },
+        "PUT"
+      );
+      fetchData();
+    } catch (e) {
+      console.error("❌ ステータス更新失敗", e);
+    }
+  };
+
+  const handleSelectChange = (
+    cast: CastItem,
+    event: React.ChangeEvent<{ value: unknown }>
+  ) => {
+    const value = event.target.value as StatusOption;
+    if (value === "rejected") {
+      setTargetCast(cast);
+      setDialogOpen(true);
+    } else {
+      setConfirmStatus(value);
+      setTargetCast(cast);
+      setConfirmOpen(true);
+    }
+  };
+
+  const handleConfirmSubmit = () => {
+    if (targetCast && confirmStatus) {
+      handleStatusUpdate(targetCast.id, confirmStatus);
+    }
+    setConfirmOpen(false);
+    setTargetCast(null);
+    setConfirmStatus(null);
+  };
+
+  const handleRejectSubmit = () => {
+    if (targetCast) {
+      handleStatusUpdate(targetCast.id, "rejected", dialogReason);
+    }
+    setDialogReason("");
+    setDialogOpen(false);
+    setTargetCast(null);
   };
 
   const handleRequestSort = (property: keyof CastItem) => {
@@ -144,6 +217,9 @@ export default function AdminCastListPage() {
                     本人確認ステータス
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>
+                  画像確認
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -151,7 +227,29 @@ export default function AdminCastListPage() {
                 <TableRow key={`${cast.id}-${order}-${orderBy}`} hover>
                   <TableCell>{cast.id}</TableCell>
                   <TableCell>{cast.nick_name || "-"}</TableCell>
-                  <TableCell>{cast.status}</TableCell>
+                  <TableCell>
+                    <Select
+                      size="small"
+                      value={cast.status}
+                      onChange={(e) => handleSelectChange(cast, e as any)}
+                    >
+                      {STATUS_OPTIONS.map((opt) => (
+                        <MenuItem key={opt} value={opt}>
+                          {opt}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => router.push(`/p/admin/cast/${cast.id}/identity`)}
+                    >
+                      確認
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -168,6 +266,47 @@ export default function AdminCastListPage() {
           />
         </>
       )}
+    
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>却下理由を入力</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            却下理由を入力して下さい。
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            fullWidth
+            multiline
+            minRows={2}
+            value={dialogReason}
+            onChange={(e) => setDialogReason(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>キャンセル</Button>
+          <Button variant="contained" color="error" onClick={handleRejectSubmit}>
+            却下する
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>ステータス変更確認</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmStatus && targetCast
+              ? `キャストID ${targetCast.id} のステータスを「${confirmStatus}」に変更してよろしいですか？`
+              : ""}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>キャンセル</Button>
+          <Button variant="contained" onClick={handleConfirmSubmit}>
+            変更する
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

@@ -211,6 +211,37 @@ export const uploadFile = async (file: File, orderIndex: number) => {
   }
 };
 
+// 銀行口座情報を取得する
+export const getBankAccount = async () => {
+  try {
+    const statusResp = await fetchAPI('/api/v1/cast/identity-verification/status', undefined, 'GET');
+    if (!statusResp) return null;
+
+    const {
+      bank_name,
+      branch_name,
+      branch_code,
+      account_type,
+      account_number,
+      account_holder,
+    } = statusResp;
+
+    if (!bank_name) return null; // 未登録
+
+    return {
+      bank_name,
+      branch_name,
+      branch_code,
+      account_type,
+      account_number,
+      account_holder,
+    };
+  } catch (error) {
+    console.error('🚫 getBankAccountエラー:', error);
+    return null;
+  }
+};
+
 // 銀行口座情報を更新する
 export const updateBankAccount = async (data: { 
   bank_name: string,

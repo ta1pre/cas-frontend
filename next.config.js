@@ -10,6 +10,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // ビルド時のESLintチェックを無視
   },
+  // 画像リモートホスト許可 (Next.js 14+ 推奨形式)
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cast-media.s3.amazonaws.com',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

@@ -88,14 +88,21 @@ export const fetchAPI = async (endpoint: string, data?: object, method: string =
             headers: { Authorization: `Bearer ${token}` },
         };
         
-        if (method.toUpperCase() === "GET") {
+        const upperMethod = method.toUpperCase();
+        if (upperMethod === "GET") {
             // GETリクエストの場合、dataをパラメータとして渡す
             response = await apiClient.get(endpoint, {
                 ...config,
                 params: data
             });
+                } else if (upperMethod === "PUT") {
+            response = await apiClient.put(endpoint, data, config);
+        } else if (upperMethod === "PATCH") {
+            response = await apiClient.patch(endpoint, data, config);
+        } else if (upperMethod === "DELETE") {
+            response = await apiClient.delete(endpoint, { ...config, data });
         } else {
-            // POSTリクエストの場合（デフォルト）
+                        // POST (default)
             response = await apiClient.post(endpoint, data, config);
         }
 

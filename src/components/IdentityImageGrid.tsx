@@ -23,6 +23,7 @@ export default function IdentityImageGrid({ docs }: Props) {
           >
             <Image
               src={doc.url}
+              unoptimized
               alt="identity"
               width={500}
               height={350}
