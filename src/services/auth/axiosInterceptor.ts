@@ -69,10 +69,19 @@ export const fetchAPI = async (endpoint: string, data?: object, method: string =
      */
     if (typeof globalThis.user === "undefined" || !globalThis.user?.token) {
         console.warn("【fetchAPI】⚠️ `globalThis.user` が未定義のため API を叩けません");
-        return null;
+        console.warn("【fetchAPI】🔍 globalThis.user:", globalThis.user);
+        console.warn("【fetchAPI】🔍 document.cookie:", document?.cookie);
+        
+        // 開発環境用の一時的な解決策
+        if (process.env.NODE_ENV === 'development') {
+            console.warn("【fetchAPI】🔧 開発環境のため、認証なしでAPI呼び出しを試行します");
+            // 認証なしで試行
+        } else {
+            return null;
+        }
     }
 
-    const token = globalThis.user.token;
+    const token = globalThis.user?.token || 'dev-token'; // 開発環境用のフォールバック
 
     try {
         console.log(`【fetchAPI】🔍 ${method} ${API_URL}${endpoint} をリクエスト中...`);
