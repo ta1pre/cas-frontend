@@ -23,9 +23,9 @@ function LoginContent() {
         }}>
             {/* ロゴとサイト名 */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 6 }}>
-                <Image src="/images/common/logo.png" alt="Logo" width={50} height={50} />
+                <Image src="/images/common/precas_logo2.jpg" alt="Logo" width={50} height={50} />
                 <Typography sx={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#333' }}>
-                    Cas(キャス)
+                    PreCas
                 </Typography>
             </Box>
             
