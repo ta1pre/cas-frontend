@@ -5,6 +5,7 @@
 import React, { Suspense } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import Image from 'next/image';
+import Head from 'next/head';
 import { useAuth } from '@/hooks/useAuth';
 
 // Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
@@ -12,7 +13,20 @@ function LoginContent() {
     const { handleLogin, loading } = useAuth();
 
     return (
-        <Box sx={{
+        <>
+            <Head>
+                <title>CasPra</title>
+                <meta name="description" content="大人P活専門アプリ PreCas" />
+                <meta property="og:title" content="CasPra" />
+                <meta property="og:description" content="大人P活専門アプリ PreCas" />
+                <meta property="og:image" content="/images/common/precas.jpg" />
+                <meta property="og:type" content="website" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="CasPra" />
+                <meta name="twitter:description" content="大人P活専門アプリ PreCas" />
+                <meta name="twitter:image" content="/images/common/precas.jpg" />
+            </Head>
+            <Box sx={{
             minHeight: '100vh',
             backgroundColor: '#fff',
             position: 'relative',
@@ -58,7 +72,7 @@ function LoginContent() {
                         letterSpacing: '0.08em',
                     }}
                 >
-                    大人なP活専門アプリ
+                    大人P活専門アプリ
                 </Typography>
                 <Button
                     variant="contained"
@@ -95,6 +109,7 @@ function LoginContent() {
                 </Button>
             </Box>
         </Box>
+        </>
     );
 }
 
