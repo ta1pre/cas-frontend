@@ -10,6 +10,9 @@ import { useAuth } from '@/hooks/useAuth';
 
 // Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
 function LoginContent() {
+    // サイトURLは環境変数から取得し、OGP画像に絶対パスを設定
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+    const ogImageUrl = `${baseUrl}/images/common/precas.jpg`;
     const { handleLogin, loading } = useAuth();
 
     return (
@@ -19,12 +22,16 @@ function LoginContent() {
                 <meta name="description" content="大人P活専門アプリ PreCas" />
                 <meta property="og:title" content="PreCas" />
                 <meta property="og:description" content="大人P活専門アプリ PreCas" />
-                <meta property="og:image" content="/images/common/precas.jpg" />
+                <meta property="og:image" content={ogImageUrl} />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
                 <meta property="og:type" content="website" />
+                <meta property="og:url" content={baseUrl + '/auth/login'} />
+                <meta property="og:site_name" content="PreCas" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="CasPra" />
+                <meta name="twitter:title" content="PreCas" />
                 <meta name="twitter:description" content="大人P活専門アプリ PreCas" />
-                <meta name="twitter:image" content="/images/common/precas.jpg" />
+                <meta name="twitter:image" content={ogImageUrl} />
             </Head>
             <Box sx={{
             minHeight: '100vh',
