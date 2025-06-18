@@ -15,9 +15,9 @@ function LoginContent() {
     return (
         <>
             <Head>
-                <title>CasPra</title>
+                <title>PreCas</title>
                 <meta name="description" content="大人P活専門アプリ PreCas" />
-                <meta property="og:title" content="CasPra" />
+                <meta property="og:title" content="PreCas" />
                 <meta property="og:description" content="大人P活専門アプリ PreCas" />
                 <meta property="og:image" content="/images/common/precas.jpg" />
                 <meta property="og:type" content="website" />
