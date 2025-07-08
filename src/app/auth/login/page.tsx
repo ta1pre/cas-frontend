@@ -10,6 +10,21 @@ import { useAuth } from '@/hooks/useAuth';
 // Suspenseバウンダリ内でuseSearchParamsを使用するコンポーネント
 function LoginContent() {
     const { handleLogin, loading } = useAuth();
+    const [isFirstClick, setIsFirstClick] = React.useState(true);
+    const [showRetryMessage, setShowRetryMessage] = React.useState(false);
+    
+    const handleLoginClick = async () => {
+        if (isFirstClick) {
+            setIsFirstClick(false);
+            // 初回クリック時は30秒後にメッセージ表示
+            setTimeout(() => {
+                if (loading) {
+                    setShowRetryMessage(true);
+                }
+            }, 30000);
+        }
+        await handleLogin('line');
+    };
 
     return (
         <Box sx={{
@@ -60,9 +75,22 @@ function LoginContent() {
                 >
                     大人なP活専門アプリ
                 </Typography>
+                {showRetryMessage && (
+                    <Typography
+                        sx={{
+                            color: '#f44336',
+                            fontSize: '0.9rem',
+                            mb: 2,
+                            textAlign: 'center',
+                            maxWidth: '320px',
+                        }}
+                    >
+                        サーバーが起動中です。もう一度お試しください。
+                    </Typography>
+                )}
                 <Button
                     variant="contained"
-                    onClick={() => handleLogin('line')}
+                    onClick={handleLoginClick}
                     disabled={loading}
                     sx={{
                         backgroundColor: '#06C755', // LINEグリーン

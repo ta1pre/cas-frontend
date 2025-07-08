@@ -1,6 +1,9 @@
 import Cookies from 'js-cookie';
 import axios from 'axios'; // ✅ `apiClient` の代わりに `axios` を直接インポート
 
+// axiosのデフォルトタイムアウト設定
+axios.defaults.timeout = 30000; // 30秒
+
 /**
  * ✅ ログイン処理
  */
@@ -10,6 +13,7 @@ export const login = async (provider: 'line' | 'phone' | 'email', credentials?: 
             case 'line':
                 const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/account/line/login?tracking_id=${credentials?.trackingId || 'DEFAULT_ID'}`, {
                     withCredentials: true, // 🔹 Cookie 送信を維持
+                    timeout: 30000, // 30秒のタイムアウト
                 });
                 const authUrl = response.data?.auth_url;
                 if (authUrl) {
@@ -25,6 +29,7 @@ export const login = async (provider: 'line' | 'phone' | 'email', credentials?: 
                     password: credentials?.password,
                 }, {
                     withCredentials: true,
+                    timeout: 30000,
                 });
                 break;
             case 'email':
@@ -33,6 +38,7 @@ export const login = async (provider: 'line' | 'phone' | 'email', credentials?: 
                     password: credentials?.password,
                 }, {
                     withCredentials: true,
+                    timeout: 30000,
                 });
                 break;
             default:

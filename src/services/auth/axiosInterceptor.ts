@@ -32,7 +32,31 @@ const apiClient = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    timeout: 30000, // 30秒のタイムアウト設定
 });
+
+// リトライロジックの追加
+apiClient.interceptors.response.use(
+    response => response,
+    async error => {
+        const originalRequest = error.config;
+        
+        // タイムアウトエラーの場合、最大2回リトライ
+        if (error.code === 'ECONNABORTED' && !originalRequest._retry && originalRequest._retryCount < 2) {
+            originalRequest._retry = true;
+            originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+            
+            console.log(`【axiosInterceptor】⏱️ タイムアウト発生。リトライ ${originalRequest._retryCount}/2`);
+            
+            // リトライ前に少し待機（指数バックオフ）
+            await new Promise(resolve => setTimeout(resolve, 1000 * originalRequest._retryCount));
+            
+            return apiClient(originalRequest);
+        }
+        
+        return Promise.reject(error);
+    }
+);
 
 /**
  * `fetchAPI()`: API リクエストを統一するための関数
