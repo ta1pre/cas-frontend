@@ -12,6 +12,9 @@ interface LayoutProps {
 export default function RootLayout({ children }: LayoutProps) {
     const [tokenRefreshed, setTokenRefreshed] = useState(false);
     const auth = useAuth();
+    
+    // デバッグログ追加
+    console.log('🔄 p/layout.tsx re-render:', { tokenRefreshed, user: auth.user?.userId, loading: auth.loading });
 
     useEffect(() => {
         // SSGビルド時にはログを出力しない

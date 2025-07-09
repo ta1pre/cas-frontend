@@ -24,6 +24,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [error, setError] = useState<string | null>(null);
     const pathname = usePathname();
     const router = useRouter();
+    
+    // デバッグログを追加
+    console.log('🔄 AuthProvider re-render:', { pathname, isAuthenticated, user: user?.userId, loading });
 
     useEffect(() => {
         // SSGビルド時にはスキップ
@@ -32,7 +35,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
-        if (pathname?.startsWith("/auth/callback")) {
+        // パスが /auth/callback の場合のみ早期リターン
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith("/auth/callback")) {
             setLoading(false);
             return;
         }
@@ -72,6 +77,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // userが変更されたらglobalThis.userも更新
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         if (user && user.token) {
             globalThis.user = user;
             console.log("✅ globalThis.user を更新:", globalThis.user);

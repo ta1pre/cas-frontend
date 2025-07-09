@@ -2,24 +2,30 @@
 
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { useSearchParams } from 'next/navigation';
 
 export function useTrackingId() {
     const [trackingId, setTrackingId] = useState('DEFAULT_ID');
-    const searchParams = useSearchParams();
+    
+    // デバッグログ追加
+    console.log('🔄 useTrackingId re-render:', { trackingId });
 
     useEffect(() => {
+        // サーバーサイドでは実行しない
+        if (typeof window === 'undefined') return;
+
         let currentTrackingId = 'DEFAULT_ID';
 
-        // 1️⃣ URLから `tr` パラメータを取得
-        const urlTrackingId = searchParams.get('tr');
+        // 1️⃣ URLから `tr` パラメータを取得（useSearchParamsを使わない）
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTrackingId = urlParams.get('tr');
+        
         if (urlTrackingId) {
             currentTrackingId = urlTrackingId;
             console.log('✅ [useTrackingId] URLから取得:', urlTrackingId);
 
-            // 2️⃣ Cookieへ保存（7日間）
+            // 2️⃣ Cookieへ保存（30日間）
             Cookies.set('tracking_id', urlTrackingId, { 
-                expires: 30,      // 🔄 7日間
+                expires: 30,      // 🔄 30日間
                 secure: true,    // 🔒 HTTPSのみ
                 sameSite: 'None'  // 🔄 クロスサイト保護
             });
@@ -35,7 +41,7 @@ export function useTrackingId() {
         }
 
         setTrackingId(currentTrackingId);
-    }, [searchParams]);
+    }, []); // 依存配列を空にして初回のみ実行
 
     return trackingId;
 }

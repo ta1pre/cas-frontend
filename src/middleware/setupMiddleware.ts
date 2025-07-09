@@ -18,7 +18,7 @@ export async function setupMiddleware(request: NextRequest, newToken?: string): 
     // ✅ `/p/setup` にいる場合はチェックをスキップ（無限ループ防止）
     if (pathname.startsWith("/p/setup")) {
         console.log("⏭️ 【setupMiddleware】 `/p/setup` はスキップ");
-        return NextResponse.next();
+        return;
     }
 
     try {
@@ -28,7 +28,7 @@ export async function setupMiddleware(request: NextRequest, newToken?: string): 
 
         if (!token) {
             console.error("❌ 【setupMiddleware】 トークンなし。処理をスキップ");
-            return NextResponse.next();
+            return;
         }
 
         console.log("🔑 【setupMiddleware】トークン取得:", token.slice(0, 20) + "...");
@@ -39,7 +39,7 @@ export async function setupMiddleware(request: NextRequest, newToken?: string): 
 
         if (!userId) {
             console.error("❌ 【setupMiddleware】 ユーザーIDが取得できませんでした");
-            return NextResponse.next();
+            return;
         }
 
         console.log("👤 【setupMiddleware】ユーザーID取得成功:", userId);
@@ -49,7 +49,7 @@ export async function setupMiddleware(request: NextRequest, newToken?: string): 
 
         if (setupStatus === null) {
             console.error("❌ 【setupMiddleware】 セットアップステータスの取得に失敗");
-            return NextResponse.next();
+            return;
         }
 
         console.log(`🔄 【setupMiddleware】取得した setup_status: ${setupStatus}`);
@@ -65,7 +65,7 @@ export async function setupMiddleware(request: NextRequest, newToken?: string): 
 
     } catch (error) {
         console.error("❌ 【setupMiddleware】エラー発生:", error);
-        return NextResponse.next();
+        return;
     }
 }
 

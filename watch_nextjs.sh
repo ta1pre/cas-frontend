@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# 古いログファイルを削除
-rm -f nextjs.log
+# ログファイルをプロジェクト外に配置して無限ループを防止
+LOG_DIR="/tmp/nextjs_logs"
+LOG_FILE="$LOG_DIR/nextjs.log"
+# 古いログファイルを削除し、ディレクトリがなければ作成
+mkdir -p "$LOG_DIR"
+rm -f "$LOG_FILE"
 
 echo "📝 Next.jsのログ監視を開始します..."
 echo "💡 ヒント: Claude Codeで 'claude \"nextjs.logのエラーを修正して\"' と入力すると自動修正できます"
@@ -17,16 +21,18 @@ if lsof -i :3000 >/dev/null 2>&1; then
 fi
 
 # npm run dev の出力をファイルに保存しながら表示
+# ループ開始ごとにディレクトリ存在チェック
 npm run dev 2>&1 | while IFS= read -r line; do
+    mkdir -p "$LOG_DIR"
     # 画面に表示
     echo "$line"
     
     # ファイルに追加
-    echo "$line" >> nextjs.log
+    echo "$line" >> "$LOG_FILE"
     
     # 300行を超えたら古い行を削除
-    if [ $(wc -l < nextjs.log 2>/dev/null || echo 0) -gt 300 ]; then
-        tail -n 100 nextjs.log > nextjs.log.tmp
-        mv nextjs.log.tmp nextjs.log
+    if [ $(wc -l < "$LOG_FILE" 2>/dev/null || echo 0) -gt 300 ]; then
+        tail -n 100 "$LOG_FILE" > "${LOG_FILE}.tmp"
+        mv "${LOG_FILE}.tmp" "$LOG_FILE"
     fi
 done

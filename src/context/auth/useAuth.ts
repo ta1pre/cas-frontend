@@ -5,7 +5,7 @@ export const useAuth = () => {
     const context = useContext(AuthContext);
     // SSGビルド時にはログを出力しない
     if (typeof window !== 'undefined') {
-        console.log("✅ useAuth() で取得した context:", context); // ✅ `context` の中身を確認
+        console.log("✅ useAuth() 実行:", { user: context?.user?.userId, loading: context?.loading }); // ✅ `context` の中身を確認
     }
 
     if (!context) {
