@@ -31,160 +31,133 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   boxShadow: theme.shadows[3],
 }));
 
-const PostsPage: React.FC = () => {
-  const [showForm, setShowForm] = useState(false);
+export default function PostsPage() {
+  console.log('🎯 PostsPage コンポーネントがレンダリングされました');
+  
+  const [open, setOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<number | null>(null);
-  const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const { deletePost } = usePosts();
-  const user = useUser();
-  const castId = user?.user_id;
-  // 投稿リストの再読み込みをトリガーするための状態
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleCreateClick = () => {
+  const { createPost, updatePost, deletePost, loading, error } = usePosts();
+  const user = useUser();
+
+  const castId = 406; // 一時的にハードコード
+
+  const handleOpen = () => {
     setEditingPost(null);
-    setShowForm(true);
+    setOpen(true);
   };
 
-  const handleEditClick = (post: Post) => {
+  const handleEdit = (post: Post) => {
     setEditingPost(post);
-    setShowForm(true);
+    setOpen(true);
   };
 
-  const handleDeleteClick = (postId: number) => {
-    setPostToDelete(postId);
-    setShowDeleteDialog(true);
-  };
-
-  const handleFormSuccess = () => {
-    setShowForm(false);
-    setEditingPost(null);
-    setNotification({ 
-      type: 'success', 
-      message: editingPost ? '投稿を更新しました' : '新しい投稿を作成しました'
-    });
-    // 投稿作成・更新後にリストを更新
-    setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleFormCancel = () => {
-    setShowForm(false);
+  const handleClose = () => {
+    setOpen(false);
     setEditingPost(null);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (postToDelete) {
+  const handleSubmit = async (postData: any) => {
+    try {
+      if (editingPost) {
+        await updatePost({ id: editingPost.id, ...postData });
+        setSnackbarMessage('投稿を更新しました');
+      } else {
+        await createPost(postData);
+        setSnackbarMessage('投稿を作成しました');
+      }
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      setRefreshTrigger(prev => prev + 1);
+      handleClose();
+    } catch (error) {
+      console.error('投稿の保存に失敗:', error);
+      setSnackbarMessage('投稿の保存に失敗しました');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleDelete = async (postId: number) => {
+    if (window.confirm('この投稿を削除しますか？')) {
       try {
-        await deletePost(postToDelete);
-        setNotification({ type: 'success', message: '投稿を削除しました' });
-        // 削除後にリストを更新するためのトリガーを更新
+        await deletePost(postId);
+        setSnackbarMessage('投稿を削除しました');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
         setRefreshTrigger(prev => prev + 1);
       } catch (error) {
-        console.error('投稿の削除に失敗しました:', error);
-        setNotification({ type: 'error', message: '投稿の削除に失敗しました' });
+        console.error('投稿の削除に失敗:', error);
+        setSnackbarMessage('投稿の削除に失敗しました');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
       }
     }
-    setShowDeleteDialog(false);
-    setPostToDelete(null);
   };
 
-  const handleCloseNotification = () => {
-    setNotification(null);
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
     <Container maxWidth="lg">
-      {!castId ? (
-        <StyledPaper>
-          <Typography variant="h5" align="center" color="error" gutterBottom>
-            認証エラー
+      <StyledPaper>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            ミニログ
           </Typography>
-          <Typography align="center">
-            キャスト情報が取得できませんでした。再度ログインしてください。
-          </Typography>
-        </StyledPaper>
-      ) : (
-        <>
-          <StyledPaper>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography 
-                variant="h6" 
-                component="h2" 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: '#d9467e',
-                  letterSpacing: '0.5px',
-                  fontSize: '1.1rem'
-                }}
-              >
-                ミニログ
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={handleCreateClick}
-              >
-                新規投稿
-              </Button>
-            </Box>
-            
-            <Divider sx={{ mb: 4 }} />
-            
-            {showForm ? (
-              <PostForm 
-                post={editingPost || undefined} 
-                onSuccess={handleFormSuccess} 
-                onCancel={handleFormCancel} 
-              />
-            ) : (
-              <PostList 
-                castId={castId} 
-                onEdit={handleEditClick} 
-                onDelete={handleDeleteClick} 
-                refreshTrigger={refreshTrigger}
-              />
-            )}
-          </StyledPaper>
-
-          {/* 削除確認ダイアログ */}
-          <Dialog
-            open={showDeleteDialog}
-            onClose={() => setShowDeleteDialog(false)}
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpen}
+            disabled={loading}
           >
-            <DialogTitle>投稿の削除</DialogTitle>
-            <DialogContent>
-              <Typography>この投稿を削除してもよろしいですか？この操作は元に戻せません。</Typography>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShowDeleteDialog(false)}>キャンセル</Button>
-              <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-                削除する
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </>
-      )}
+            新しい投稿
+          </Button>
+        </Box>
 
-      {/* 通知 */}
-      <Snackbar 
-        open={!!notification} 
-        autoHideDuration={6000} 
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseNotification} 
-          severity={notification?.type || 'info'} 
-          sx={{ width: '100%' }}
+        <Divider sx={{ mb: 3 }} />
+
+        <PostList
+          castId={castId}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          refreshTrigger={refreshTrigger}
+        />
+
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+          <DialogTitle>
+            {editingPost ? '投稿を編集' : '新しい投稿を作成'}
+          </DialogTitle>
+          <DialogContent>
+            <PostForm
+              onSubmit={handleSubmit}
+              onCancel={handleClose}
+              initialData={editingPost}
+              castId={castId}
+              loading={loading}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={handleSnackbarClose}
         >
-          {notification?.message}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            sx={{ width: '100%' }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </StyledPaper>
     </Container>
   );
-};
-
-export default PostsPage;
+}

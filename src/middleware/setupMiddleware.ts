@@ -9,7 +9,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 /**
  * セットアップ完了ステータスを確認するミドルウェア
  */
-export async function setupMiddleware(request: NextRequest): Promise<NextResponse | void> {
+export async function setupMiddleware(request: NextRequest, newToken?: string): Promise<NextResponse | void> {
     console.log("🚀 【setupMiddleware】セットアップ確認ミドルウェア実行");
 
     const { pathname } = request.nextUrl;
@@ -22,9 +22,9 @@ export async function setupMiddleware(request: NextRequest): Promise<NextRespons
     }
 
     try {
-        // ✅ トークン取得
-        const token = request.cookies.get("token")?.value;
-        console.log("【setupMiddleware】サーバーで見えているtoken:", token);
+        // ✅ トークン取得（新しいトークンが渡されていればそれを使用）
+        const token = newToken || request.cookies.get("token")?.value;
+        console.log("【setupMiddleware】使用するtoken:", newToken ? "新しいトークン" : "クッキーのトークン", token?.slice(0, 20) + "...");
 
         if (!token) {
             console.error("❌ 【setupMiddleware】 トークンなし。処理をスキップ");
@@ -61,7 +61,7 @@ export async function setupMiddleware(request: NextRequest): Promise<NextRespons
         }
 
         console.log("✅ 【setupMiddleware】セットアップ完了！処理を継続");
-        return NextResponse.next();
+        return; // voidを返す（何もしない）
 
     } catch (error) {
         console.error("❌ 【setupMiddleware】エラー発生:", error);

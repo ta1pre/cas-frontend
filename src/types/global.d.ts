@@ -1,5 +1,7 @@
-export {};
+import { User } from '@/context/auth/AuthContext';
 
 declare global {
-  var user: any; // `globalThis.user` の型を定義
+  var user: User | null | undefined;
 }
+
+export {};

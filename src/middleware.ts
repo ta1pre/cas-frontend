@@ -84,24 +84,28 @@ export default async function middleware(request: NextRequest) {
         if (authResponse) return authResponse;
         console.log("【middleware.ts】 認証成功");
 
-        // 認証成功時にトークンをクッキーへセット
+        // 認証成功時にトークンをクッキーへセット（既存トークンと異なる場合のみ）
         const response = NextResponse.next();
-        response.cookies.set("token", token, {
-            path: "/",
-            secure: false, // 本番はtrue
-            sameSite: "lax", // ローカルはlaxでSafari対応
-            httpOnly: false,
-            maxAge: 3600,
-        });
+        const existingToken = request.cookies.get("token")?.value;
+        
+        if (existingToken !== token) {
+            response.cookies.set("token", token, {
+                path: "/",
+                secure: false, // 本番はtrue
+                sameSite: "lax", // ローカルはlaxでSafari対応
+                httpOnly: false,
+                maxAge: 3600,
+            });
+            console.log("【middleware.ts】 クッキーにトークンをセット（新しいトークン）");
+        } else {
+            console.log("【middleware.ts】 トークンは既存と同じのためクッキー設定をスキップ");
+        }
 
-        console.log("【middleware.ts】 クッキーにトークンをセット");
-
-        // 【重要】 setupMiddlewareを実行し、そのレスポンスを受け取る
-        const setupResponse = await setupMiddleware(request);
-
+        // setupMiddleware処理
+        console.log("【middleware.ts】 setupMiddleware処理を実行します");
+        const setupResponse = await setupMiddleware(request, token);
         if (setupResponse) {
-            // setupMiddlewareがレスポンスを返したら即座にreturnする（リダイレクト実行）
-            console.log("【middleware.ts】 setupMiddlewareからレスポンスが返されたので、即座に返却します");
+            console.log("【middleware.ts】 setupMiddleware でリダイレクトが発生しました");
             return setupResponse;
         }
 

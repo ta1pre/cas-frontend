@@ -17,6 +17,7 @@ export const usePosts = () => {
    * @returns 投稿一覧
    */
   const fetchPosts = useCallback(async (castId: number, skip = 0, limit = 20): Promise<Post[]> => {
+    console.log('📡 usePosts.fetchPosts 開始', { castId, skip, limit });
     setLoading(true);
     setError(null);
 
@@ -30,15 +31,17 @@ export const usePosts = () => {
         throw new Error('投稿の取得に失敗しました');
       }
       
+      console.log('📡 usePosts.fetchPosts 成功', { responseLength: response.length });
       return response;
     } catch (err: any) {
       const errorMessage = err.message || '投稿の取得に失敗しました';
+      console.error('📡 usePosts.fetchPosts エラー', { error: err, errorMessage });
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // 空の依存配列で正しくメモ化される
 
   /**
    * 投稿詳細を取得する

@@ -17,8 +17,10 @@ export interface DecodedToken {
  */
 const useUser = () => {
   const [user, setUser] = useState<DecodedToken | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log("🔍 useUser useEffect 実行");
     const cookies = document.cookie.split("; ");
     console.log("🍪 取得したクッキー一覧:", cookies);
 
@@ -35,17 +37,22 @@ const useUser = () => {
     if (foundToken) {
       try {
         const decodedUser = jwtDecode<Omit<DecodedToken, "token">>(foundToken);
-        setUser({ ...decodedUser, token: foundToken }); // ✅ `token` を追加
+        const userWithToken = { ...decodedUser, token: foundToken };
+        setUser(userWithToken);
         console.log("👤 デコードされたユーザー情報:", decodedUser);
       } catch (error) {
         console.error("🔴 トークンのデコードに失敗:", error);
+        setUser(null);
       }
     } else {
       console.log("⚠️ `token` がクッキーにありません");
+      setUser(null);
     }
+    setIsLoading(false);
   }, []);
 
-  return user; // ✅ `user.token` を含めたオブジェクトを返す
+  console.log("🔄 useUser hook 実行", { user: user?.user_id, isLoading });
+  return user;
 };
 
 export default useUser;

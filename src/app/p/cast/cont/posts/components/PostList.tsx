@@ -39,11 +39,22 @@ interface PostListProps {
 }
 
 const PostList: React.FC<PostListProps> = ({ castId, onEdit, onDelete, refreshTrigger = 0 }) => {
+  console.log('🎯 PostList コンポーネントがレンダリングされました', { castId, refreshTrigger });
+  
   const [posts, setPosts] = useState<Post[]>([]);
   const { loading, error, fetchPosts, likePost } = usePosts();
   const user = useUser();
   // cast_idが存在しない場合は、現在表示中のcastIdを使用する
   const currentCastId = castId;
+  
+  console.log('📈 PostList 状態:', {
+    postsLength: posts.length,
+    loading,
+    error,
+    castId,
+    currentCastId,
+    refreshTrigger
+  });
 
   // 投稿を読み込む関数
   const loadPosts = async () => {
@@ -57,11 +68,14 @@ const PostList: React.FC<PostListProps> = ({ castId, onEdit, onDelete, refreshTr
 
   // コンポーネントマウント時とrefreshTriggerが変わった時に投稿を読み込む
   useEffect(() => {
+    console.log('🔥 useEffect が実行されました', { castId, refreshTrigger });
     let isMounted = true;
     
     const fetchData = async () => {
       try {
+        console.log('📡 fetchPosts 開始', { castId });
         const data = await fetchPosts(castId);
+        console.log('📡 fetchPosts 完了', { dataLength: data?.length });
         if (isMounted) {
           setPosts(data || []);
         }
@@ -74,9 +88,10 @@ const PostList: React.FC<PostListProps> = ({ castId, onEdit, onDelete, refreshTr
     
     // クリーンアップ関数
     return () => {
+      console.log('🧹 useEffect クリーンアップ', { castId, refreshTrigger });
       isMounted = false;
     };
-  }, [castId, fetchPosts, refreshTrigger]); // refreshTriggerを依存配列に追加
+  }, [castId, refreshTrigger]); // fetchPostsを依存配列から除外
 
   const handleLike = async (postId: number) => {
     try {

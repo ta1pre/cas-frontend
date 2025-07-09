@@ -16,10 +16,6 @@ interface DecodedUser {
     exp: number;
 }
 
-// globalThisの型定義
- declare global {
-    var user: User | null;
-}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
