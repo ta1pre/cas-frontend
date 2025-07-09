@@ -16,6 +16,11 @@ interface DecodedUser {
     exp: number;
 }
 
+// globalThisの型定義
+ declare global {
+    var user: User | null;
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState<User | null>(null);
@@ -37,12 +42,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.log("✅ デコードされたJWT:", decodedUser);
 
                 // ✅ `user_id` を `userId` にリネームしてセット
-                setUser({
+                const userData = {
                     userId: decodedUser.user_id, // ✅ 修正
                     userType: decodedUser.user_type,
                     affiType: decodedUser.affi_type,
                     token: storedToken
-                });
+                };
+                setUser(userData);
+                
+                // globalThis.userを設定
+                globalThis.user = userData;
+                console.log("✅ globalThis.user を設定:", globalThis.user);
 
                 setIsAuthenticated(true); 
             } catch (error) {
@@ -57,6 +67,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         setLoading(false);
     }, [pathname]);
+    
+    // userが変更されたらglobalThis.userも更新
+    useEffect(() => {
+        if (user && user.token) {
+            globalThis.user = user;
+            console.log("✅ globalThis.user を更新:", globalThis.user);
+        } else if (!user) {
+            globalThis.user = null;
+            console.log("⚠️ globalThis.user をクリア");
+        }
+    }, [user]);
 
     return (
         <AuthContext.Provider value={{ 

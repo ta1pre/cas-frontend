@@ -56,6 +56,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState(initialImage);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const user = useUser();
   const token = user?.token;
@@ -87,7 +88,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setError(null);
     
     try {
-      console.log('画像アップロード:', file.name, file.type);
+      console.log('🖼️ 画像アップロード開始:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        token: token ? 'あり' : 'なし',
+        apiUrl: apiUrl
+      });
       
       // 1. 署名付きURLを取得
       const urlResponse = await axios.post(
@@ -102,7 +109,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          timeout: 30000 // 30秒のタイムアウト
         }
       );
       
@@ -114,12 +122,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       }
       
       // 2. 署名付きURLにファイルを直接アップロード
+      console.log('📤 S3へのアップロード開始');
       await axios.put(
         presignedUrl,
         file,
         {
           headers: {
             'Content-Type': file.type
+          },
+          timeout: 60000, // 60秒のタイムアウト（大きいファイル用）
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setUploadProgress(percentCompleted);
+              console.log(`📡 アップロード進捗: ${percentCompleted}%`);
+            }
           }
         }
       );
@@ -131,6 +148,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       const publicUrl = presignedUrl.split('?')[0];
       
       // 4. 必要に応じて、アップロード情報をDBに登録
+      console.log('📝 メディア情報をDBに登録中');
       const mediaResponse = await axios.post(
         `${apiUrl}/api/v1/media/upload/register`,
         {
@@ -144,7 +162,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          timeout: 30000 // 30秒のタイムアウト
         }
       );
       
@@ -158,11 +177,30 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       onUploadComplete(publicUrl, mediaId);
       
     } catch (err: any) {
-      console.error('画像アップロードエラー:', err);
-      console.error('エラー詳細:', err.response?.data || err.message);
-      setError(err.response?.data?.detail || err.message || '画像のアップロードに失敗しました');
+      console.error('❌ 画像アップロードエラー:', {
+        error: err,
+        response: err.response?.data,
+        status: err.response?.status,
+        message: err.message,
+        code: err.code
+      });
+      
+      // エラーメッセージの決定
+      let errorMessage = '画像のアップロードに失敗しました';
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = 'アップロードがタイムアウトしました。もう一度お試しください。';
+      } else if (err.response?.status === 413) {
+        errorMessage = 'ファイルサイズが大きすぎます';
+      } else if (err.response?.status === 401) {
+        errorMessage = '認証エラー。再度ログインしてください。';
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      }
+      
+      setError(errorMessage);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       // input要素をリセット
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -208,7 +246,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       ) : (
         <UploadBox onClick={handleUploadClick}>
           {uploading ? (
-            <CircularProgress size={40} />
+            <>
+              <CircularProgress 
+                size={40} 
+                variant={uploadProgress > 0 ? "determinate" : "indeterminate"}
+                value={uploadProgress}
+              />
+              {uploadProgress > 0 && (
+                <Typography variant="caption" sx={{ mt: 1 }}>
+                  {uploadProgress}%
+                </Typography>
+              )}
+            </>
           ) : (
             <>
               <CloudUploadIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />

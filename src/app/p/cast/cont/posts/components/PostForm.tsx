@@ -129,6 +129,18 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSuccess, onCancel }) => {
     
     if (!validateForm()) return;
     
+    // デバッグログ: 投稿前の状態確認
+    console.log('📨 投稿送信前の状態:', {
+      formData,
+      hasImage: !!imageUrl,
+      tempMediaId,
+      isEdit: !!post,
+      postId: post?.id,
+      userToken: token ? 'あり' : 'なし',
+      globalUserToken: globalThis.user?.token ? 'あり' : 'なし',
+      apiUrl
+    });
+    
     setIsSubmitting(true);
     setFormError(null);
     
@@ -137,6 +149,7 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSuccess, onCancel }) => {
       
       if (post) {
         // 更新処理
+        console.log('🔄 投稿更新中...');
         savedPost = await updatePost({
           ...formData,
           id: post.id
@@ -144,21 +157,30 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSuccess, onCancel }) => {
         
         // 既存の投稿を更新する場合も、新しい画像がアップロードされていれば紐付けを更新
         if (tempMediaId && savedPost) {
+          console.log('🔗 画像と投稿を紐付け中...');
           await updateMediaWithPostId(savedPost.id);
         }
       } else {
         // 新規作成処理
+        console.log('✨ 新規投稿作成中...');
         savedPost = await createPost(formData as PostCreateData);
         
         // 新規投稿の場合、画像がアップロードされていれば紐付けを更新
         if (tempMediaId && savedPost) {
+          console.log('🔗 画像と投稿を紐付け中...');
           await updateMediaWithPostId(savedPost.id);
         }
       }
       
+      console.log('✅ 投稿保存成功:', savedPost);
       onSuccess();
     } catch (err: any) {
-      console.error('投稿の保存に失敗しました:', err);
+      console.error('❌ 投稿の保存に失敗しました:', {
+        error: err,
+        message: err.message,
+        response: err.response,
+        formData
+      });
       setFormError(err.message || '投稿の保存に失敗しました');
     } finally {
       setIsSubmitting(false);

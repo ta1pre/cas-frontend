@@ -78,19 +78,37 @@ export const usePosts = () => {
     setLoading(true);
     setError(null);
 
+    // デバッグログ: 投稿前の状態確認
+    console.log('📝 投稿作成開始:', {
+      postData,
+      hasGlobalUser: !!globalThis.user,
+      globalUserToken: globalThis.user?.token ? 'あり' : 'なし',
+      timestamp: new Date().toISOString()
+    });
+
     try {
       const response = await fetchAPI(
         '/api/v1/posts/create',
         postData
       );
       
+      console.log('✅ 投稿作成APIレスポンス:', response);
+      
       if (!response) {
+        console.error('❌ 投稿作成失敗: レスポンスが空');
         throw new Error('投稿の作成に失敗しました');
       }
       
       return response;
     } catch (err: any) {
-      const errorMessage = err.message || '投稿の作成に失敗しました';
+      console.error('❌ 投稿作成エラー:', {
+        error: err,
+        message: err.message,
+        response: err.response,
+        postData
+      });
+      
+      const errorMessage = err.response?.data?.detail || err.message || '投稿の作成に失敗しました';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -107,19 +125,37 @@ export const usePosts = () => {
     setLoading(true);
     setError(null);
 
+    // デバッグログ: 更新前の状態確認
+    console.log('✏️ 投稿更新開始:', {
+      postData,
+      hasGlobalUser: !!globalThis.user,
+      globalUserToken: globalThis.user?.token ? 'あり' : 'なし',
+      timestamp: new Date().toISOString()
+    });
+
     try {
       const response = await fetchAPI(
         '/api/v1/posts/update',
         postData
       );
       
+      console.log('✅ 投稿更新APIレスポンス:', response);
+      
       if (!response) {
+        console.error('❌ 投稿更新失敗: レスポンスが空');
         throw new Error('投稿の更新に失敗しました');
       }
       
       return response;
     } catch (err: any) {
-      const errorMessage = err.message || '投稿の更新に失敗しました';
+      console.error('❌ 投稿更新エラー:', {
+        error: err,
+        message: err.message,
+        response: err.response,
+        postData
+      });
+      
+      const errorMessage = err.response?.data?.detail || err.message || '投稿の更新に失敗しました';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

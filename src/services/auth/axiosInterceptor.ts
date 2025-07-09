@@ -1,4 +1,14 @@
 import axios from "axios";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+
+// JWTデコード時の型定義
+interface DecodedUser {
+    user_id: number;
+    user_type: string;
+    affi_type: number;
+    exp: number;
+}
 
 /**
  * ============================================
@@ -76,36 +86,52 @@ apiClient.interceptors.response.use(
  * const status = await fetchAPI("/api/v1/cast/identity-verification/status", null, "GET");
  * ```
  */
-export const fetchAPI = async (endpoint: string, data?: object, method: string = "POST") => {
-    /**
-     * `globalThis.user`: ユーザー情報を保持するグローバル変数
-     * 
-     * `globalThis.user` には、ログインユーザーの `token` や `userId` が格納されている。
-     * 
-     * 🔹 例:
-     * ```tsx
-     * console.log(globalThis.user);
-     * // { userId: 41, userType: "cast", affiType: 11, token: "xxxxx" }
-     * ```
-     * 
-     * `fetchAPI()` は `token` を `Authorization` ヘッダーにセットするため、
-     * `globalThis.user.token` が存在しない場合は API を呼び出さずに `null` を返す。
-     */
-    if (typeof globalThis.user === "undefined" || !globalThis.user?.token) {
-        console.warn("【fetchAPI】⚠️ `globalThis.user` が未定義のため API を叩けません");
-        console.warn("【fetchAPI】🔍 globalThis.user:", globalThis.user);
-        console.warn("【fetchAPI】🔍 document.cookie:", document?.cookie);
-        
-        // 開発環境用の一時的な解決策
-        if (process.env.NODE_ENV === 'development') {
-            console.warn("【fetchAPI】🔧 開発環境のため、認証なしでAPI呼び出しを試行します");
-            // 認証なしで試行
-        } else {
+/**
+ * Cookieからトークンを取得してglobalThis.userを設定
+ */
+const getAuthToken = (): string | null => {
+    // まずglobalThis.userを確認
+    if (globalThis.user?.token) {
+        return globalThis.user.token;
+    }
+    
+    // Cookieからトークンを取得
+    const storedToken = Cookies.get('token');
+    if (storedToken) {
+        try {
+            const decodedUser = jwtDecode<DecodedUser>(storedToken);
+            console.log("✅ Cookieからトークンを取得してデコード:", decodedUser);
+            
+            // globalThis.userを設定
+            globalThis.user = {
+                userId: decodedUser.user_id,
+                userType: decodedUser.user_type,
+                affiType: decodedUser.affi_type,
+                token: storedToken
+            };
+            
+            return storedToken;
+        } catch (error) {
+            console.error("🔴 トークンのデコードに失敗:", error);
             return null;
         }
     }
+    
+    return null;
+};
 
-    const token = globalThis.user?.token || 'dev-token'; // 開発環境用のフォールバック
+export const fetchAPI = async (endpoint: string, data?: object, method: string = "POST") => {
+    // トークンを取得（globalThis.userまたはCookieから）
+    const token = getAuthToken();
+    
+    if (!token) {
+        console.warn("【fetchAPI】⚠️ 認証トークンが見つかりません");
+        console.warn("【fetchAPI】🔍 globalThis.user:", globalThis.user);
+        console.warn("【fetchAPI】🍪 Cookies:", document?.cookie);
+        
+        // 開発環境でもトークンがない場合はnullを返す
+        return null;
+    }
 
     try {
         console.log(`【fetchAPI】🔍 ${method} ${API_URL}${endpoint} をリクエスト中...`);
@@ -142,12 +168,25 @@ export const fetchAPI = async (endpoint: string, data?: object, method: string =
         console.log(`【fetchAPI】✅ ${method} レスポンス:`, response.data);
         return response.data;
     } catch (error: any) {
-        // AxiosError の場合はレスポンス内容を返す（バリデーションエラー詳細など）
+        // 詳細なエラー情報を記録
         if (error.response) {
-            console.error(`【fetchAPI】❌ ${method} API 呼び出し失敗:`, error.response.data);
+            console.error(`【fetchAPI】❌ ${method} API 呼び出し失敗:`, {
+                status: error.response.status,
+                statusText: error.response.statusText,
+                data: error.response.data,
+                headers: error.response.headers,
+                endpoint: endpoint
+            });
             return error.response.data;
+        } else if (error.request) {
+            console.error(`【fetchAPI】❌ ネットワークエラー:`, {
+                message: error.message,
+                code: error.code,
+                endpoint: endpoint
+            });
+        } else {
+            console.error(`【fetchAPI】❌ 予期しないエラー:`, error);
         }
-        console.error(`【fetchAPI】❌ ${method} API 呼び出し失敗:`, error);
         return null;
     }
 };
