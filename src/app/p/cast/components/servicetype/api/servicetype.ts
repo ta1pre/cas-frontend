@@ -26,7 +26,12 @@ export const getAllServiceTypes = async (token: string): Promise<Record<string, 
   }
 
   // fetchAPI はグローバル token を使うため事前にセット
-  globalThis.user = { ...(globalThis.user || {}), token };
+  globalThis.user = { 
+    token,
+    userId: globalThis.user?.userId || 0,
+    userType: globalThis.user?.userType || null,
+    affiType: globalThis.user?.affiType || null
+  };
 
   const data = await fetchAPI("/api/v1/servicetype/list", {});
   return data as Record<string, ServiceType[]>;
@@ -41,7 +46,12 @@ export const getSelectedServiceTypes = async (token: string, castId: number): Pr
     throw new Error("認証トークンがありません");
   }
 
-  globalThis.user = { ...(globalThis.user || {}), token };
+  globalThis.user = { 
+    token,
+    userId: globalThis.user?.userId || 0,
+    userType: globalThis.user?.userType || null,
+    affiType: globalThis.user?.affiType || null
+  };
 
   const data = await fetchAPI("/api/v1/servicetype/selected", { cast_id: castId });
   return data as number[];
@@ -56,7 +66,12 @@ export const registerServiceTypes = async (token: string, castId: number, servic
     throw new Error("認証トークンがありません");
   }
 
-  globalThis.user = { ...(globalThis.user || {}), token };
+  globalThis.user = { 
+    token,
+    userId: globalThis.user?.userId || 0,
+    userType: globalThis.user?.userType || null,
+    affiType: globalThis.user?.affiType || null
+  };
   await fetchAPI("/api/v1/servicetype/register", { cast_id: castId, service_type_ids: serviceTypeIds });
 };
 
@@ -69,6 +84,11 @@ export const deleteServiceTypes = async (token: string, castId: number, serviceT
     throw new Error("認証トークンがありません");
   }
 
-  globalThis.user = { ...(globalThis.user || {}), token };
+  globalThis.user = { 
+    token,
+    userId: globalThis.user?.userId || 0,
+    userType: globalThis.user?.userType || null,
+    affiType: globalThis.user?.affiType || null
+  };
   await fetchAPI("/api/v1/servicetype/delete", { cast_id: castId, service_type_ids: serviceTypeIds });
 };

@@ -14,13 +14,19 @@ export default function RootLayout({ children }: LayoutProps) {
     const auth = useAuth();
 
     useEffect(() => {
-        console.log(" LocalTokenMake が完了したら `useAuth()` を実行");
+        // SSGビルド時にはログを出力しない
+        if (typeof window !== 'undefined') {
+            console.log(" LocalTokenMake が完了したら `useAuth()` を実行");
+        }
 
         setGlobalUser(auth.user); // `globalThis.user` に `user` をセット
         setTokenRefreshed(true);
     }, [auth.user]); // `auth.user` が更新されたら `globalThis.user` も更新
 
-    console.log(" layout.tsx で取得した user:", auth.user);
+    // SSGビルド時にはログを出力しない
+    if (typeof window !== 'undefined') {
+        console.log(" layout.tsx で取得した user:", auth.user);
+    }
 
     if (!tokenRefreshed || auth.loading) {
         return (

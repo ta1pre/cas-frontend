@@ -26,7 +26,7 @@ npm run dev 2>&1 | while IFS= read -r line; do
     
     # 300行を超えたら古い行を削除
     if [ $(wc -l < nextjs.log 2>/dev/null || echo 0) -gt 300 ]; then
-        tail -n 300 nextjs.log > nextjs.log.tmp
+        tail -n 100 nextjs.log > nextjs.log.tmp
         mv nextjs.log.tmp nextjs.log
     fi
 done

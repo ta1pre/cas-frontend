@@ -26,6 +26,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
 
     useEffect(() => {
+        // SSGビルド時にはスキップ
+        if (typeof window === 'undefined') {
+            setLoading(false);
+            return;
+        }
+
         if (pathname?.startsWith("/auth/callback")) {
             setLoading(false);
             return;
@@ -62,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         setLoading(false);
-    }, [pathname]);
+    }, []);
     
     // userが変更されたらglobalThis.userも更新
     useEffect(() => {

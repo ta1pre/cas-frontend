@@ -27,7 +27,12 @@ export default function AdminTestLoginPage() {
             Cookies.set("token", response.access_token, { expires: 1, secure: true, sameSite: "Strict" });
             
             // ✅ グローバルな認証状態を更新
-            globalThis.user = { token: response.access_token, userId };
+            globalThis.user = { 
+                token: response.access_token, 
+                userId: parseInt(userId, 10),
+                userType: 'admin',
+                affiType: null
+            };
             
             setTestResult(response);
         } catch (error) {

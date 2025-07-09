@@ -41,7 +41,7 @@ export default function PostsPage() {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const { createPost, updatePost, deletePost, loading, error } = usePosts();
+  const { deletePost, loading, error } = usePosts();
   const user = useUser();
 
   const castId = 406; // 一時的にハードコード
@@ -61,26 +61,6 @@ export default function PostsPage() {
     setEditingPost(null);
   };
 
-  const handleSubmit = async (postData: any) => {
-    try {
-      if (editingPost) {
-        await updatePost({ id: editingPost.id, ...postData });
-        setSnackbarMessage('投稿を更新しました');
-      } else {
-        await createPost(postData);
-        setSnackbarMessage('投稿を作成しました');
-      }
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-      setRefreshTrigger(prev => prev + 1);
-      handleClose();
-    } catch (error) {
-      console.error('投稿の保存に失敗:', error);
-      setSnackbarMessage('投稿の保存に失敗しました');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
 
   const handleDelete = async (postId: number) => {
     if (window.confirm('この投稿を削除しますか？')) {
@@ -135,11 +115,15 @@ export default function PostsPage() {
           </DialogTitle>
           <DialogContent>
             <PostForm
-              onSubmit={handleSubmit}
+              post={editingPost || undefined}
+              onSuccess={() => {
+                setSnackbarMessage(editingPost ? '投稿を更新しました' : '投稿を作成しました');
+                setSnackbarSeverity('success');
+                setSnackbarOpen(true);
+                setRefreshTrigger(prev => prev + 1);
+                handleClose();
+              }}
               onCancel={handleClose}
-              initialData={editingPost}
-              castId={castId}
-              loading={loading}
             />
           </DialogContent>
         </Dialog>

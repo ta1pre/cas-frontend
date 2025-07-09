@@ -61,7 +61,7 @@ export async function removeFavorite(castId: number) {
         console.log(`📡 DELETE /api/v1/customer/favorites/${castId} をリクエスト`);
         // fetchAPIは常にPOSTメソッドを使用するので、axiosを直接使用する
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
-        const token = globalThis.user.token;
+        const token = globalThis.user?.token;
         
         const response = await axios.delete(`${API_URL}/api/v1/customer/favorites/${castId}`, {
             headers: { Authorization: `Bearer ${token}` },

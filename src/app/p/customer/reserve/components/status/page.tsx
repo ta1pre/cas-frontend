@@ -7,7 +7,7 @@ export default function ChangeStatusPage() {
     const [message, setMessage] = useState<string | null>(null);
 
     const handleChangeStatus = async () => {
-        const response = await fetchChangeStatus("adjusting", 1, user.user_id);
+        const response = await fetchChangeStatus("adjusting", 1, user?.userId || 0);
 
         if (response) {
             setMessage(response.message);

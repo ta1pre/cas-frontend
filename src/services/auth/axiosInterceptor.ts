@@ -25,7 +25,10 @@ interface DecodedUser {
  */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-console.log("【axiosInterceptor】✅ 開始");
+// SSGビルド時にはログを出力しない
+if (typeof window !== 'undefined') {
+    console.log("【axiosInterceptor】✅ 開始");
+}
 
 /**
  * `apiClient`: カスタム Axios インスタンス
