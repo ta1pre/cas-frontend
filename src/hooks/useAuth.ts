@@ -26,8 +26,11 @@ export function useAuth() {
             setLoading(true);
             setError(null);
 
+            console.log('🔄 [useAuth] handleLogin 開始:', { provider, trackingId });
+
             switch (provider) {
                 case 'line':
+                    console.log('🔄 [useAuth] LINE認証開始 trackingId:', trackingId);
                     await contextLogin('line', { trackingId });
                     break;
                 case 'phone':

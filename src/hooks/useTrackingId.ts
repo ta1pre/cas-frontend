@@ -23,6 +23,7 @@ export function useTrackingId() {
         const urlTrackingId = urlParams.get('tr');
         
         console.log('🔍 [useTrackingId] trパラメータ:', urlTrackingId);
+        console.log('🔍 [useTrackingId] URLパラメータ一覧:', Object.fromEntries(urlParams.entries()));
         
         if (urlTrackingId) {
             currentTrackingId = urlTrackingId;

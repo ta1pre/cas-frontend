@@ -11,8 +11,20 @@ function CallbackContent() {
     const [isTokenProcessed, setIsTokenProcessed] = useState(false);
 
     useEffect(() => {
+        console.log('🔄 [Callback] URL:', window.location.href);
+        console.log('🔄 [Callback] 全パラメータ:', Object.fromEntries(searchParams.entries()));
+        
         const token = searchParams.get('token');
         const refreshToken = searchParams.get('refresh_token'); // refresh_token も取得
+        const stateParam = searchParams.get('state');
+        const codeParam = searchParams.get('code');
+        const errorParam = searchParams.get('error');
+
+        console.log('🔄 [Callback] token:', token);
+        console.log('🔄 [Callback] refresh_token:', refreshToken);
+        console.log('🔄 [Callback] state:', stateParam);
+        console.log('🔄 [Callback] code:', codeParam);
+        console.log('🔄 [Callback] error:', errorParam);
 
         if (token && refreshToken && !isTokenProcessed) {
             console.log('【コールバック】 Token from URL:', token);
