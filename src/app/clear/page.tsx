@@ -45,11 +45,11 @@ export default function ClearPage() {
         </Box>
         <Typography variant="h6" className="text-gray-600 font-semibold mb-2">キャスト向けページ</Typography>
         <Box className="flex flex-col gap-3">
-          <a href="https://cas.tokyo/auth/login?hoge" target="_blank" rel="noopener noreferrer"
+          <a href="https://cas.tokyo/auth/login?tr" target="_blank" rel="noopener noreferrer"
             className="block rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 font-medium transition">
             pre cas：<span className="font-mono">cas.tokyo</span>
           </a>
-          <a href="https://cas.tokyo/auth/login?hoge" target="_blank" rel="noopener noreferrer"
+          <a href="https://cas.tokyo/auth/login?tr" target="_blank" rel="noopener noreferrer"
             className="block rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 font-medium transition">
             cas：<span className="font-mono">cas.tokyo</span>
           </a>

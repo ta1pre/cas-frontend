@@ -13,8 +13,7 @@ type AuthProvider = 'line' | 'phone' | 'email';
 export function useAuth() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    // const trackingId = useTrackingId(); // LINEログイン用トラッキングID - 一時的に無効化
-    const trackingId = 'DEFAULT_ID'; // 固定値を使用
+    const trackingId = useTrackingId(); // LINEログイン用トラッキングID
     const { login: contextLogin, logout, user } = useAuthContext();
     
     // デバッグログ追加

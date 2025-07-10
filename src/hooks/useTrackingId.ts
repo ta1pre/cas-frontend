@@ -16,8 +16,13 @@ export function useTrackingId() {
         let currentTrackingId = 'DEFAULT_ID';
 
         // 1️⃣ URLから `tr` パラメータを取得（useSearchParamsを使わない）
+        console.log('🔍 [useTrackingId] 現在のURL:', window.location.href);
+        console.log('🔍 [useTrackingId] URLパラメータ:', window.location.search);
+        
         const urlParams = new URLSearchParams(window.location.search);
         const urlTrackingId = urlParams.get('tr');
+        
+        console.log('🔍 [useTrackingId] trパラメータ:', urlTrackingId);
         
         if (urlTrackingId) {
             currentTrackingId = urlTrackingId;

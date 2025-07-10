@@ -13,7 +13,7 @@ interface Props {
 }
 
 const ReferralCodeCard: React.FC<Props> = ({ invitationId }) => {
-  const shareUrl = `https://cas.tokyo/auth/login?hoge=${invitationId}`;
+  const shareUrl = `https://cas.tokyo/auth/login?tr=${invitationId}`;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`;
   const xUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('PreCasで一緒に稼ごう！')}`;
 

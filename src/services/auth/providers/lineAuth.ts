@@ -10,8 +10,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
  */
 export async function loginWithLine(trackingId: string): Promise<void> {
     try {
-        console.log('[loginWithLine] API:', `${API_URL}/api/v1/account/line/login?tracking_id=${trackingId}`);
-        const response = await axios.get(`${API_URL}/api/v1/account/line/login?tracking_id=${trackingId}`);
+        console.log('[loginWithLine] API:', `${API_URL}/api/v1/account/line/login?tr=${trackingId}`);
+        const response = await axios.get(`${API_URL}/api/v1/account/line/login?tr=${trackingId}`);
         const { auth_url } = response.data;
 
         if (auth_url) {

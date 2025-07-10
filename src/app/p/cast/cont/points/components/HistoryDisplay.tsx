@@ -34,6 +34,23 @@ export default function HistoryDisplay() {
         return source === "regular" ? "通常" : "ボーナス";
     }
 
+    function formatTransactionType(transaction: any) {
+        const typeMap: { [key: string]: { label: string; color: string } } = {
+            referral_bonus_pending: { label: "紹介ポイント（仮付与）", color: "text-yellow-600" },
+            referral_bonus_completed: { label: "紹介ポイント（確定）", color: "text-green-600" },
+            first_attendance_bonus: { label: "初回出勤ボーナス", color: "text-blue-600" },
+            regular_attendance: { label: "通常出勤", color: "text-gray-600" },
+            point_used: { label: "ポイント使用", color: "text-red-600" },
+        };
+
+        const typeInfo = typeMap[transaction.transaction_type] || { 
+            label: transaction.rule_description || "その他", 
+            color: "text-gray-600" 
+        };
+
+        return typeInfo;
+    }
+
     function formatNumber(value: number) {
         return value.toLocaleString(); // カンマ区切り
     }
@@ -43,20 +60,26 @@ export default function HistoryDisplay() {
             <h2 className="text-xl font-semibold">ポイント履歴</h2>
             {history.length > 0 ? (
                 <ul className="mt-2 space-y-2">
-                    {history.map((entry, index) => (
-                        <li key={index} className="border-b py-2 flex justify-between items-center py-2">
-                            <div>
-                                <span className="text-gray-600">{formatDate(entry.created_at)}</span>{" "}
-                                <span className="text-gray-500">({formatPointSource(entry.point_source)})</span>
-                            </div>
-                            <div className="text-right">
-                                <strong className={entry.point_change >= 0 ? "text-green-600" : "text-red-600"}>
-                                    {entry.point_change >= 0 ? `+${formatNumber(entry.point_change)}` : `${formatNumber(entry.point_change)}`}pt
-                                </strong>
-                                <p className="text-sm text-gray-500">{entry.rule_description || "不明な取引"}</p>
-                            </div>
-                        </li>
-                    ))}
+                    {history.map((entry, index) => {
+                        const typeInfo = formatTransactionType(entry);
+                        return (
+                            <li key={index} className="border-b py-2 flex justify-between items-center">
+                                <div>
+                                    <span className="text-gray-600">{formatDate(entry.created_at)}</span>
+                                    <p className={`text-sm ${typeInfo.color}`}>{typeInfo.label}</p>
+                                    {entry.transaction_type === "referral_bonus_pending" && (
+                                        <p className="text-xs text-gray-500">※初回出勤で確定</p>
+                                    )}
+                                </div>
+                                <div className="text-right">
+                                    <strong className={entry.point_change >= 0 ? "text-green-600" : "text-red-600"}>
+                                        {entry.point_change >= 0 ? `+${formatNumber(entry.point_change)}` : `${formatNumber(entry.point_change)}`}pt
+                                    </strong>
+                                    <p className="text-xs text-gray-500">({formatPointSource(entry.point_source)})</p>
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
             ) : (
                 <p className="mt-2 text-gray-500">履歴がありません。</p>
