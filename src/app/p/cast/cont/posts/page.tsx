@@ -44,7 +44,15 @@ export default function PostsPage() {
   const { deletePost, loading, error } = usePosts();
   const user = useUser();
 
-  const castId = 406; // 一時的にハードコード
+  // ログインユーザーのuser_idをcast_idとして使用
+  const castId = user?.user_id || 0;
+  
+  console.log('🎯 PostsPage - ユーザー情報:', {
+    user,
+    userId: user?.user_id,
+    userType: user?.user_type,
+    castId
+  });
 
   const handleOpen = () => {
     setEditingPost(null);
