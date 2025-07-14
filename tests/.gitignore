@@ -1,0 +1,4 @@
+# テストディレクトリ全体をgitから除外
+*
+!.gitignore
+!README.md

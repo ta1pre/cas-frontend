@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Container,
     Typography,
@@ -16,7 +16,10 @@ import {
     Chip,
     Box,
     Alert,
-    CircularProgress
+    CircularProgress,
+    TableSortLabel,
+    ToggleButton,
+    ToggleButtonGroup
 } from "@mui/material";
 import RuleEditDialog from "./components/RuleEditDialog";
 import { fetchAPI } from "@/services/auth/axiosInterceptor";
@@ -35,12 +38,18 @@ interface PointRule {
     created_at: string;
 }
 
+type Order = 'asc' | 'desc';
+type OrderBy = keyof PointRule;
+
 export default function PointRulesPage() {
     const [rules, setRules] = useState<PointRule[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingRule, setEditingRule] = useState<PointRule | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [order, setOrder] = useState<Order>('asc');
+    const [orderBy, setOrderBy] = useState<OrderBy>('id');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
     // ルール一覧を取得
     const fetchRules = async () => {
@@ -92,6 +101,43 @@ export default function PointRulesPage() {
         fetchRules();
     }, []);
 
+    // ソート処理
+    const handleRequestSort = (property: OrderBy) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+    };
+
+    // フィルターとソート関数
+    const filteredAndSortedRules = React.useMemo(() => {
+        // まずフィルタリング
+        let filtered = rules;
+        if (statusFilter === 'active') {
+            filtered = rules.filter(rule => rule.is_active);
+        } else if (statusFilter === 'inactive') {
+            filtered = rules.filter(rule => !rule.is_active);
+        }
+        
+        // 次にソート
+        const comparator = (a: PointRule, b: PointRule) => {
+            const aValue = a[orderBy];
+            const bValue = b[orderBy];
+            
+            if (bValue === null || bValue === undefined) return -1;
+            if (aValue === null || aValue === undefined) return 1;
+            
+            if (bValue < aValue) {
+                return order === 'desc' ? -1 : 1;
+            }
+            if (bValue > aValue) {
+                return order === 'desc' ? 1 : -1;
+            }
+            return 0;
+        };
+        
+        return [...filtered].sort(comparator);
+    }, [rules, order, orderBy, statusFilter]);
+
     // ポイント表示用フォーマット
     const formatPoints = (value: number, isAddition: boolean) => {
         const sign = isAddition ? "+" : "-";
@@ -102,9 +148,13 @@ export default function PointRulesPage() {
     const getStatusChip = (isActive: boolean) => {
         return (
             <Chip
-                label={isActive ? "有効" : "無効"}
-                color={isActive ? "success" : "default"}
+                label={isActive ? "🟢 ON" : "⚫ OFF"}
+                color={isActive ? "success" : "error"}
                 size="small"
+                sx={{
+                    fontWeight: "bold",
+                    minWidth: "70px"
+                }}
             />
         );
     };
@@ -130,24 +180,101 @@ export default function PointRulesPage() {
                 </Alert>
             )}
 
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    ステータスフィルター:
+                </Typography>
+                <ToggleButtonGroup
+                    value={statusFilter}
+                    exclusive
+                    onChange={(_, newFilter) => {
+                        if (newFilter !== null) {
+                            setStatusFilter(newFilter);
+                        }
+                    }}
+                    size="small"
+                >
+                    <ToggleButton value="all">
+                        すべて表示
+                    </ToggleButton>
+                    <ToggleButton value="active" sx={{ color: 'success.main' }}>
+                        🟢 ONのみ
+                    </ToggleButton>
+                    <ToggleButton value="inactive" sx={{ color: 'error.main' }}>
+                        ⚫ OFFのみ
+                    </ToggleButton>
+                </ToggleButtonGroup>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
+                    表示中: {filteredAndSortedRules.length}件 / 全{rules.length}件
+                </Typography>
+            </Box>
+
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>ルール名</TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'id'}
+                                    direction={orderBy === 'id' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('id')}
+                                >
+                                    ID
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'rule_name'}
+                                    direction={orderBy === 'rule_name' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('rule_name')}
+                                >
+                                    ルール名
+                                </TableSortLabel>
+                            </TableCell>
                             <TableCell>説明</TableCell>
-                            <TableCell>イベント</TableCell>
-                            <TableCell>対象</TableCell>
-                            <TableCell>ポイント</TableCell>
-                            <TableCell>種別</TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'event_type'}
+                                    direction={orderBy === 'event_type' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('event_type')}
+                                >
+                                    イベント
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'target_user_type'}
+                                    direction={orderBy === 'target_user_type' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('target_user_type')}
+                                >
+                                    対象
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'point_value'}
+                                    direction={orderBy === 'point_value' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('point_value')}
+                                >
+                                    ポイント
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'point_type'}
+                                    direction={orderBy === 'point_type' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('point_type')}
+                                >
+                                    種別
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>OFF/ON</TableCell>
                             <TableCell>ステータス</TableCell>
-                            <TableCell>ON/OFF</TableCell>
                             <TableCell>操作</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rules.map((rule) => (
+                        {filteredAndSortedRules.map((rule) => (
                             <TableRow key={rule.id}>
                                 <TableCell>{rule.id}</TableCell>
                                 <TableCell>
@@ -181,14 +308,20 @@ export default function PointRulesPage() {
                                     <Chip label={rule.point_type} size="small" />
                                 </TableCell>
                                 <TableCell>
-                                    {getStatusChip(rule.is_active)}
-                                </TableCell>
-                                <TableCell>
                                     <Switch
                                         checked={rule.is_active}
                                         onChange={() => toggleRuleStatus(rule.id)}
-                                        size="small"
+                                        size="medium"
+                                        color="success"
+                                        sx={{
+                                            '& .MuiSwitch-track': {
+                                                backgroundColor: rule.is_active ? '#4caf50' : '#f44336'
+                                            }
+                                        }}
                                     />
+                                </TableCell>
+                                <TableCell>
+                                    {getStatusChip(rule.is_active)}
                                 </TableCell>
                                 <TableCell>
                                     <Button
@@ -205,7 +338,7 @@ export default function PointRulesPage() {
                 </Table>
             </TableContainer>
 
-            {rules.length === 0 && !loading && (
+            {filteredAndSortedRules.length === 0 && !loading && (
                 <Box sx={{ textAlign: "center", py: 8 }}>
                     <Typography color="text.secondary">
                         ポイントルールが見つかりません

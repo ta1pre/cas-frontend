@@ -35,9 +35,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
-        // パスが /auth/callback の場合のみ早期リターン
+        // パスが /auth/callback の場合は認証情報を取得してからリターン
         const currentPath = window.location.pathname;
         if (currentPath.startsWith("/auth/callback")) {
+            const storedToken = Cookies.get("token"); 
+            if (storedToken) {
+                try {
+                    const decodedUser = jwtDecode<DecodedUser>(storedToken);
+                    console.log("✅ /auth/callback でデコードされたJWT:", decodedUser);
+
+                    const userData = {
+                        userId: decodedUser.user_id,
+                        userType: decodedUser.user_type,
+                        affiType: decodedUser.affi_type,
+                        token: storedToken
+                    };
+                    setUser(userData);
+                    globalThis.user = userData;
+                    setIsAuthenticated(true);
+                } catch (error) {
+                    console.error("🔴 /auth/callback でトークンのデコードに失敗:", error);
+                    setUser(null);
+                    setIsAuthenticated(false);
+                }
+            }
             setLoading(false);
             return;
         }
