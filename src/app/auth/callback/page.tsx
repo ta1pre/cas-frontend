@@ -39,7 +39,11 @@ function CallbackContent() {
             // `window.history.replaceState` で URL からパラメータを削除
             window.history.replaceState(null, "", window.location.pathname);
 
-            router.replace('/p'); // replace により履歴を残さない
+            // AuthProviderが確実にトークンを処理できるよう少し待機
+            setTimeout(() => {
+                console.log('🚀 Redirecting to /p after token processing');
+                router.replace('/p'); // replace により履歴を残さない
+            }, 100);
         }
     }, [searchParams, router, isTokenProcessed]);
 
