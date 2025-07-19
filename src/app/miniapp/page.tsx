@@ -11,21 +11,18 @@ declare global {
 
 export default function MiniAppPage() {
   const [referralCode, setReferralCode] = useState('')
-  const [isLiffReady, setIsLiffReady] = useState(false)
   const [userName, setUserName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [showToast, setShowToast] = useState({ show: false, message: '', type: '' })
 
   useEffect(() => {
     const initLiff = async () => {
       try {
-        // LIFF SDKを動的に読み込み
         const liffScript = document.createElement('script')
         liffScript.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
         liffScript.onload = async () => {
-          // LIFF初期化
           await window.liff.init({ liffId: '2007769669-j3NJ9Z2n' })
-          setIsLiffReady(true)
           
-          // ログイン確認
           if (window.liff.isLoggedIn()) {
             const profile = await window.liff.getProfile()
             setUserName(profile.displayName)
@@ -40,62 +37,146 @@ export default function MiniAppPage() {
     initLiff()
   }, [])
 
+  const showMessage = (message: string, type: 'success' | 'error') => {
+    setShowToast({ show: true, message, type })
+    setTimeout(() => setShowToast({ show: false, message: '', type: '' }), 3000)
+  }
+
+  const handleRegister = async () => {
+    if (!referralCode) {
+      showMessage('紹介コードを入力してください', 'error')
+      return
+    }
+    
+    setIsLoading(true)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      showMessage('登録機能は準備中です', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAddFriend = () => {
+    showMessage('友だち追加機能は準備中です', 'error')
+  }
+
   return (
-    <div className="container max-w-md mx-auto p-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-emerald-700">
-            PreCas 公式LINE
-          </h1>
-          <p className="text-gray-600 mt-2">
-            紹介コードを入力して、公式LINEに登録しよう！
-          </p>
-          {userName && (
-            <p className="text-sm text-gray-500 mt-2">
-              こんにちは、{userName}さん
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-[#00B900] text-white p-4 shadow-sm">
+        <div className="max-w-md mx-auto flex items-center justify-center gap-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.04 2 10.92c0 2.52 1.19 4.8 3.11 6.41.31.26.49.64.49 1.04 0 .19-.04.38-.11.55L4.5 21.5c-.11.32.03.67.33.83.1.05.21.08.32.08.21 0 .41-.09.55-.25l2.32-2.77c.36-.01.71-.03 1.06-.07 1.05.25 2.14.38 3.24.38 5.52 0 10-4.04 10-9.08C22 6.04 17.52 2 12 2z" fill="currentColor"/>
+          </svg>
+          <h1 className="text-lg font-bold">PreCas 公式LINE</h1>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-md mx-auto p-4 mt-6">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Welcome Section */}
+          <div className="bg-gradient-to-b from-gray-50 to-white p-6 text-center border-b">
+            <div className="w-20 h-20 bg-[#00B900] rounded-full mx-auto mb-4 flex items-center justify-center">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.04 2 10.92c0 2.52 1.19 4.8 3.11 6.41.31.26.49.64.49 1.04 0 .19-.04.38-.11.55L4.5 21.5c-.11.32.03.67.33.83.1.05.21.08.32.08.21 0 .41-.09.55-.25l2.32-2.77c.36-.01.71-.03 1.06-.07 1.05.25 2.14.38 3.24.38 5.52 0 10-4.04 10-9.08C22 6.04 17.52 2 12 2z" fill="white"/>
+              </svg>
+            </div>
+            
+            {userName ? (
+              <div>
+                <p className="text-sm text-gray-600 mb-1">こんにちは</p>
+                <p className="text-lg font-bold text-[#2E3238]">{userName}さん</p>
+              </div>
+            ) : (
+              <p className="text-lg font-bold text-[#2E3238]">PreCas 公式LINE</p>
+            )}
+            
+            <p className="text-sm text-gray-600 mt-3">
+              紹介コードを入力して登録しよう
             </p>
-          )}
+          </div>
+
+          {/* Form Section */}
+          <div className="p-6 space-y-6">
+            <div>
+              <label htmlFor="referralCode" className="block text-sm font-medium text-[#2E3238] mb-3">
+                紹介コード
+              </label>
+              <input
+                id="referralCode"
+                type="text"
+                placeholder="紹介コードを入力"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-center text-lg font-medium focus:outline-none focus:ring-2 focus:ring-[#00B900] focus:border-transparent transition-all"
+                maxLength={10}
+                style={{ letterSpacing: '0.1em' }}
+              />
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                半角英数字で入力してください
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleRegister}
+                disabled={isLoading}
+                className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ minHeight: '52px' }}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>処理中...</span>
+                  </>
+                ) : (
+                  '登録する'
+                )}
+              </button>
+
+              <button
+                onClick={handleAddFriend}
+                className="w-full bg-white border-2 border-[#00B900] text-[#00B900] py-4 rounded-xl font-medium hover:bg-green-50 transition-all flex items-center justify-center gap-2"
+                style={{ minHeight: '52px' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
+                </svg>
+                公式LINEを友だち追加
+              </button>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4">
+              <p className="text-xs text-gray-600 text-center leading-relaxed">
+                登録することで、PreCasからの最新情報や
+                <br />
+                お得なキャンペーン情報をLINEで受け取れます
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-2">
-              紹介コード
-            </label>
-            <input
-              id="referralCode"
-              type="text"
-              placeholder="紹介コードを入力"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              maxLength={10}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={() => alert('登録機能は準備中です')}
-              className="w-full bg-emerald-600 text-white py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-            >
-              登録する
-            </button>
-
-            <button
-              onClick={() => alert('友だち追加機能は準備中です')}
-              className="w-full border border-emerald-600 text-emerald-600 py-3 rounded-lg font-medium hover:bg-emerald-50 transition-colors"
-            >
-              公式LINEを友だち追加
-            </button>
-          </div>
-
-          <p className="text-xs text-gray-500 text-center">
-            登録することで、PreCasからのお知らせを
-            <br />
-            LINEで受け取ることができます
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">
+            © 2024 PreCas. All rights reserved.
           </p>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {showToast.show && (
+        <div className={`fixed bottom-4 left-4 right-4 max-w-md mx-auto p-4 rounded-xl shadow-lg transform transition-all duration-300 ${
+          showToast.type === 'success' ? 'bg-[#00B900] text-white' : 'bg-red-500 text-white'
+        }`}>
+          <p className="text-sm font-medium">{showToast.message}</p>
+        </div>
+      )}
     </div>
   )
 }
