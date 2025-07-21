@@ -132,47 +132,45 @@ function MiniAppContent() {
             )}
 
             {/* サービス種別選択 */}
-            {isFriend && (
-              <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-700 text-center">
-                  ご利用のサービスを選択してください
-                </p>
-                
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setSelectedRole('cast')}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left transform active:scale-95 ${
-                      selectedRole === 'cast'
-                        ? 'border-pink-400 bg-pink-50 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                    }`}
-                  >
-                    <p className="font-medium text-gray-800 mb-1">
-                      キャスト（施術スタッフ）
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      対応エリアを登録し、アポの日程調整や売上・ポイントを管理できます。
-                    </p>
-                  </button>
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-gray-700 text-center">
+                ご利用のサービスを選択してください
+              </p>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setSelectedRole('cast')}
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left transform active:scale-95 ${
+                    selectedRole === 'cast'
+                      ? 'border-pink-400 bg-pink-50 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  }`}
+                >
+                  <p className="font-medium text-gray-800 mb-1">
+                    キャスト（施術スタッフ）
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    対応エリアを登録し、アポの日程調整や売上・ポイントを管理できます。
+                  </p>
+                </button>
 
-                  <button
-                    onClick={() => setSelectedRole('user')}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left transform active:scale-95 ${
-                      selectedRole === 'user'
-                        ? 'border-[#00B900] bg-green-50 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                    }`}
-                  >
-                    <p className="font-medium text-gray-800 mb-1">
-                      ご利用者
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      お好みのキャストを検索して予約できます。
-                    </p>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setSelectedRole('user')}
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left transform active:scale-95 ${
+                    selectedRole === 'user'
+                      ? 'border-[#00B900] bg-green-50 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  }`}
+                >
+                  <p className="font-medium text-gray-800 mb-1">
+                    ご利用者
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    お好みのキャストを検索して予約できます。
+                  </p>
+                </button>
               </div>
-            )}
+            </div>
 
             <div className="space-y-3">
               {isFriend ? (
@@ -194,7 +192,12 @@ function MiniAppContent() {
               ) : (
                 <button
                   onClick={handleAddFriend}
-                  className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all flex items-center justify-center gap-2 transform active:scale-95 shadow-lg hover:shadow-xl"
+                  disabled={!selectedRole}
+                  className={`w-full py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 transform active:scale-95 ${
+                    selectedRole
+                      ? 'bg-[#00B900] text-white hover:bg-[#00A000] shadow-lg hover:shadow-xl'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                   style={{ minHeight: '52px' }}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
