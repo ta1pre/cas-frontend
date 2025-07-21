@@ -1,7 +1,7 @@
 // src/app/miniapp/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 declare global {
@@ -10,9 +10,9 @@ declare global {
   }
 }
 
-export default function MiniAppPage() {
+function MiniAppContent() {
   const searchParams = useSearchParams()
-  const referralCode = searchParams.get('ref') || ''
+  const referralCode = searchParams?.get('ref') || ''
   
   const [userName, setUserName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -32,8 +32,14 @@ export default function MiniAppPage() {
             setUserName(profile.displayName)
             
             // 友だち登録状態を確認
-            const friendship = await window.liff.getFriendship()
-            setIsFriend(friendship.friendFlag)
+            try {
+              const friendship = await window.liff.getFriendship()
+              setIsFriend(friendship.friendFlag)
+            } catch (err) {
+              console.log('友だち状態取得エラー:', err)
+              // エラーの場合は友だち未登録として扱う
+              setIsFriend(false)
+            }
           }
         }
         document.body.appendChild(liffScript)
@@ -221,5 +227,20 @@ export default function MiniAppPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function MiniAppPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00B900] mx-auto"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <MiniAppContent />
+    </Suspense>
   )
 }
