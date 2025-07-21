@@ -20,6 +20,7 @@ function MiniAppContent() {
   const [selectedRole, setSelectedRole] = useState<'cast' | 'user' | null>(null)
   const [isRegistered, setIsRegistered] = useState(false)
   const [registrationLoading, setRegistrationLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
     const initLiff = async () => {
@@ -54,8 +55,12 @@ function MiniAppContent() {
   }, [])
 
   const registerUser = async (userType: 'cast' | 'customer') => {
+    let debugInfo = '開発モード'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    
     try {
       setRegistrationLoading(true)
+      setErrorMessage('') // エラーメッセージをクリア
       
       let idToken = 'mock_token_for_development'
       
@@ -63,15 +68,18 @@ function MiniAppContent() {
       if (window.liff && window.liff.isLoggedIn()) {
         try {
           idToken = window.liff.getIDToken()
+          debugInfo = `LIFF IDトークン取得成功 (長さ: ${idToken.length})`
         } catch (error) {
           console.warn('LIFF IDトークン取得失敗、開発用トークンを使用:', error)
+          debugInfo = `LIFF IDトークン取得失敗: ${error}`
         }
       } else {
         console.log('LIFF未初期化またはログイン未完了、開発用トークンを使用')
+        debugInfo = 'LIFF未初期化またはログイン未完了'
       }
       
-      // APIエンドポイント（環境に応じて変更）
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      console.log('Debug info:', debugInfo)
+      console.log('API URL:', apiUrl)
       
       // 統一されたAPI呼び出し（ローカル・本番共通）
       const response = await fetch(`${apiUrl}/api/v1/miniapp/register`, {
@@ -93,11 +101,15 @@ function MiniAppContent() {
         setIsRegistered(true)
         return true
       } else {
-        console.error('User registration failed:', result.message)
+        const errorMsg = `登録失敗: ${result.message || response.statusText} (${response.status})`
+        console.error('User registration failed:', errorMsg)
+        setErrorMessage(`${errorMsg}\nデバッグ情報: ${debugInfo}\nAPI: ${apiUrl}`)
         return false
       }
     } catch (error) {
       console.error('Error during user registration:', error)
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      setErrorMessage(`エラー: ${errorMsg}\nAPI: ${apiUrl}\nデバッグ: ${debugInfo}`)
       return false
     } finally {
       setRegistrationLoading(false)
@@ -114,7 +126,7 @@ function MiniAppContent() {
     if (!success) {
       // 登録失敗時はselectedRoleをリセット
       setSelectedRole(null)
-      alert('登録に失敗しました。もう一度お試しください。')
+      // alertは使わず、エラーメッセージを画面に表示
     }
   }
 
@@ -215,7 +227,7 @@ function MiniAppContent() {
                   } ${registrationLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <p className="font-medium text-gray-800 mb-1">
-                    キャスト（施術スタッフ）
+                    キャスト
                   </p>
                   <p className="text-xs text-gray-600">
                     対応エリアを登録し、アポの日程調整や売上・ポイントを管理できます。
@@ -294,6 +306,15 @@ function MiniAppContent() {
                 )}
               </p>
             </div>
+            
+            {/* エラーメッセージ表示エリア */}
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+                <p className="text-sm text-red-800 whitespace-pre-wrap font-mono">
+                  {errorMessage}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
