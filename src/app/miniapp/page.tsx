@@ -15,8 +15,6 @@ function MiniAppContent() {
   const referralCode = searchParams?.get('ref') || ''
   
   const [userName, setUserName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [showToast, setShowToast] = useState({ show: false, message: '', type: '' })
   const [isFriend, setIsFriend] = useState(false)
 
   useEffect(() => {
@@ -51,31 +49,29 @@ function MiniAppContent() {
     initLiff()
   }, [])
 
-  const showMessage = (message: string, type: 'success' | 'error') => {
-    setShowToast({ show: true, message, type })
-    setTimeout(() => setShowToast({ show: false, message: '', type: '' }), 3000)
-  }
 
-  const handleRegister = async () => {
-    if (!referralCode) {
-      showMessage('紹介コードが指定されていません', 'error')
-      return
-    }
-    
-    setIsLoading(true)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      showMessage('登録機能は準備中です', 'error')
-    } finally {
-      setIsLoading(false)
+  const handleOpenChat = () => {
+    if (window.liff && window.liff.isInClient()) {
+      // LINEアプリ内から公式アカウントのトーク画面を開く
+      window.liff.openWindow({
+        url: 'https://line.me/R/oaMessage/@696unbp/',
+        external: false
+      })
+      // ミニアプリを閉じる
+      setTimeout(() => {
+        window.liff.closeWindow()
+      }, 1000)
+    } else {
+      // 外部ブラウザの場合
+      window.open('https://line.me/R/oaMessage/@696unbp/', '_blank')
     }
   }
 
   const handleAddFriend = () => {
     if (window.liff && window.liff.isInClient()) {
-      window.open('https://line.me/R/ti/p/@precas_official')
+      window.open('https://line.me/R/ti/p/@696unbp')
     } else {
-      window.open('https://line.me/R/ti/p/@precas_official', '_blank')
+      window.open('https://line.me/R/ti/p/@696unbp', '_blank')
     }
   }
 
@@ -136,22 +132,14 @@ function MiniAppContent() {
             <div className="space-y-3">
               {isFriend ? (
                 <button
-                  onClick={handleRegister}
-                  disabled={isLoading}
-                  className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  onClick={handleOpenChat}
+                  className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all flex items-center justify-center gap-2"
                   style={{ minHeight: '52px' }}
                 >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>処理中...</span>
-                    </>
-                  ) : (
-                    '登録を完了する'
-                  )}
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM7 9h10v2H7V9zm6 5H7v-2h6v2zm4-6H7V6h10v2z" fill="currentColor"/>
+                  </svg>
+                  公式LINEを開く
                 </button>
               ) : (
                 <>
@@ -166,26 +154,6 @@ function MiniAppContent() {
                     公式LINEを友だち追加
                   </button>
 
-                  {referralCode && (
-                    <button
-                      onClick={handleRegister}
-                      disabled={isLoading}
-                      className="w-full bg-white border-2 border-[#00B900] text-[#00B900] py-4 rounded-xl font-medium hover:bg-green-50 transition-all flex items-center justify-center gap-2"
-                      style={{ minHeight: '52px' }}
-                    >
-                      {isLoading ? (
-                        <>
-                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <span>処理中...</span>
-                        </>
-                      ) : (
-                        '友だち追加後に登録'
-                      )}
-                    </button>
-                  )}
                 </>
               )}
             </div>
@@ -218,14 +186,6 @@ function MiniAppContent() {
         </div>
       </div>
 
-      {/* Toast Notification */}
-      {showToast.show && (
-        <div className={`fixed bottom-4 left-4 right-4 max-w-md mx-auto p-4 rounded-xl shadow-lg transform transition-all duration-300 ${
-          showToast.type === 'success' ? 'bg-[#00B900] text-white' : 'bg-red-500 text-white'
-        }`}>
-          <p className="text-sm font-medium">{showToast.message}</p>
-        </div>
-      )}
     </div>
   )
 }
