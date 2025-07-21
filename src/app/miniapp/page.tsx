@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 declare global {
   interface Window {
@@ -10,10 +11,13 @@ declare global {
 }
 
 export default function MiniAppPage() {
-  const [referralCode, setReferralCode] = useState('')
+  const searchParams = useSearchParams()
+  const referralCode = searchParams.get('ref') || ''
+  
   const [userName, setUserName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showToast, setShowToast] = useState({ show: false, message: '', type: '' })
+  const [isFriend, setIsFriend] = useState(false)
 
   useEffect(() => {
     const initLiff = async () => {
@@ -26,6 +30,10 @@ export default function MiniAppPage() {
           if (window.liff.isLoggedIn()) {
             const profile = await window.liff.getProfile()
             setUserName(profile.displayName)
+            
+            // 友だち登録状態を確認
+            const friendship = await window.liff.getFriendship()
+            setIsFriend(friendship.friendFlag)
           }
         }
         document.body.appendChild(liffScript)
@@ -44,7 +52,7 @@ export default function MiniAppPage() {
 
   const handleRegister = async () => {
     if (!referralCode) {
-      showMessage('紹介コードを入力してください', 'error')
+      showMessage('紹介コードが指定されていません', 'error')
       return
     }
     
@@ -58,7 +66,11 @@ export default function MiniAppPage() {
   }
 
   const handleAddFriend = () => {
-    showMessage('友だち追加機能は準備中です', 'error')
+    if (window.liff && window.liff.isInClient()) {
+      window.open('https://line.me/R/ti/p/@precas_official')
+    } else {
+      window.open('https://line.me/R/ti/p/@precas_official', '_blank')
+    }
   }
 
   return (
@@ -93,69 +105,100 @@ export default function MiniAppPage() {
               <p className="text-lg font-bold text-[#2E3238]">PreCas 公式LINE</p>
             )}
             
-            <p className="text-sm text-gray-600 mt-3">
-              紹介コードを入力して登録しよう
-            </p>
+            {isFriend ? (
+              <p className="text-sm text-gray-600 mt-3">
+                すでに友だち登録済みです
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600 mt-3">
+                公式LINEに友だち登録しよう
+              </p>
+            )}
           </div>
 
           {/* Form Section */}
           <div className="p-6 space-y-6">
-            <div>
-              <label htmlFor="referralCode" className="block text-sm font-medium text-[#2E3238] mb-3">
-                紹介コード
-              </label>
-              <input
-                id="referralCode"
-                type="text"
-                placeholder="紹介コードを入力"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-center text-lg font-medium focus:outline-none focus:ring-2 focus:ring-[#00B900] focus:border-transparent transition-all"
-                maxLength={10}
-                style={{ letterSpacing: '0.1em' }}
-              />
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                半角英数字で入力してください
-              </p>
-            </div>
+            {referralCode && (
+              <div className="bg-blue-50 rounded-xl p-4 text-center">
+                <p className="text-sm text-gray-600 mb-1">紹介コード</p>
+                <p className="text-xl font-bold text-[#2E3238]" style={{ letterSpacing: '0.1em' }}>
+                  {referralCode}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-3">
-              <button
-                onClick={handleRegister}
-                disabled={isLoading}
-                className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                style={{ minHeight: '52px' }}
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              {isFriend ? (
+                <button
+                  onClick={handleRegister}
+                  disabled={isLoading}
+                  className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ minHeight: '52px' }}
+                >
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>処理中...</span>
+                    </>
+                  ) : (
+                    '登録を完了する'
+                  )}
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleAddFriend}
+                    className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all flex items-center justify-center gap-2"
+                    style={{ minHeight: '52px' }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
                     </svg>
-                    <span>処理中...</span>
-                  </>
-                ) : (
-                  '登録する'
-                )}
-              </button>
+                    公式LINEを友だち追加
+                  </button>
 
-              <button
-                onClick={handleAddFriend}
-                className="w-full bg-white border-2 border-[#00B900] text-[#00B900] py-4 rounded-xl font-medium hover:bg-green-50 transition-all flex items-center justify-center gap-2"
-                style={{ minHeight: '52px' }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
-                </svg>
-                公式LINEを友だち追加
-              </button>
+                  {referralCode && (
+                    <button
+                      onClick={handleRegister}
+                      disabled={isLoading}
+                      className="w-full bg-white border-2 border-[#00B900] text-[#00B900] py-4 rounded-xl font-medium hover:bg-green-50 transition-all flex items-center justify-center gap-2"
+                      style={{ minHeight: '52px' }}
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>処理中...</span>
+                        </>
+                      ) : (
+                        '友だち追加後に登録'
+                      )}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs text-gray-600 text-center leading-relaxed">
-                登録することで、PreCasからの最新情報や
-                <br />
-                お得なキャンペーン情報をLINEで受け取れます
+                {isFriend ? (
+                  <>
+                    PreCasからの最新情報や
+                    <br />
+                    お得なキャンペーン情報をお届けします
+                  </>
+                ) : (
+                  <>
+                    登録することで、PreCasからの最新情報や
+                    <br />
+                    お得なキャンペーン情報をLINEで受け取れます
+                  </>
+                )}
               </p>
             </div>
           </div>
