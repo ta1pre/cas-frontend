@@ -3,6 +3,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 
 declare global {
   interface Window {
@@ -16,6 +17,7 @@ function MiniAppContent() {
   
   const [userName, setUserName] = useState('')
   const [isFriend, setIsFriend] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<'cast' | 'user' | null>(null)
 
   useEffect(() => {
     const initLiff = async () => {
@@ -49,7 +51,6 @@ function MiniAppContent() {
     initLiff()
   }, [])
 
-
   const handleOpenChat = () => {
     if (window.liff && window.liff.isInClient()) {
       // LINEアプリ内から公式アカウントのトーク画面を開く
@@ -79,10 +80,7 @@ function MiniAppContent() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-[#00B900] text-white p-4 shadow-sm">
-        <div className="max-w-md mx-auto flex items-center justify-center gap-2">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.04 2 10.92c0 2.52 1.19 4.8 3.11 6.41.31.26.49.64.49 1.04 0 .19-.04.38-.11.55L4.5 21.5c-.11.32.03.67.33.83.1.05.21.08.32.08.21 0 .41-.09.55-.25l2.32-2.77c.36-.01.71-.03 1.06-.07 1.05.25 2.14.38 3.24.38 5.52 0 10-4.04 10-9.08C22 6.04 17.52 2 12 2z" fill="currentColor"/>
-          </svg>
+        <div className="max-w-md mx-auto flex items-center justify-center">
           <h1 className="text-lg font-bold">PreCas 公式LINE</h1>
         </div>
       </div>
@@ -92,10 +90,13 @@ function MiniAppContent() {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Welcome Section */}
           <div className="bg-gradient-to-b from-gray-50 to-white p-6 text-center border-b">
-            <div className="w-20 h-20 bg-[#00B900] rounded-full mx-auto mb-4 flex items-center justify-center">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.48 2 2 6.04 2 10.92c0 2.52 1.19 4.8 3.11 6.41.31.26.49.64.49 1.04 0 .19-.04.38-.11.55L4.5 21.5c-.11.32.03.67.33.83.1.05.21.08.32.08.21 0 .41-.09.55-.25l2.32-2.77c.36-.01.71-.03 1.06-.07 1.05.25 2.14.38 3.24.38 5.52 0 10-4.04 10-9.08C22 6.04 17.52 2 12 2z" fill="white"/>
-              </svg>
+            <div className="w-32 h-32 relative mx-auto mb-4">
+              <Image
+                src="/images/common/precas_logo2.jpg"
+                alt="PreCas Logo"
+                fill
+                className="object-contain rounded-xl"
+              />
             </div>
             
             {userName ? (
@@ -122,10 +123,54 @@ function MiniAppContent() {
           <div className="p-6 space-y-6">
             {referralCode && (
               <div className="bg-blue-50 rounded-xl p-4 text-center">
-                <p className="text-sm text-gray-600 mb-1">紹介コード</p>
-                <p className="text-xl font-bold text-[#2E3238]" style={{ letterSpacing: '0.1em' }}>
-                  {referralCode}
+                <p className="text-sm text-gray-800 leading-relaxed">
+                  <span className="font-medium">{referralCode}さん</span>より紹介されました。
+                  <br />
+                  先行登録ボーナスが付与されます。
                 </p>
+              </div>
+            )}
+
+            {/* サービス種別選択 */}
+            {isFriend && (
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-gray-700 text-center">
+                  ご利用のサービスを選択してください
+                </p>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setSelectedRole('cast')}
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                      selectedRole === 'cast'
+                        ? 'border-[#00B900] bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <p className="font-medium text-gray-800 mb-1">
+                      キャスト（施術スタッフ）
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      対応エリアを登録し、アポの日程調整や売上・ポイントを管理できます。
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedRole('user')}
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                      selectedRole === 'user'
+                        ? 'border-[#00B900] bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <p className="font-medium text-gray-800 mb-1">
+                      ご利用者
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      お好みのキャストを検索して予約できます。
+                    </p>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -133,7 +178,12 @@ function MiniAppContent() {
               {isFriend ? (
                 <button
                   onClick={handleOpenChat}
-                  className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all flex items-center justify-center gap-2"
+                  disabled={!selectedRole}
+                  className={`w-full py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                    selectedRole
+                      ? 'bg-[#00B900] text-white hover:bg-[#00A000]'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                   style={{ minHeight: '52px' }}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -142,19 +192,16 @@ function MiniAppContent() {
                   公式LINEを開く
                 </button>
               ) : (
-                <>
-                  <button
-                    onClick={handleAddFriend}
-                    className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all flex items-center justify-center gap-2"
-                    style={{ minHeight: '52px' }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
-                    </svg>
-                    公式LINEを友だち追加
-                  </button>
-
-                </>
+                <button
+                  onClick={handleAddFriend}
+                  className="w-full bg-[#00B900] text-white py-4 rounded-xl font-medium hover:bg-[#00A000] transition-all flex items-center justify-center gap-2"
+                  style={{ minHeight: '52px' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
+                  </svg>
+                  公式LINEを友だち追加
+                </button>
               )}
             </div>
 
@@ -185,7 +232,6 @@ function MiniAppContent() {
           </p>
         </div>
       </div>
-
     </div>
   )
 }
