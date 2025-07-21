@@ -101,9 +101,10 @@ function MiniAppContent() {
         setIsRegistered(true)
         return true
       } else {
-        const errorMsg = `登録失敗: ${result.message || response.statusText} (${response.status})`
+        const errorMsg = `登録失敗: ${result.message || result.detail || response.statusText} (${response.status})`
         console.error('User registration failed:', errorMsg)
-        setErrorMessage(`${errorMsg}\nデバッグ情報: ${debugInfo}\nAPI: ${apiUrl}`)
+        console.error('API Response:', result)
+        setErrorMessage(`${errorMsg}\nデバッグ情報: ${debugInfo}\nAPI: ${apiUrl}\nレスポンス詳細: ${JSON.stringify(result, null, 2)}`)
         return false
       }
     } catch (error) {
