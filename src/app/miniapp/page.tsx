@@ -54,7 +54,7 @@ function MiniAppContent() {
     if (window.liff && window.liff.isInClient()) {
       // LINEアプリ内から公式アカウントのトーク画面を開く
       window.liff.openWindow({
-        url: 'https://line.me/R/oaMessage/@696unbp/',
+        url: 'https://line.me/R/oaMessage/@696unbpu/',
         external: false
       })
       // ミニアプリを閉じる
@@ -63,15 +63,15 @@ function MiniAppContent() {
       }, 1000)
     } else {
       // 外部ブラウザの場合
-      window.open('https://line.me/R/oaMessage/@696unbp/', '_blank')
+      window.open('https://line.me/R/oaMessage/@696unbpu/', '_blank')
     }
   }
 
   const handleAddFriend = () => {
     if (window.liff && window.liff.isInClient()) {
-      window.open('https://line.me/R/ti/p/@696unbp')
+      window.open('https://line.me/R/ti/p/@696unbpu')
     } else {
-      window.open('https://line.me/R/ti/p/@696unbp', '_blank')
+      window.open('https://line.me/R/ti/p/@696unbpu', '_blank')
     }
   }
 
