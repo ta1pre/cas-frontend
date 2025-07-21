@@ -54,20 +54,26 @@ function MiniAppContent() {
   }, [])
 
   const registerUser = async (userType: 'cast' | 'customer') => {
-    if (!window.liff || !window.liff.isLoggedIn()) {
-      console.error('LIFF not initialized or user not logged in')
-      return false
-    }
-
     try {
       setRegistrationLoading(true)
       
-      // LIFF IDトークンを取得
-      const idToken = window.liff.getIDToken()
+      let idToken = 'mock_token_for_development'
+      
+      // LIFF環境の場合はIDトークンを取得
+      if (window.liff && window.liff.isLoggedIn()) {
+        try {
+          idToken = window.liff.getIDToken()
+        } catch (error) {
+          console.warn('LIFF IDトークン取得失敗、開発用トークンを使用:', error)
+        }
+      } else {
+        console.log('LIFF未初期化またはログイン未完了、開発用トークンを使用')
+      }
       
       // APIエンドポイント（環境に応じて変更）
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       
+      // 統一されたAPI呼び出し（ローカル・本番共通）
       const response = await fetch(`${apiUrl}/api/v1/miniapp/register`, {
         method: 'POST',
         headers: {
