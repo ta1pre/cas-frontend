@@ -18,6 +18,8 @@ function MiniAppContent() {
   const [userName, setUserName] = useState('')
   const [isFriend, setIsFriend] = useState(false)
   const [selectedRole, setSelectedRole] = useState<'cast' | 'user' | null>(null)
+  const [isRegistered, setIsRegistered] = useState(false)
+  const [registrationLoading, setRegistrationLoading] = useState(false)
 
   useEffect(() => {
     const initLiff = async () => {
@@ -50,6 +52,65 @@ function MiniAppContent() {
 
     initLiff()
   }, [])
+
+  const registerUser = async (userType: 'cast' | 'customer') => {
+    if (!window.liff || !window.liff.isLoggedIn()) {
+      console.error('LIFF not initialized or user not logged in')
+      return false
+    }
+
+    try {
+      setRegistrationLoading(true)
+      
+      // LIFF IDトークンを取得
+      const idToken = window.liff.getIDToken()
+      
+      // APIエンドポイント（環境に応じて変更）
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      
+      const response = await fetch(`${apiUrl}/api/v1/miniapp/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id_token: idToken,
+          user_type: userType,
+          tracking_id: referralCode || null
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        console.log('User registration successful:', result)
+        setIsRegistered(true)
+        return true
+      } else {
+        console.error('User registration failed:', result.message)
+        return false
+      }
+    } catch (error) {
+      console.error('Error during user registration:', error)
+      return false
+    } finally {
+      setRegistrationLoading(false)
+    }
+  }
+
+  const handleRoleSelection = async (role: 'cast' | 'user') => {
+    setSelectedRole(role)
+    
+    // サービス種別選択時にユーザー登録
+    const userType = role === 'cast' ? 'cast' : 'customer'
+    const success = await registerUser(userType)
+    
+    if (!success) {
+      // 登録失敗時はselectedRoleをリセット
+      setSelectedRole(null)
+      alert('登録に失敗しました。もう一度お試しください。')
+    }
+  }
 
   const handleOpenChat = () => {
     if (window.liff && window.liff.isInClient()) {
@@ -139,12 +200,13 @@ function MiniAppContent() {
               
               <div className="space-y-3">
                 <button
-                  onClick={() => setSelectedRole('cast')}
+                  onClick={() => handleRoleSelection('cast')}
+                  disabled={registrationLoading}
                   className={`w-full p-4 rounded-xl border-2 transition-all text-left transform active:scale-95 ${
                     selectedRole === 'cast'
                       ? 'border-pink-400 bg-pink-50 shadow-md'
                       : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                  }`}
+                  } ${registrationLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <p className="font-medium text-gray-800 mb-1">
                     キャスト（施術スタッフ）
@@ -155,12 +217,13 @@ function MiniAppContent() {
                 </button>
 
                 <button
-                  onClick={() => setSelectedRole('user')}
+                  onClick={() => handleRoleSelection('user')}
+                  disabled={registrationLoading}
                   className={`w-full p-4 rounded-xl border-2 transition-all text-left transform active:scale-95 ${
                     selectedRole === 'user'
                       ? 'border-[#00B900] bg-green-50 shadow-md'
                       : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                  }`}
+                  } ${registrationLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <p className="font-medium text-gray-800 mb-1">
                     ご利用者
