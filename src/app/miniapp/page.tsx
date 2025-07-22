@@ -21,6 +21,7 @@ function MiniAppContent() {
   const [isRegistered, setIsRegistered] = useState(false)
   const [registrationLoading, setRegistrationLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const [debugInfo, setDebugInfo] = useState<any>({})
 
   useEffect(() => {
     const initLiff = async () => {
@@ -33,6 +34,29 @@ function MiniAppContent() {
           if (window.liff.isLoggedIn()) {
             const profile = await window.liff.getProfile()
             setUserName(profile.displayName)
+            
+            // デバッグ情報を収集
+            const liffDebugInfo: any = {
+              isLoggedIn: window.liff.isLoggedIn(),
+              isInClient: window.liff.isInClient(),
+              liffId: window.liff.id,
+              language: window.liff.getLanguage(),
+              version: window.liff.getVersion(),
+              lineVersion: window.liff.getLineVersion(),
+              context: window.liff.getContext(),
+              profile: profile
+            }
+            
+            // IDトークンを試しに取得
+            try {
+              const idToken = window.liff.getIDToken()
+              liffDebugInfo.idToken = idToken ? `${idToken.substring(0, 20)}... (長さ: ${idToken.length})` : 'null'
+              liffDebugInfo.idTokenRaw = idToken // 実際のトークン（デバッグ用）
+            } catch (e: any) {
+              liffDebugInfo.idTokenError = e.message
+            }
+            
+            setDebugInfo(liffDebugInfo)
             
             // 友だち登録状態を確認
             try {
@@ -80,6 +104,18 @@ function MiniAppContent() {
       
       console.log('Debug info:', debugInfo)
       console.log('API URL:', apiUrl)
+      console.log('ID Token first 50 chars:', idToken.substring(0, 50))
+      
+      // デバッグ情報を更新
+      setDebugInfo((prev: any) => ({
+        ...prev,
+        apiCall: {
+          idToken: `${idToken.substring(0, 50)}... (長さ: ${idToken.length})`,
+          userType,
+          trackingId: referralCode || null,
+          apiUrl
+        }
+      }))
       
       // 統一されたAPI呼び出し（ローカル・本番共通）
       const response = await fetch(`${apiUrl}/api/v1/miniapp/register`, {
@@ -307,6 +343,16 @@ function MiniAppContent() {
                 )}
               </p>
             </div>
+            
+            {/* デバッグ情報表示エリア */}
+            {Object.keys(debugInfo).length > 0 && (
+              <div className="bg-gray-100 border border-gray-300 rounded-xl p-4 mt-4">
+                <p className="text-xs font-bold text-gray-700 mb-2">デバッグ情報:</p>
+                <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </div>
+            )}
             
             {/* エラーメッセージ表示エリア */}
             {errorMessage && (
