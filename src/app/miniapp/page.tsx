@@ -21,7 +21,6 @@ function MiniAppContent() {
   const [isRegistered, setIsRegistered] = useState(false)
   const [registrationLoading, setRegistrationLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const [debugInfo, setDebugInfo] = useState<any>({})
 
   useEffect(() => {
     const initLiff = async () => {
@@ -34,29 +33,6 @@ function MiniAppContent() {
           if (window.liff.isLoggedIn()) {
             const profile = await window.liff.getProfile()
             setUserName(profile.displayName)
-            
-            // デバッグ情報を収集
-            const liffDebugInfo: any = {
-              isLoggedIn: window.liff.isLoggedIn(),
-              isInClient: window.liff.isInClient(),
-              liffId: window.liff.id,
-              language: window.liff.getLanguage(),
-              version: window.liff.getVersion(),
-              lineVersion: window.liff.getLineVersion(),
-              context: window.liff.getContext(),
-              profile: profile
-            }
-            
-            // IDトークンを試しに取得
-            try {
-              const idToken = window.liff.getIDToken()
-              liffDebugInfo.idToken = idToken ? `${idToken.substring(0, 20)}... (長さ: ${idToken.length})` : 'null'
-              liffDebugInfo.idTokenRaw = idToken // 実際のトークン（デバッグ用）
-            } catch (e: any) {
-              liffDebugInfo.idTokenError = e.message
-            }
-            
-            setDebugInfo(liffDebugInfo)
             
             // 友だち登録状態を確認
             try {
@@ -79,7 +55,6 @@ function MiniAppContent() {
   }, [])
 
   const registerUser = async (userType: 'cast' | 'customer') => {
-    let debugInfo = '開発モード'
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     
     try {
@@ -92,30 +67,10 @@ function MiniAppContent() {
       if (window.liff && window.liff.isLoggedIn()) {
         try {
           idToken = window.liff.getIDToken()
-          debugInfo = `LIFF IDトークン取得成功 (長さ: ${idToken.length})`
         } catch (error) {
-          console.warn('LIFF IDトークン取得失敗、開発用トークンを使用:', error)
-          debugInfo = `LIFF IDトークン取得失敗: ${error}`
+          // IDトークン取得失敗時は開発用トークンを使用
         }
-      } else {
-        console.log('LIFF未初期化またはログイン未完了、開発用トークンを使用')
-        debugInfo = 'LIFF未初期化またはログイン未完了'
       }
-      
-      console.log('Debug info:', debugInfo)
-      console.log('API URL:', apiUrl)
-      console.log('ID Token first 50 chars:', idToken.substring(0, 50))
-      
-      // デバッグ情報を更新
-      setDebugInfo((prev: any) => ({
-        ...prev,
-        apiCall: {
-          idToken: `${idToken.substring(0, 50)}... (長さ: ${idToken.length})`,
-          userType,
-          trackingId: referralCode || null,
-          apiUrl
-        }
-      }))
       
       // 統一されたAPI呼び出し（ローカル・本番共通）
       const response = await fetch(`${apiUrl}/api/v1/miniapp/register`, {
@@ -133,20 +88,14 @@ function MiniAppContent() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        console.log('User registration successful:', result)
         setIsRegistered(true)
         return true
       } else {
-        const errorMsg = `登録失敗: ${result.message || result.detail || response.statusText} (${response.status})`
-        console.error('User registration failed:', errorMsg)
-        console.error('API Response:', result)
-        setErrorMessage(`${errorMsg}\nデバッグ情報: ${debugInfo}\nAPI: ${apiUrl}\nレスポンス詳細: ${JSON.stringify(result, null, 2)}`)
+        setErrorMessage(result.message || result.detail || '登録に失敗しました')
         return false
       }
     } catch (error) {
-      console.error('Error during user registration:', error)
-      const errorMsg = error instanceof Error ? error.message : String(error)
-      setErrorMessage(`エラー: ${errorMsg}\nAPI: ${apiUrl}\nデバッグ: ${debugInfo}`)
+      setErrorMessage('登録に失敗しました。もう一度お試しください。')
       return false
     } finally {
       setRegistrationLoading(false)
@@ -344,20 +293,10 @@ function MiniAppContent() {
               </p>
             </div>
             
-            {/* デバッグ情報表示エリア */}
-            {Object.keys(debugInfo).length > 0 && (
-              <div className="bg-gray-100 border border-gray-300 rounded-xl p-4 mt-4">
-                <p className="text-xs font-bold text-gray-700 mb-2">デバッグ情報:</p>
-                <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                  {JSON.stringify(debugInfo, null, 2)}
-                </pre>
-              </div>
-            )}
-            
             {/* エラーメッセージ表示エリア */}
             {errorMessage && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
-                <p className="text-sm text-red-800 whitespace-pre-wrap font-mono">
+                <p className="text-sm text-red-800">
                   {errorMessage}
                 </p>
               </div>
