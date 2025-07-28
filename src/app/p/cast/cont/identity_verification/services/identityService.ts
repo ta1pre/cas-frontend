@@ -211,72 +211,73 @@ export const uploadFile = async (file: File, orderIndex: number) => {
   }
 };
 
-// 銀行口座情報を取得する
-export const getBankAccount = async () => {
+// 基本身分証をアップロードする
+export const uploadBasicDocument = async (file: File, documentType: string) => {
   try {
-    const statusResp = await fetchAPI('/api/v1/cast/identity-verification/status', undefined, 'GET');
-    if (!statusResp) return null;
-
-    const {
-      bank_name,
-      branch_name,
-      branch_code,
-      account_type,
-      account_number,
-      account_holder,
-    } = statusResp;
-
-    if (!bank_name) return null; // 未登録
-
-    return {
-      bank_name,
-      branch_name,
-      branch_code,
-      account_type,
-      account_number,
-      account_holder,
-    };
-  } catch (error) {
-    console.error('🚫 getBankAccountエラー:', error);
-    return null;
-  }
-};
-
-// 銀行口座情報を更新する
-export const updateBankAccount = async (data: { 
-  bank_name: string,
-  branch_name: string,
-  branch_code: string,
-  account_type: string,
-  account_number: string,
-  account_holder: string
-}) => {
-  try {
-    console.log('✅ identityService: updateBankAccount開始');
-    console.log('✅ APIリクエストデータ:', data);
+    console.log('✅ identityService: uploadBasicDocument開始');
     
-    // 絶対パスを使用せず、エンドポイントのみを指定
-    const response = await fetchAPI('/api/v1/cast/identity-verification/update-bank-account', data);
-
-    console.log('✅ APIレスポンスデータ:', response);
+    // ファイルをアップロード
+    const uploadResult = await uploadFile(file, 0); // orderIndex 0 for basic document
+    
+    const data = {
+      id_photo_media_id: uploadResult.mediaId,
+      document_type: documentType
+    };
+    
+    const response = await fetchAPI('/api/v1/cast/identity-verification/upload-basic', data);
+    console.log('✅ uploadBasicDocument レスポンス:', response);
     return response;
   } catch (error) {
-    console.error('🚫 updateBankAccountエラー:', error);
+    console.error('🚫 uploadBasicDocumentエラー:', error);
     throw error;
   }
 };
 
-// 本人確認申請を提出する
+// 住民票をアップロードする
+export const uploadResidenceDocument = async (file: File) => {
+  try {
+    console.log('✅ identityService: uploadResidenceDocument開始');
+    
+    // ファイルをアップロード
+    const uploadResult = await uploadFile(file, 1); // orderIndex 1 for residence document
+    
+    const data = {
+      juminhyo_media_id: uploadResult.mediaId
+    };
+    
+    const response = await fetchAPI('/api/v1/cast/identity-verification/upload-residence', data);
+    console.log('✅ uploadResidenceDocument レスポンス:', response);
+    return response;
+  } catch (error) {
+    console.error('🚫 uploadResidenceDocumentエラー:', error);
+    throw error;
+  }
+};
+
+// アップロード進捗を取得する
+export const getUploadProgress = async () => {
+  try {
+    const response = await fetchAPI('/api/v1/cast/identity-verification/progress', undefined, 'GET');
+    return response;
+  } catch (error) {
+    console.error('🚫 getUploadProgressエラー:', error);
+    return {
+      status: 'unsubmitted',
+      progress: {
+        basic_document: { uploaded: false },
+        residence_document: { uploaded: false }
+      },
+      completion_rate: 0,
+      current_step: 'basic'
+    };
+  }
+};
+
+// 本人確認申請を提出する（旧バージョン、将来削除予定）
 export const submitVerification = async (data: { 
   service_type: string, 
   id_photo_media_id: number, 
-  juminhyo_media_id?: number | null,
-  bank_name?: string,
-  branch_name?: string,
-  branch_code?: string,
-  account_type?: string,
-  account_number?: string,
-  account_holder?: string
+  juminhyo_media_id?: number | null
 } = { 
   service_type: 'A', 
   id_photo_media_id: 0, 

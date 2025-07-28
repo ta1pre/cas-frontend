@@ -1,11 +1,27 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Paper, Box, Button, Stepper, Step, StepLabel, CircularProgress } from '@mui/material';
-import IdentityVerificationForm from './components/IdentityVerificationForm';
-import BankAccountCard from './components/BankAccountCard';
+import { 
+  Container, 
+  Typography, 
+  Paper, 
+  Box, 
+  Button, 
+  Stepper, 
+  Step, 
+  StepLabel, 
+  CircularProgress,
+  LinearProgress,
+  Alert
+} from '@mui/material';
 import VerificationStatus from './components/VerificationStatus';
-import { getVerificationStatus, getBankAccount, submitVerification } from './services/identityService';
+import DocumentUploadCard from './components/DocumentUploadCard';
+import { 
+  getVerificationStatus, 
+  getUploadProgress,
+  uploadBasicDocument,
+  uploadResidenceDocument
+} from './services/identityService';
 
 interface VerificationDataType {
   status: string;
@@ -15,118 +31,127 @@ interface VerificationDataType {
   rejection_reason: string | null;
 }
 
-interface BankAccount {
-  bank_name: string;
-  branch_name: string;
-  branch_code: string;
-  account_type: string;
-  account_number: string;
-  account_holder: string;
+interface UploadProgressType {
+  status: string;
+  progress: {
+    basic_document: {
+      uploaded: boolean;
+      uploaded_at?: string | null;
+      file_name?: string | null;
+    };
+    residence_document: {
+      uploaded: boolean;
+      uploaded_at?: string | null;
+      file_name?: string | null;
+    };
+  };
+  completion_rate: number;
+  current_step: string;
+  next_action?: string;
 }
 
 const IdentityVerificationPage = () => {
-  const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
-  const [bankSaved, setBankSaved] = useState(false);
-
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressType | null>(null);
   
   // 本人確認ステータスの状態
   const [verificationData, setVerificationData] = useState<VerificationDataType>({
-    status: 'unsubmitted', // unsubmitted, pending, approved, rejected
+    status: 'unsubmitted',
     message: '',
     submitted_at: null,
     reviewed_at: null,
     rejection_reason: null
   });
 
-  const steps = ['口座情報', '身分証アップロード', '審査待ち'];
+  const steps = ['基本身分証', '住民票', '審査'];
 
-  // 初期ロード時に本人確認ステータスを取得
+  // 初期ロード時にステータスを取得
   useEffect(() => {
-    fetchVerificationStatus();
-    fetchBankAccount();
+    fetchInitialData();
   }, []);
 
-  // 銀行口座取得
-  const fetchBankAccount = async () => {
-    try {
-      const data = await getBankAccount();
-      if (data) {
-        setBankAccount(data);
-        setBankSaved(true);
-      }
-    } catch (e) {
-      console.error('銀行口座取得エラー', e);
-    }
-  };
-
-  // 本人確認ステータスを取得
-  const fetchVerificationStatus = async () => {
+  // 初期データを取得
+  const fetchInitialData = async () => {
     try {
       setIsLoading(true);
-      const response = await getVerificationStatus();
-      console.log('本人確認ステータスレスポンス:', response);
+      const [statusData, progressData] = await Promise.all([
+        getVerificationStatus(),
+        getUploadProgress()
+      ]);
       
-      // レスポンスがnullの場合のデフォルト値を設定
-      if (response === null) {
-        setVerificationData({
-          status: 'unsubmitted',
-          message: '',
-          submitted_at: null,
-          reviewed_at: null,
-          rejection_reason: null
-        });
-      } else {
-        setVerificationData(response);
+      if (statusData) {
+        setVerificationData(statusData);
       }
       
-      // ステータスに応じてステップを設定
-      if (response && (response.status === 'pending' || response.status === 'approved')) {
-        setActiveStep(2);
+      if (progressData) {
+        setUploadProgress(progressData);
+        
+        // 進捗に応じてステップを設定
+        if (progressData.status === 'pending' || progressData.status === 'approved') {
+          setActiveStep(2);
+        } else if (progressData.progress.basic_document.uploaded && !progressData.progress.residence_document.uploaded) {
+          setActiveStep(1);
+        } else {
+          setActiveStep(0);
+        }
       }
+      
     } catch (error) {
-      console.error('本人確認ステータス取得エラー:', error);
-      // エラー時はデフォルト値を設定
-      setVerificationData({
-        status: 'unsubmitted',
-        message: '',
-        submitted_at: null,
-        reviewed_at: null,
-        rejection_reason: null
-      });
+      console.error('初期データ取得エラー:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  // 基本身分証をアップロード
+  const handleBasicDocumentUpload = async (file: File, documentType: string) => {
+    try {
+      setIsUploading(true);
+      const response = await uploadBasicDocument(file, documentType);
+      
+      if (response.success) {
+        // 進捗を更新
+        await fetchInitialData();
+        setActiveStep(1);
+      }
+    } catch (error) {
+      console.error('基本身分証アップロードエラー:', error);
+      alert('基本身分証のアップロードに失敗しました。もう一度お試しください。');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 住民票をアップロード
+  const handleResidenceDocumentUpload = async (file: File) => {
+    try {
+      setIsUploading(true);
+      const response = await uploadResidenceDocument(file);
+      
+      if (response.success) {
+        // 進捗を更新
+        await fetchInitialData();
+        setActiveStep(2);
+      }
+    } catch (error) {
+      console.error('住民票アップロードエラー:', error);
+      alert('住民票のアップロードに失敗しました。もう一度お試しください。');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
-
-  const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      // 本人確認申請の提出はIdentityVerificationFormコンポーネントで行うため、ここでは呼び出さない
-      // const response = await submitVerification();
-      // setVerificationData(response);
-      handleNext();
-    } catch (error) {
-      console.error('本人確認申請エラー:', error);
-      alert('本人確認申請に失敗しました。もう一度お試しください。');
-    } finally {
-      setIsSubmitting(false);
+    if (activeStep > 0) {
+      setActiveStep(activeStep - 1);
     }
   };
 
   const handleResubmit = () => {
-    // 再提出の場合はステップを1に戻す
-    setActiveStep(1);
+    setActiveStep(0);
+    fetchInitialData();
   };
 
   if (isLoading) {
@@ -144,7 +169,7 @@ const IdentityVerificationPage = () => {
           本人確認
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          安全なサービス提供のため、本人確認書類のアップロードをお願いします。
+          安全なサービス提供のため、身分証明書のアップロードをお願いします。
         </Typography>
 
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -155,7 +180,22 @@ const IdentityVerificationPage = () => {
           ))}
         </Stepper>
 
-        {verificationData && verificationData.status !== 'unsubmitted' && verificationData.status !== 'rejected' ? (
+        {/* 進捗表示 */}
+        {uploadProgress && uploadProgress.completion_rate > 0 && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              進捗: {uploadProgress.completion_rate}%
+            </Typography>
+            <LinearProgress 
+              variant="determinate" 
+              value={uploadProgress.completion_rate} 
+              sx={{ mb: 2 }}
+            />
+          </Box>
+        )}
+
+        {/* 完了済みまたは審査中の場合 */}
+        {verificationData && (verificationData.status === 'pending' || verificationData.status === 'approved') ? (
           <VerificationStatus 
             status={verificationData.status} 
             message={verificationData.rejection_reason || ''} 
@@ -164,26 +204,41 @@ const IdentityVerificationPage = () => {
           />
         ) : (
           <>
+            {/* Step 0: 基本身分証アップロード */}
             {activeStep === 0 && (
-              <BankAccountCard
-                initialAccount={bankAccount}
-                onSaveSuccess={(acc) => {
-                  setBankAccount(acc);
-                  setBankSaved(true);
-                }}
+              <DocumentUploadCard
+                title="基本身分証をアップロード"
+                subtitle="写真付きの身分証明書をアップロードしてください"
+                acceptedTypes={['運転免許証', 'マイナンバーカード', 'パスポート', '住民基本台帳カード']}
+                onUpload={handleBasicDocumentUpload}
+                isUploading={isUploading}
+                uploadedFile={uploadProgress?.progress.basic_document}
               />
             )}
 
+            {/* Step 1: 住民票アップロード */}
             {activeStep === 1 && (
-              <IdentityVerificationForm 
-                onSubmitSuccess={handleNext} 
-                defaultServiceType={'B'}
-                hideServiceTypeSelection={true}
-              />
+              <Box>
+                <Alert severity="success" sx={{ mb: 3 }}>
+                  ✅ 基本身分証のアップロードが完了しました！
+                </Alert>
+                <DocumentUploadCard
+                  title="住民票をアップロード"
+                  subtitle="発行から3ヶ月以内の住民票をアップロードしてください"
+                  acceptedTypes={['住民票（PDF・JPG・PNG）']}
+                  onUpload={(file) => handleResidenceDocumentUpload(file)}
+                  isUploading={isUploading}
+                  uploadedFile={uploadProgress?.progress.residence_document}
+                />
+              </Box>
             )}
 
+            {/* Step 2: 審査待ち */}
             {activeStep === 2 && (
               <Box sx={{ textAlign: 'center', py: 3 }}>
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  📋 本人確認書類の提出が完了しました！
+                </Alert>
                 <Typography variant="h6" gutterBottom>
                   書類の審査中です
                 </Typography>
@@ -194,36 +249,28 @@ const IdentityVerificationPage = () => {
               </Box>
             )}
 
+            {/* ナビゲーションボタン */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
               <Button
-                disabled={activeStep === 0 || isSubmitting}
+                disabled={activeStep === 0 || isUploading}
                 onClick={handleBack}
                 variant="outlined"
               >
                 戻る
               </Button>
-              {activeStep === steps.length - 1 ? (
+              {activeStep === steps.length - 1 && (
                 <Button
                   variant="contained"
                   onClick={() => window.location.href = '/p/cast/cont/dashboard'}
                 >
-                  完了
+                  ダッシュボードに戻る
                 </Button>
-              ) : activeStep === 0 ? (
-                <Button
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={!bankSaved || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : '次へ'}
-                </Button>
-              ) : null}
+              )}
             </Box>
           </>
         )}
 
+        {/* 却下された場合の再提出 */}
         {verificationData && verificationData.status === 'rejected' && (
           <VerificationStatus 
             status={verificationData.status} 

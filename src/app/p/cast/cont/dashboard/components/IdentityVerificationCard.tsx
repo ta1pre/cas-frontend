@@ -74,7 +74,7 @@ const IdentityVerificationCard: React.FC<IdentityVerificationCardProps> = ({
     <Paper elevation={2} sx={{ p: 3, height: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" component="h2">
-          本人確認と口座登録
+          本人確認
         </Typography>
         <Chip
           icon={statusInfo.icon}
