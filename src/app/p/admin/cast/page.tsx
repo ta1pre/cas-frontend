@@ -15,6 +15,9 @@ import {
   Box,
   TableSortLabel,
   Button,
+  Avatar,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import { fetchAPI } from "@/services/auth/axiosInterceptor";
 import {
@@ -36,6 +39,8 @@ interface CastItem {
   id: number;
   nick_name?: string | null;
   status: string;
+  thumbnail_url?: string | null;
+  document_count?: number;
 }
 
 interface CastListResponse {
@@ -164,6 +169,26 @@ export default function AdminCastListPage() {
     setTargetCast(null);
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "warning";
+      case "approved": return "success";
+      case "rejected": return "error";
+      case "unsubmitted": return "default";
+      default: return "default";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending": return "審査中";
+      case "approved": return "承認済";
+      case "rejected": return "却下";
+      case "unsubmitted": return "未提出";
+      default: return status;
+    }
+  };
+
   const handleRequestSort = (property: keyof CastItem) => {
     const isAsc = orderBy === property && order === "asc";
     const newOrder = isAsc ? "desc" : "asc";
@@ -199,6 +224,9 @@ export default function AdminCastListPage() {
                     ID
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>
+                  サムネイル
+                </TableCell>
                 <TableCell sortDirection={orderBy === "nick_name" ? order : false}>
                   <TableSortLabel
                     active={orderBy === "nick_name"}
@@ -218,7 +246,10 @@ export default function AdminCastListPage() {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
-                  画像確認
+                  書類数
+                </TableCell>
+                <TableCell>
+                  操作
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -226,19 +257,68 @@ export default function AdminCastListPage() {
               {data.map((cast) => (
                 <TableRow key={`${cast.id}-${order}-${orderBy}`} hover>
                   <TableCell>{cast.id}</TableCell>
+                  <TableCell>
+                    <Tooltip title="クリックで画像を確認">
+                      {cast.thumbnail_url ? (
+                        <Avatar
+                          src={cast.thumbnail_url}
+                          alt="身分証"
+                          sx={{ 
+                            width: 60, 
+                            height: 60, 
+                            cursor: "pointer",
+                            border: "1px solid #e0e0e0",
+                            "&:hover": {
+                              opacity: 0.8,
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+                            }
+                          }}
+                          onClick={() => router.push(`/p/admin/cast/${cast.id}/identity`)}
+                        />
+                      ) : (
+                        <Avatar
+                          sx={{ 
+                            width: 60, 
+                            height: 60, 
+                            bgcolor: "grey.300",
+                            color: "grey.600"
+                          }}
+                        >
+                          -
+                        </Avatar>
+                      )}
+                    </Tooltip>
+                  </TableCell>
                   <TableCell>{cast.nick_name || "-"}</TableCell>
                   <TableCell>
-                    <Select
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <Chip
+                        label={getStatusLabel(cast.status)}
+                        size="small"
+                        color={getStatusColor(cast.status) as any}
+                        variant="filled"
+                      />
+                      <Select
+                        size="small"
+                        value={cast.status}
+                        onChange={(e) => handleSelectChange(cast, e as any)}
+                        sx={{ minWidth: "100px" }}
+                      >
+                        {STATUS_OPTIONS.map((opt) => (
+                          <MenuItem key={opt} value={opt}>
+                            {getStatusLabel(opt)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={`${cast.document_count || 0}件`}
                       size="small"
-                      value={cast.status}
-                      onChange={(e) => handleSelectChange(cast, e as any)}
-                    >
-                      {STATUS_OPTIONS.map((opt) => (
-                        <MenuItem key={opt} value={opt}>
-                          {opt}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                      color={(cast.document_count || 0) > 0 ? "primary" : "default"}
+                      variant={(cast.document_count || 0) > 0 ? "filled" : "outlined"}
+                    />
                   </TableCell>
                   <TableCell>
                     <Button
@@ -247,7 +327,7 @@ export default function AdminCastListPage() {
                       color="secondary"
                       onClick={() => router.push(`/p/admin/cast/${cast.id}/identity`)}
                     >
-                      確認
+                      詳細確認
                     </Button>
                   </TableCell>
                 </TableRow>

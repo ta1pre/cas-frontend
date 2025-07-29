@@ -7,16 +7,18 @@ import {
   Typography,
   Button,
   Box,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   CircularProgress,
   Alert,
-  Chip
+  Chip,
+  IconButton
 } from '@mui/material';
-import { CloudUpload, CheckCircle } from '@mui/icons-material';
+import { 
+  CloudUpload, 
+  CheckCircle, 
+  PhotoCamera,
+  InsertDriveFile,
+  Close
+} from '@mui/icons-material';
 
 interface DocumentUploadCardProps {
   title: string;
@@ -40,9 +42,9 @@ export default function DocumentUploadCard({
   uploadedFile
 }: DocumentUploadCardProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [documentType, setDocumentType] = useState<string>('license');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const isBasicDocument = acceptedTypes.includes('運転免許証');
 
@@ -50,6 +52,17 @@ export default function DocumentUploadCard({
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      
+      // 画像プレビューの生成
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setPreviewUrl(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewUrl(null);
+      }
     }
   };
 
@@ -60,6 +73,17 @@ export default function DocumentUploadCard({
     const file = event.dataTransfer.files?.[0];
     if (file) {
       setSelectedFile(file);
+      
+      // 画像プレビューの生成
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setPreviewUrl(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewUrl(null);
+      }
     }
   };
 
@@ -75,11 +99,20 @@ export default function DocumentUploadCard({
   const handleUpload = () => {
     if (selectedFile) {
       if (isBasicDocument) {
-        onUpload(selectedFile, documentType);
+        onUpload(selectedFile, 'license'); // デフォルトで運転免許証
       } else {
         onUpload(selectedFile);
       }
       setSelectedFile(null);
+      setPreviewUrl(null);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -139,96 +172,151 @@ export default function DocumentUploadCard({
           </Box>
         </Box>
 
-        {/* 基本身分証の場合は書類タイプ選択 */}
-        {isBasicDocument && (
-          <FormControl component="fieldset" sx={{ mb: 3 }}>
-            <FormLabel component="legend">身分証の種類</FormLabel>
-            <RadioGroup
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
-              row
+
+        {/* ファイル選択状態 */}
+        {selectedFile ? (
+          <Box sx={{ mb: 3 }}>
+            {/* プレビューまたはファイル情報 */}
+            {previewUrl ? (
+              <Box sx={{ position: 'relative', mb: 2 }}>
+                <img 
+                  src={previewUrl} 
+                  alt="プレビュー" 
+                  style={{ 
+                    width: '100%', 
+                    maxHeight: '300px', 
+                    objectFit: 'contain',
+                    borderRadius: '8px',
+                    backgroundColor: '#f5f5f5'
+                  }} 
+                />
+                <IconButton
+                  onClick={clearSelection}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    }
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              </Box>
+            ) : (
+              <Box 
+                sx={{ 
+                  p: 3, 
+                  bgcolor: 'grey.100', 
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <InsertDriveFile color="action" sx={{ fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="body1">{selectedFile.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </Typography>
+                  </Box>
+                </Box>
+                <IconButton onClick={clearSelection}>
+                  <Close />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        ) : (
+          /* ファイル選択エリア（スマホ最適化） */
+          <Box sx={{ mb: 3 }}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept=".jpg,.jpeg,.png,.pdf"
+              style={{ display: 'none' }}
+            />
+            
+            {/* カメラボタン（メイン） */}
+            <Button
+              variant="contained"
+              fullWidth
+              size="large"
+              startIcon={<PhotoCamera />}
+              onClick={openFileDialog}
+              sx={{ 
+                mb: 2,
+                py: 2,
+                fontSize: '1rem',
+                fontWeight: 'bold'
+              }}
             >
-              <FormControlLabel value="license" control={<Radio />} label="運転免許証" />
-              <FormControlLabel value="mynumber" control={<Radio />} label="マイナンバーカード" />
-              <FormControlLabel value="passport" control={<Radio />} label="パスポート" />
-              <FormControlLabel value="basic_resident_card" control={<Radio />} label="住民基本台帳カード" />
-            </RadioGroup>
-          </FormControl>
+              写真を撮影・選択
+            </Button>
+            
+            {/* ドラッグ&ドロップエリア（PC向け） */}
+            <Box
+              sx={{
+                border: '2px dashed',
+                borderColor: dragOver ? 'primary.main' : 'grey.300',
+                borderRadius: 2,
+                p: 3,
+                textAlign: 'center',
+                backgroundColor: dragOver ? 'action.hover' : 'grey.50',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: { xs: 'none', sm: 'block' }
+              }}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={openFileDialog}
+            >
+              <CloudUpload sx={{ fontSize: 40, color: 'grey.400', mb: 1 }} />
+              <Typography variant="body2" color="text.secondary">
+                パソコンからドラッグ&ドロップ
+              </Typography>
+            </Box>
+          </Box>
         )}
 
-        {/* ファイルドロップエリア */}
-        <Box
-          sx={{
-            border: '2px dashed',
-            borderColor: dragOver ? 'primary.main' : 'grey.300',
-            borderRadius: 2,
-            p: 4,
-            textAlign: 'center',
-            backgroundColor: dragOver ? 'action.hover' : 'transparent',
-            cursor: 'pointer',
-            mb: 2,
-            transition: 'all 0.2s ease'
-          }}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={openFileDialog}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            accept=".jpg,.jpeg,.png,.pdf"
-            style={{ display: 'none' }}
-          />
-          
-          <CloudUpload sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-          
-          {selectedFile ? (
-            <Box>
-              <Typography variant="body1" gutterBottom>
-                選択されたファイル: {selectedFile.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                サイズ: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-              </Typography>
-            </Box>
-          ) : (
-            <Box>
-              <Typography variant="body1" gutterBottom>
-                ファイルをドラッグ&ドロップ または クリックして選択
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                JPG, PNG, PDF形式（最大10MB）
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
         {/* アップロードボタン */}
-        <Button
-          variant="contained"
-          onClick={handleUpload}
-          disabled={!selectedFile || isUploading}
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          {isUploading ? (
-            <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-              アップロード中...
-            </>
-          ) : (
-            'アップロード'
-          )}
-        </Button>
+        {selectedFile && (
+          <Button
+            variant="contained"
+            onClick={handleUpload}
+            disabled={isUploading}
+            fullWidth
+            size="large"
+            sx={{ 
+              py: 1.5,
+              fontSize: '1rem',
+              fontWeight: 'bold'
+            }}
+          >
+            {isUploading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
+                アップロード中...
+              </>
+            ) : (
+              'アップロードする'
+            )}
+          </Button>
+        )}
 
-        {/* 注意事項 */}
-        <Alert severity="info" sx={{ mt: 2 }}>
-          <Typography variant="body2">
-            • ファイルサイズは10MB以下にしてください<br />
-            • 文字がはっきりと読める画質でアップロードしてください<br />
-            • 書類全体が写るように撮影してください
+        {/* 注意事項（コンパクトに） */}
+        <Alert severity="info" sx={{ mt: 2 }} icon={false}>
+          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+            📌 ファイルは10MB以下<br />
+            📌 文字がはっきり読める画質で<br />
+            📌 書類全体が写るように撮影
           </Typography>
         </Alert>
       </CardContent>

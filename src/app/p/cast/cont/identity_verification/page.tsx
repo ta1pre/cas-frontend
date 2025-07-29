@@ -109,16 +109,24 @@ const IdentityVerificationPage = () => {
   const handleBasicDocumentUpload = async (file: File, documentType: string) => {
     try {
       setIsUploading(true);
-      const response = await uploadBasicDocument(file, documentType);
+      console.log('基本身分証アップロード開始:', { fileName: file.name, documentType });
       
-      if (response.success) {
+      const response = await uploadBasicDocument(file, documentType);
+      console.log('アップロードレスポンス:', response);
+      
+      if (response && response.success) {
+        console.log('アップロード成功');
         // 進捗を更新
         await fetchInitialData();
         setActiveStep(1);
+        alert('基本身分証のアップロードが完了しました！');
+      } else {
+        throw new Error(response?.message || 'アップロードに失敗しました');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('基本身分証アップロードエラー:', error);
-      alert('基本身分証のアップロードに失敗しました。もう一度お試しください。');
+      const errorMessage = error?.response?.data?.detail || error?.message || '基本身分証のアップロードに失敗しました。もう一度お試しください。';
+      alert(errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -128,16 +136,24 @@ const IdentityVerificationPage = () => {
   const handleResidenceDocumentUpload = async (file: File) => {
     try {
       setIsUploading(true);
-      const response = await uploadResidenceDocument(file);
+      console.log('住民票アップロード開始:', { fileName: file.name });
       
-      if (response.success) {
+      const response = await uploadResidenceDocument(file);
+      console.log('住民票アップロードレスポンス:', response);
+      
+      if (response && response.success) {
+        console.log('住民票アップロード成功');
         // 進捗を更新
         await fetchInitialData();
         setActiveStep(2);
+        alert('住民票のアップロードが完了しました！');
+      } else {
+        throw new Error(response?.message || 'アップロードに失敗しました');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('住民票アップロードエラー:', error);
-      alert('住民票のアップロードに失敗しました。もう一度お試しください。');
+      const errorMessage = error?.response?.data?.detail || error?.message || '住民票のアップロードに失敗しました。もう一度お試しください。';
+      alert(errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -163,16 +179,24 @@ const IdentityVerificationPage = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <Container maxWidth="sm" sx={{ py: { xs: 2, sm: 4 } }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography variant="h5" component="h1" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
           本人確認
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
           安全なサービス提供のため、身分証明書のアップロードをお願いします。
         </Typography>
 
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+        <Stepper 
+          activeStep={activeStep} 
+          sx={{ 
+            mb: 3,
+            '& .MuiStepLabel-label': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }
+            }
+          }}
+        >
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -250,11 +274,21 @@ const IdentityVerificationPage = () => {
             )}
 
             {/* ナビゲーションボタン */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              mt: 3,
+              gap: 2,
+              flexDirection: { xs: 'column', sm: 'row' }
+            }}>
               <Button
                 disabled={activeStep === 0 || isUploading}
                 onClick={handleBack}
                 variant="outlined"
+                sx={{ 
+                  order: { xs: 2, sm: 1 },
+                  py: { xs: 1.5, sm: 1 }
+                }}
               >
                 戻る
               </Button>
@@ -262,6 +296,10 @@ const IdentityVerificationPage = () => {
                 <Button
                   variant="contained"
                   onClick={() => window.location.href = '/p/cast/cont/dashboard'}
+                  sx={{ 
+                    order: { xs: 1, sm: 2 },
+                    py: { xs: 1.5, sm: 1 }
+                  }}
                 >
                   ダッシュボードに戻る
                 </Button>
